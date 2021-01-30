@@ -25,5 +25,8 @@ Auto Session exposes two commands that can be used or mapped to any keybindings 
 Note: the plugin uses these same functions internally for the automatic behaviour wrapping it with only a few extra checks for consistency.
 
 # Showcase
-### Resoring session
-<img src="https://github.com/ronniemagatti/readme-assets/blob/main/auto-session-restore.gif" width=500 />
+### Automatic Sessions
+Sessions are saved automatically on exit and restored automatically on enter.
+<img src="https://github.com/ronniemagatti/readme-assets/blob/main/session-example.gif" width="1000" />
+
+
