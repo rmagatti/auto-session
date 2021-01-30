@@ -1,5 +1,14 @@
 # Description
-Auto Session takes advantage of Neovim's existing session management capabilities to provide seamless automatic session management.
+Auto Session takes advantage of Neovim's existing session management capabilities to provide seamless automatic session management.  
+
+<img src="https://github.com/ronniemagatti/readme-assets/blob/main/session-example.gif" width="1000" />
+
+# Behaviour
+- When starting `nvim` with no arguments, auto-session will try to restore an existing session for the current `cwd` if one exists.
+- When starting `nvim .` with some argument, auto-session will do nothing.
+- Even after starting `nvim` with an argument, a session can still be manually restored by running `:RestoreSession`.
+- Any session saving and restoration takes into consideration the current working directory `cwd`. One can optionally bypass this behaviour by specifying a directory path when calling the commands `SaveSessionOn` and `RestoreSessionFrom`.
+
 
 # Installation
 Any plugin manager should do, I use https://github.com/junegunn/vim-plug
@@ -23,10 +32,3 @@ Auto Session exposes two commands that can be used or mapped to any keybindings 
 :RestoreSession " restores a previously saved session based on the `cwd`.
 ```
 Note: the plugin uses these same functions internally for the automatic behaviour wrapping it with only a few extra checks for consistency.
-
-# Showcase
-### Automatic Sessions
-Sessions are saved automatically on exit and restored automatically on enter.
-<img src="https://github.com/ronniemagatti/readme-assets/blob/main/session-example.gif" width="1000" />
-
-
