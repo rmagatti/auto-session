@@ -22,5 +22,8 @@ Auto Session exposes two commands that can be used or mapped to any keybindings 
 :SaveSession " saves or creates a session in the currently set `auto_session_root_dir`.
 :RestoreSession " restores a previously saved session based on the `cwd`.
 ```
-
 Note: the plugin uses these same functions internally for the automatic behaviour wrapping it with only a few extra checks for consistency.
+
+# Showcase
+### Resoring session
+<img src="https://media.giphy.com/media/Tjpevf5WuXPwgHxiBi/giphy.gif" width=500 />
