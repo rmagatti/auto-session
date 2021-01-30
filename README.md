@@ -26,4 +26,4 @@ Note: the plugin uses these same functions internally for the automatic behaviou
 
 # Showcase
 ### Resoring session
-<img src="https://media.giphy.com/media/Tjpevf5WuXPwgHxiBi/giphy.gif" width=500 />
+<img src="https://github.com/ronniemagatti/readme-assets/blob/main/auto-session-restore.gif" width=500 />
