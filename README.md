@@ -12,7 +12,8 @@ Any plugin manager should do, I use https://github.com/junegunn/vim-plug
 Auto Session by default uses the directory `~/.config/nvim/sessions/` to store sessions.
 
 ### Custom
-Use `let g:auto_session_root_dir = path/to/my/custom/dir` to set a custom directory for sessions. 
+Use `let g:auto_session_root_dir = path/to/my/custom/dir` to set a custom directory for sessions.
+
 :warning: WARNING :warning: the directory must already exist or the plugin will not load and exit with an error.
 
 # Commands
