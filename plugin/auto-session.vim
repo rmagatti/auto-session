@@ -4,6 +4,8 @@ let s:save_cpo = &cpo " save user coptions
 set cpo&vim " reset them to defaults
 
 " Available commands
+command! -nargs=1 SaveSessionOn lua require'auto-session'.SaveSession(<args>)
+command! -nargs=1 RestoreSessionFrom lua require'auto-session'.RestoreSession(<args>)
 command! SaveSession lua require'auto-session'.SaveSession()
 command! RestoreSession lua require'auto-session'.RestoreSession()
 
