@@ -13,7 +13,7 @@ Auto Session takes advantage of Neovim's existing session management capabilitie
 # Installation
 Any plugin manager should do, I use https://github.com/junegunn/vim-plug
 
-`Plug 'ronniemagatti/auto-session'`
+`Plug 'rmagatti/auto-session'`
 
 # Configuration
 
