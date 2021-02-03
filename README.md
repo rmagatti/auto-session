@@ -11,7 +11,7 @@ Auto Session takes advantage of Neovim's existing session management capabilitie
 
 
 # Installation
-Any plugin manager should do, I use (https://github.com/junegunn/vim-plug)[Vim Plug]
+Any plugin manager should do, I use [Plug](https://github.com/junegunn/vim-plug).
 
 `Plug 'rmagatti/auto-session'`
 
