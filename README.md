@@ -11,7 +11,7 @@ Auto Session takes advantage of Neovim's existing session management capabilitie
 
 
 # Installation
-Any plugin manager should do, I use https://github.com/junegunn/vim-plug
+Any plugin manager should do, I use (Vim Plug)[https://github.com/junegunn/vim-plug]
 
 `Plug 'rmagatti/auto-session'`
 
@@ -28,8 +28,8 @@ Use `let g:auto_session_root_dir = path/to/my/custom/dir` to set a custom direct
 # Commands
 Auto Session exposes two commands that can be used or mapped to any keybindings for manually saving and restoring sessions.
 - `:SaveSession` saves or creates a session in the currently set `auto_session_root_dir`.
-- `:SaveSessionOn "~/my/custom/path"` saves or creates a session in the specified directory path.
+- `:SaveSession ~/my/custom/path` saves or creates a session in the specified directory path.
 - `:RestoreSession` restores a previously saved session based on the `cwd`.
-- `:RestoreSessionFrom "~/my/custom/path"` restores a previously saved session based on the provided path.
+- `:RestoreSession ~/my/custom/path` restores a previously saved session based on the provided path.
 
 Note: the plugin uses these same functions internally for the automatic behaviour wrapping it with only a few extra checks for consistency.

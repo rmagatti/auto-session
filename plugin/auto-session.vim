@@ -3,11 +3,12 @@ if exists('g:loaded_auto_session') | finish | endif " prevent loading file twice
 let s:save_cpo = &cpo " save user coptions
 set cpo&vim " reset them to defaults
 
+let LuaSaveSession = luaeval('require("auto-session").SaveSession')
+let LuaRestoreSession = luaeval('require("auto-session").RestoreSession')
+
 " Available commands
-command! -nargs=1 SaveSessionOn lua require'auto-session'.SaveSession(<args>)
-command! -nargs=1 RestoreSessionFrom lua require'auto-session'.RestoreSession(<args>)
-command! SaveSession lua require'auto-session'.SaveSession()
-command! RestoreSession lua require'auto-session'.RestoreSession()
+command! -nargs=* SaveSession call LuaSaveSession(expand('<args>'))
+command! -nargs=* RestoreSession call LuaRestoreSession(expand('<args>'))
 
 augroup autosession
   autocmd!
