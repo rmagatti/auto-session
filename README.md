@@ -53,3 +53,13 @@ e.g. to close NERDTree before saving the session.
 let g:auto_session_pre_save_cmds = ["tabdo NERDTreeClose"]
 ```
 
+## Compatibility
+Neovim > 0.5
+
+Tested with:
+```
+NVIM v0.5.0-dev+a1ec36f
+Build type: Release
+LuaJIT 2.1.0-beta3
+```
+
