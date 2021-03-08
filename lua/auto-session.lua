@@ -52,8 +52,8 @@ end
 -- Run comand hooks
 local function runHookCmds(cmds, hook_name)
   if not isEmptyTable(cmds) then
-    print(string.format("Running %s commands", hook_name))
     for _,cmd in ipairs(cmds) do
+      print(string.format("Running %s command: %s", hook_name, cmd))
       local success, result = pcall(vim.cmd, cmd)
       if not success then print(string.format("Error running %s. error: %s", cmd, result)) end
     end
