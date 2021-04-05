@@ -64,7 +64,12 @@ end
 ------ MAIN FUNCTIONS ------
 local AutoSession = {}
 
-local function getSessionNameFromCwd()
+local function getEscapedSessionNameFromCwd()
+  local cwd = vim.fn.getcwd()
+  return cwd:gsub("/", "\\%%")
+end
+
+local function getLegacySessionNameFromCmd()
   local cwd = vim.fn.getcwd()
   return cwd:gsub("/", "-")
 end
@@ -87,7 +92,7 @@ function AutoSession.SaveSession(sessions_dir)
   runHookCmds(user_pre_save_cmds, "pre-save")
 
   sessions_dir = sessions_dir or SESSIONS_DIR
-  local session_name = getSessionNameFromCwd()
+  local session_name = getEscapedSessionNameFromCwd()
   local full_path = string.format(sessions_dir.."%s.vim", session_name)
   local cmd = "mks! "..full_path
   print("Session saved at "..full_path)
@@ -113,18 +118,29 @@ function AutoSession.RestoreSession(sessions_dir)
   end
 
   sessions_dir = sessions_dir or SESSIONS_DIR
-  local session_name = getSessionNameFromCwd()
+  local session_name = getEscapedSessionNameFromCwd()
   local session_file_path = string.format(sessions_dir.."%s.vim", session_name)
 
-  if vim.fn.filereadable(vim.fn.expand(session_file_path)) ~= 0 then
+  local legacy_session_name = getLegacySessionNameFromCmd()
+  local legacy_file_path = string.format(sessions_dir.."%s.vim", legacy_session_name)
 
+  local restore = function(file_path)
     runHookCmds(user_pre_restore_cmds, "pre-restore")
-    local cmd = "source "..session_file_path
-    print("Session restored from "..session_file_path)
-
+    local cmd = "source "..file_path
     vim.cmd(cmd)
+    print("Session restored from "..file_path)
 
     runHookCmds(user_post_restore_cmds, "post-restore")
+  end
+
+  local function isReadable(file_path)
+    return vim.fn.filereadable(vim.fn.expand(file_path)) ~= 0
+  end
+
+  if isReadable(session_file_path) then
+    restore(session_file_path)
+  elseif isReadable(legacy_file_path) then
+    restore(legacy_file_path)
   else
     print("File not readable, not restoring session")
   end
