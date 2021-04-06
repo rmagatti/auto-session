@@ -1,5 +1,5 @@
 # Description
-Auto Session takes advantage of Neovim's existing session management capabilities to provide seamless automatic session management.  
+Auto Session takes advantage of Neovim's existing session management capabilities to provide seamless automatic session management.
 
 <img src="https://github.com/rmagatti/readme-assets/blob/main/auto-session-zoomed.gif" width="1000" />
 
@@ -24,8 +24,15 @@ Auto Session by default uses the directory `~/.config/nvim/sessions/` to store s
 One can set the auto\_session root dir that will be used for auto session saving and restoring.
 ```viml
 let g:auto_session_root_dir = path/to/my/custom/dir
+
+" or use lua
+lua << EOF
+require('auto-session').setup {
+    root_dir=</path/to/my/custom/dir>
+}
+EOF
 ```
-:warning: WARNING :warning: the directory must already exist or the plugin will not load and exit with an error.
+:warning: WARNING :warning: If the directory does not exist, default directory will be used and an error message will be printed.
 
 # Commands
 Auto Session exposes two commands that can be used or mapped to any keybindings for manually saving and restoring sessions.
@@ -46,6 +53,13 @@ There are 4 command hooks {hook\_name}
 Hooks are configured by setting
 ```viml
 let g:auto_session_{hook_name}_cmds = ["{hook_command1}", "{hook_command2}"]
+
+" or use lua
+lua << EOF
+require('auto-session').setup {
+    {hook_name}_cmds = {"{hook_command1}", "{hook_command2}"}
+}
+EOF
 ```
 `hook_command` is a valid command mode command.
 e.g. to close NERDTree before saving the session.
