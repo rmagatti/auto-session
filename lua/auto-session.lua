@@ -109,7 +109,7 @@ function AutoSession.getRootDir()
     return AutoSession.conf.root_dir
   end
 
-  local root_dir = AutoSession.conf.root_dir or ROOT_DIR
+  local root_dir = vim.g["auto_session_root_dir"] or AutoSession.conf.root_dir or ROOT_DIR
   initRootDir(root_dir)
 
   AutoSession.conf.root_dir = validateRootDir(root_dir)
