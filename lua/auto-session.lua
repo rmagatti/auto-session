@@ -1,4 +1,7 @@
 -- helper functions
+local _VIM_FALSE = 0
+local _VIM_TRUE  = 1
+
 local function endsWith(str, ending)
   return ending == "" or str:sub(-#ending) == ending
 end
@@ -34,10 +37,10 @@ local function validateRootDir(root_dir)
     root_dir = root_dir.."/"
   end
 
-  if not vim.fn.isdirectory(vim.fn.expand(root_dir)) then
+  if vim.fn.isdirectory(vim.fn.expand(root_dir)) == _VIM_FALSE then
     vim.cmd("echoerr 'Invalid g:auto_session_root_dir. " ..
-      "Path does not exist or is not a directory. " ..
-      "Use ~/.config/nvim/sessions by default.'")
+    "Path does not exist or is not a directory. " ..
+    "Use ~/.config/nvim/sessions by default.'")
     return ROOT_DIR
   else
     print("Using custom session dir: "..root_dir)
@@ -46,7 +49,7 @@ local function validateRootDir(root_dir)
 end
 
 local function initRootDir(root_dir)
-  if not vim.fn.isdirectory(vim.fn.expand(root_dir)) then
+  if vim.fn.isdirectory(vim.fn.expand(root_dir)) == _VIM_FALSE then
     vim.cmd("!mkdir -p "..root_dir)
   end
 end
@@ -151,39 +154,59 @@ function AutoSession.AutoRestoreSession(sessions_dir)
   end
 end
 
+-- TODO: make this more readable!
 -- Restores the session by sourcing the session file if it exists/is readable.
-function AutoSession.RestoreSession(sessions_dir)
-  if isEmpty(sessions_dir) then
+function AutoSession.RestoreSession(sessions_dir_or_file)
+  print("sessions dir or file", sessions_dir_or_file)
+  local sessions_dir = nil
+  local session_file = nil
+
+  if isEmpty(sessions_dir_or_file) then
     sessions_dir = AutoSession.getRootDir()
+  elseif vim.fn.isdirectory(vim.fn.expand(sessions_dir_or_file)) == _VIM_TRUE then
+    sessions_dir = appendSlash(sessions_dir_or_file)
   else
-    sessions_dir = appendSlash(sessions_dir)
+    session_file = sessions_dir_or_file
   end
-
-  local session_name = getEscapedSessionNameFromCwd()
-  local session_file_path = string.format(sessions_dir.."%s.vim", session_name)
-
-  local legacy_session_name = getLegacySessionNameFromCmd()
-  local legacy_file_path = string.format(sessions_dir.."%s.vim", legacy_session_name)
 
   local restore = function(file_path)
     local pre_cmds = AutoSession.getCmds("pre_restore")
     runHookCmds(pre_cmds, "pre-restore")
 
     local cmd = "source "..file_path
-    print("Session restored from "..file_path)
-
     vim.cmd(cmd)
+    print("Session restored from "..file_path)
 
     local post_cmds = AutoSession.getCmds("post_restore")
     runHookCmds(post_cmds, "post-restore")
   end
 
-  if isReadable(session_file_path) then
-    restore(session_file_path)
-  elseif isReadable(legacy_file_path) then
-    restore(legacy_file_path)
+  if sessions_dir then
+    print("==== Using session DIR")
+    local session_name = getEscapedSessionNameFromCwd()
+    local session_file_path = string.format(sessions_dir.."%s.vim", session_name)
+
+    local legacy_session_name = getLegacySessionNameFromCmd()
+    local legacy_file_path = string.format(sessions_dir.."%s.vim", legacy_session_name)
+
+    if isReadable(session_file_path) then
+      restore(session_file_path)
+    elseif isReadable(legacy_file_path) then
+      restore(legacy_file_path)
+    else
+      print("File not readable, not restoring session")
+    end
+  elseif session_file then
+    print("==== Using session FILE")
+    local escaped_file = session_file:gsub("%%", "\\%%")
+    if isReadable(escaped_file) then
+      print("isReadable, calling restore")
+      restore(escaped_file)
+    else
+      print("File not readable, not restoring session")
+    end
   else
-    print("File not readable, not restoring session")
+    print("Error while trying to parse session dir or file")
   end
 end
 
