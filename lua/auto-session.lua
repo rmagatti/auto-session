@@ -12,8 +12,6 @@ local function runHookCmds(cmds, hook_name)
 end
 
 ----------- Setup ----------
-local Config = {}
-
 local AutoSession = {
   conf = {}
 }
@@ -29,7 +27,7 @@ Lib.conf = {
 }
 
 function AutoSession.setup(config)
-  AutoSession.conf = Config.normalize(config)
+  AutoSession.conf = Lib.Config.normalize(config)
   Lib.setup({
     logLevel = AutoSession.conf.logLevel
   })
