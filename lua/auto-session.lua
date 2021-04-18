@@ -1,4 +1,4 @@
-local Lib = require('library')
+local Lib = require('auto-session-library')
 
 -- Run comand hooks
 local function runHookCmds(cmds, hook_name)
@@ -12,8 +12,6 @@ local function runHookCmds(cmds, hook_name)
 end
 
 ----------- Setup ----------
-local Config = {}
-
 local AutoSession = {
   conf = {}
 }
@@ -29,7 +27,7 @@ Lib.conf = {
 }
 
 function AutoSession.setup(config)
-  AutoSession.conf = Config.normalize(config)
+  AutoSession.conf = Lib.Config.normalize(config, AutoSession.conf)
   Lib.setup({
     logLevel = AutoSession.conf.logLevel
   })
@@ -37,7 +35,6 @@ end
 
 
 ------ MAIN FUNCTIONS ------
--- This function avoids calling SaveSession automatically when argv is not nil.
 function AutoSession.AutoSaveSession(sessions_dir)
   if next(vim.fn.argv()) == nil then
     AutoSession.SaveSession(sessions_dir, true)
@@ -46,13 +43,13 @@ end
 
 function AutoSession.getRootDir()
   if AutoSession.valiated then
-    return AutoSession.conf.root_dir
+    return AutoSession.conf.auto_session_root_dir
   end
 
-  local root_dir = vim.g["auto_session_root_dir"] or AutoSession.conf.root_dir or Lib.ROOT_DIR
+  local root_dir = vim.g["auto_session_root_dir"] or AutoSession.conf.auto_session_root_dir or Lib.ROOT_DIR
   Lib.initRootDir(root_dir)
 
-  AutoSession.conf.root_dir = Lib.validateRootDir(root_dir)
+  AutoSession.conf.auto_session_root_dir = Lib.validateRootDir(root_dir)
   AutoSession.validated = true
   return root_dir
 end
@@ -96,20 +93,30 @@ function AutoSession.AutoRestoreSession(sessions_dir)
   end
 end
 
--- TODO: make this more readable!
--- Restores the session by sourcing the session file if it exists/is readable.
-function AutoSession.RestoreSession(sessions_dir_or_file)
-  Lib.logger.debug("sessions dir or file", sessions_dir_or_file)
+local function extractDirOrFile(sessions_dir_or_file)
   local sessions_dir = nil
   local session_file = nil
 
   if Lib.isEmpty(sessions_dir_or_file) then
     sessions_dir = AutoSession.getRootDir()
   elseif vim.fn.isdirectory(vim.fn.expand(sessions_dir_or_file)) == Lib._VIM_TRUE then
-    sessions_dir = Lib.appendSlash(sessions_dir_or_file)
+    if not Lib.endsWith(sessions_dir_or_file, '/') then
+      sessions_dir = Lib.appendSlash(sessions_dir_or_file)
+    else
+      sessions_dir = sessions_dir_or_file
+    end
   else
     session_file = sessions_dir_or_file
   end
+
+  return sessions_dir, session_file
+end
+
+-- TODO: make this more readable!
+-- Restores the session by sourcing the session file if it exists/is readable.
+function AutoSession.RestoreSession(sessions_dir_or_file)
+  Lib.logger.debug("sessions dir or file", sessions_dir_or_file)
+  local sessions_dir, session_file = extractDirOrFile(sessions_dir_or_file)
 
   local restore = function(file_path)
     local pre_cmds = AutoSession.getCmds("pre_restore")
@@ -150,6 +157,31 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
   else
     Lib.logger.error("Error while trying to parse session dir or file")
   end
+end
+
+function AutoSession.DeleteSession(file_path)
+  Lib.logger.debug("session_file_path", file_path)
+
+  local pre_cmds = AutoSession.getCmds("pre_delete")
+  runHookCmds(pre_cmds, "pre-delete")
+
+  -- TODO: make the delete command customizable
+  local cmd = "!rm "
+
+  if file_path then
+    local escaped_file_path = file_path:gsub("%%", "\\%%")
+    vim.cmd(cmd..escaped_file_path)
+    Lib.logger.info("Deleted session "..file_path)
+  else
+    local session_name = Lib.getEscapedSessionNameFromCwd()
+    local session_file_path = string.format(AutoSession.getRootDir().."%s.vim", session_name)
+
+    vim.cmd(cmd..session_file_path)
+    Lib.logger.info("Deleted session "..session_file_path)
+  end
+
+  local post_cmds = AutoSession.getCmds("post_delete")
+  runHookCmds(post_cmds, "post-delete")
 end
 
 return AutoSession

@@ -17,7 +17,7 @@ function Lib.setup(config)
 end
 
 function Config.normalize(config, existing)
-  local conf = existing
+  local conf = existing or {}
   if Lib.isEmptyTable(config) then
     return conf
   end
