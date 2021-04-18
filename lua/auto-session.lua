@@ -17,7 +17,10 @@ local AutoSession = {
 }
 
 local defaultConf = {
-  logLevel = vim.g["auto_session_log_level"] or AutoSession.conf.logLevel or 'info'
+  logLevel = vim.g["auto_session_log_level"] or AutoSession.conf.logLevel or 'info',
+  auto_session_last_session_dir = "~/.config/nvim/sessions/last_session/",
+  auto_session_enable_last_session = false,
+  last_session = nil
 }
 
 -- Set default config on plugin load
@@ -31,6 +34,37 @@ function AutoSession.setup(config)
   Lib.setup({
     logLevel = AutoSession.conf.logLevel
   })
+end
+
+do
+  local file_name = "last_session.conf"
+  local last_session_file_path = AutoSession.conf.auto_session_last_session_dir..file_name
+
+  function GetLastSession()
+    if AutoSession.conf.auto_session_enable_last_session then
+      Lib.initDir(AutoSession.conf.auto_session_last_session_dir)
+      Lib.initFile(last_session_file_path)
+      local last_session = table.load(vim.fn.expand(last_session_file_path))
+      Lib.logger.debug("==== GetLastSession called, got session", last_session.session_path)
+      return last_session.session_path
+    end
+  end
+
+  function SetLastSession(session_path)
+    if AutoSession.conf.auto_session_enable_last_session then
+      Lib.initDir(AutoSession.conf.auto_session_last_session_dir)
+      Lib.initFile(last_session_file_path)
+      local expanded_path = vim.fn.expand(last_session_file_path)
+
+      -- Only do file operation if the values are different to avoid unnecessary io operations.
+      if not (AutoSession.conf.last_session == session_path) then
+        Lib.logger.debug("==== SetLastSession called for session", session_path)
+        AutoSession.conf.last_session = session_path
+        local last_session = {session_path = session_path}
+        return table.save(last_session, expanded_path)
+      end
+    end
+  end
 end
 
 
@@ -47,7 +81,7 @@ function AutoSession.getRootDir()
   end
 
   local root_dir = vim.g["auto_session_root_dir"] or AutoSession.conf.auto_session_root_dir or Lib.ROOT_DIR
-  Lib.initRootDir(root_dir)
+  Lib.initDir(root_dir)
 
   AutoSession.conf.auto_session_root_dir = Lib.validateRootDir(root_dir)
   AutoSession.validated = true
@@ -81,6 +115,7 @@ function AutoSession.SaveSession(sessions_dir, auto)
   end
 
   vim.cmd(cmd)
+  SetLastSession(full_path)
 
   local post_cmds = AutoSession.getCmds("post_save")
   runHookCmds(post_cmds, "post-save")
@@ -143,7 +178,12 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
     elseif Lib.isReadable(legacy_file_path) then
       restore(legacy_file_path)
     else
-      Lib.logger.debug("File not readable, not restoring session")
+      if AutoSession.conf.auto_session_enable_last_session then
+        local last_session_file_path = GetLastSession()
+        restore(last_session_file_path)
+      else
+        Lib.logger.debug("File not readable, not restoring session")
+      end
     end
   elseif session_file then
     Lib.logger.debug("==== Using session FILE")
