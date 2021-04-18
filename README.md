@@ -34,9 +34,8 @@ EOF
 ```
 
 ### Last Session
-This optional feature enables the keeping track and loading of the last session.
-This loading of a last session happens only when a `RestoreSession` could not find a session for the current dir.
-This feature can come in handy when starting Neovim from a GUI for example.
+This optional feature automatically keeps track of and loads the last session when a `RestoreSession` could not find a session based on the current dir.
+This feature can come in handy for example when starting Neovim from a GUI.
 ```lua
 require('auto-session').setup {
     auto_session_enable_last_session=true,
