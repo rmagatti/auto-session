@@ -28,10 +28,21 @@ let g:auto_session_root_dir = path/to/my/custom/dir
 " or use lua
 lua << EOF
 require('auto-session').setup {
-    root_dir=</path/to/my/custom/dir>
+    auto_session_root_dir=</path/to/my/custom/dir>,
 }
 EOF
 ```
+
+### Last Session
+This optional feature enables the keeping track and loading of the last session.
+This loading of a last session happens only when a `RestoreSession` could not find a session for the current dir.
+This feature can come in handy when starting Neovim from a GUI for example.
+```lua
+require('auto-session').setup {
+    auto_session_enable_last_session=true,
+}
+```
+
 :warning: WARNING :warning: If the directory does not exist, default directory will be used and an error message will be printed.
 
 # Commands
