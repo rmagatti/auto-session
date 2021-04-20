@@ -17,9 +17,9 @@ local AutoSession = {
 }
 
 local defaultConf = {
-  logLevel = vim.g["auto_session_log_level"] or AutoSession.conf.logLevel or 'info',
-  auto_session_last_session_dir = "~/.config/nvim/sessions/last_session/",
-  auto_session_enable_last_session = false,
+  logLevel = vim.g.auto_session_log_level or AutoSession.conf.logLevel or 'info',
+  auto_session_last_session_dir = vim.g.auto_session_last_session_dir or vim.fn.stdpath('data').."/auto-session/",
+  auto_session_enable_last_session = vim.g.auto_session_enable_last_session or false,
   last_session = nil
 }
 

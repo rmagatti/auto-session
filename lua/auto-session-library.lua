@@ -7,7 +7,7 @@ local Lib = {
   Config = Config,
   _VIM_FALSE = 0,
   _VIM_TRUE  = 1,
-  ROOT_DIR = "~/.config/nvim/sessions/"
+  ROOT_DIR = vim.fn.stdpath('config').."/sessions/"
 }
 
 
@@ -87,7 +87,7 @@ end
 
 function Lib.initDir(dir)
   if vim.fn.isdirectory(vim.fn.expand(dir)) == Lib._VIM_FALSE then
-    vim.cmd("!mkdir -p "..dir)
+    vim.fn.mkdir(dir, "p")
   end
 end
 
