@@ -6,7 +6,8 @@ local Lib = {
   },
   Config = Config,
   _VIM_FALSE = 0,
-  _VIM_TRUE  = 1
+  _VIM_TRUE  = 1,
+  ROOT_DIR = nil
 }
 
 
@@ -76,7 +77,7 @@ function Lib.validate_root_dir(root_dir)
   if vim.fn.isdirectory(vim.fn.expand(root_dir)) == Lib._VIM_FALSE then
     vim.cmd("echoerr 'Invalid g:auto_session_root_dir. " ..
     "Path does not exist or is not a directory. " ..
-    "Use ~/.config/nvim/sessions by default.'")
+    string.format("Defaulting to %s.", Lib.ROOT_DIR))
     return Lib.ROOT_DIR
   else
     Lib.logger.debug("Using custom session dir: "..root_dir)
@@ -128,7 +129,7 @@ function Lib.logger.info(...)
 end
 
 function Lib.logger.error(...)
-  print(...)
+  error(...)
 end
 -- =========================================================
 
