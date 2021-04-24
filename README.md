@@ -86,6 +86,14 @@ e.g. to close NERDTree before saving the session.
 let g:auto_session_pre_save_cmds = ["tabdo NERDTreeClose"]
 ```
 
+## Session Lens
+[Session Lens](https://github.com/rmagatti/session-lens) is a companion plugin to auto-session built on top of [Telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) for easy switching between existing sessions.
+
+See installation and usage instructions in the plugin's page.
+
+### Preview
+<img src="https://github.com/rmagatti/readme-assets/blob/main/session-lens.gif" width=1000 />
+
 # Compatibility
 Neovim > 0.5
 
