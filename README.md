@@ -27,9 +27,16 @@ let g:auto_session_root_dir = path/to/my/custom/dir
 
 " or use lua
 lua << EOF
-require('auto-session').setup {
-    auto_session_root_dir=</path/to/my/custom/dir>,
+local opts = {
+  -- Sets the log level of the plugin (debug, info, error)
+  logLevel = vim.g.auto_session_log_level or AutoSession.conf.logLevel or 'info',
+  -- Root dir where sessions will be stored
+  auto_session_root_dir = vim.fn.stdpath('data').."/sessions/",
+  -- Enables/disables auto save/restore
+  auto_session_enabled = true
 }
+
+require('auto-session').setup(opts)
 EOF
 ```
 
@@ -37,6 +44,7 @@ EOF
 This optional feature enables the keeping track and loading of the last session.
 This loading of a last session happens only when a `RestoreSession` could not find a session for the current dir.
 This feature can come in handy when starting Neovim from a GUI for example.
+:warning: This feature is still experimental and as of right now it interferes with the plugin's ability to auto create new sessions when opening Neovim in a new directory.
 ```lua
 require('auto-session').setup {
     auto_session_enable_last_session=true,
