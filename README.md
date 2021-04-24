@@ -18,7 +18,11 @@ Any plugin manager should do, I use [Plug](https://github.com/junegunn/vim-plug)
 # Configuration
 
 ### Default
-Auto Session by default uses the directory `~/.config/nvim/sessions/` to store sessions.
+Auto Session by default stores sessions in `vim.fn.stdpath('config').."/sessions/"`.  
+
+🛑 BREAKING CHANGE 🛑  
+The new version changes the default sessions dir from `~/.config/nvim/sessions/` to `vim.fn.stdpath('config').."/sessions/"`.  
+If you have not set your sessions dir manually, you might need to copy your existing sessions over to the new default, or alternatively set the old default as the `g:auto_session_root_dir`.
 
 ### Custom
 One can set the auto\_session root dir that will be used for auto session saving and restoring.
@@ -27,15 +31,24 @@ let g:auto_session_root_dir = path/to/my/custom/dir
 
 " or use lua
 lua << EOF
-require('auto-session').setup {
-    auto_session_root_dir=</path/to/my/custom/dir>,
+local opts = {
+  -- Sets the log level of the plugin (debug, info, error)
+  logLevel = vim.g.auto_session_log_level or AutoSession.conf.logLevel or 'info',
+  -- Root dir where sessions will be stored
+  auto_session_root_dir = vim.fn.stdpath('data').."/sessions/",
+  -- Enables/disables auto save/restore
+  auto_session_enabled = true
 }
+
+require('auto-session').setup(opts)
 EOF
 ```
 
 ### Last Session
-This optional feature automatically keeps track of and loads the last session when a `RestoreSession` could not find a session based on the current dir.
-This feature can come in handy for example when starting Neovim from a GUI.
+This optional feature enables the keeping track and loading of the last session.
+This loading of a last session happens only when a `RestoreSession` could not find a session for the current dir.
+This feature can come in handy when starting Neovim from a GUI for example.
+:warning: This feature is still experimental and as of right now it interferes with the plugin's ability to auto create new sessions when opening Neovim in a new directory.
 ```lua
 require('auto-session').setup {
     auto_session_enable_last_session=true,
@@ -76,6 +89,14 @@ e.g. to close NERDTree before saving the session.
 ```viml
 let g:auto_session_pre_save_cmds = ["tabdo NERDTreeClose"]
 ```
+
+## Session Lens
+[Session Lens](https://github.com/rmagatti/session-lens) is a companion plugin to auto-session built on top of [Telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) for easy switching between existing sessions.
+
+See installation and usage instructions in the plugin's page.
+
+### Preview
+<img src="https://github.com/rmagatti/readme-assets/blob/main/session-lens.gif" width=1000 />
 
 # Compatibility
 Neovim > 0.5

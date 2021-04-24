@@ -7,7 +7,7 @@ local Lib = {
   Config = Config,
   _VIM_FALSE = 0,
   _VIM_TRUE  = 1,
-  ROOT_DIR = "~/.config/nvim/sessions/"
+  ROOT_DIR = nil
 }
 
 
@@ -18,7 +18,7 @@ end
 
 function Config.normalize(config, existing)
   local conf = existing or {}
-  if Lib.isEmptyTable(config) then
+  if Lib.is_empty_table(config) then
     return conf
   end
 
@@ -31,7 +31,7 @@ end
 -- ====================================================
 
 -- Helper functions ===============================================================
-local function hasValue (tab, val)
+local function has_value(tab, val)
   for _, value in ipairs(tab) do
     if value == val then
       return true
@@ -42,42 +42,42 @@ local function hasValue (tab, val)
 end
 
 
-function Lib.isEmptyTable(t)
+function Lib.is_empty_table(t)
   if t == nil then return true end
   return next(t) == nil
 end
 
-function Lib.isEmpty(s)
+function Lib.is_empty(s)
   return s == nil or s == ''
 end
 
-function Lib.endsWith(str, ending)
+function Lib.ends_with(str, ending)
   return ending == "" or str:sub(-#ending) == ending
 end
 
-function Lib.appendSlash(str)
-  if not Lib.isEmpty(str) then
-    if not Lib.endsWith(str, "/") then
+function Lib.append_slash(str)
+  if not Lib.is_empty(str) then
+    if not Lib.ends_with(str, "/") then
       str = str.."/"
     end
   end
   return str
 end
 
-function Lib.validateRootDir(root_dir)
-  if Lib.isEmpty(root_dir) or
+function Lib.validate_root_dir(root_dir)
+  if Lib.is_empty(root_dir) or
     vim.fn.expand(root_dir) == vim.fn.expand(Lib.ROOT_DIR) then
     return Lib.ROOT_DIR
   end
 
-  if not Lib.endsWith(root_dir, "/") then
+  if not Lib.ends_with(root_dir, "/") then
     root_dir = root_dir.."/"
   end
 
   if vim.fn.isdirectory(vim.fn.expand(root_dir)) == Lib._VIM_FALSE then
     vim.cmd("echoerr 'Invalid g:auto_session_root_dir. " ..
     "Path does not exist or is not a directory. " ..
-    "Use ~/.config/nvim/sessions by default.'")
+    string.format("Defaulting to %s.", Lib.ROOT_DIR))
     return Lib.ROOT_DIR
   else
     Lib.logger.debug("Using custom session dir: "..root_dir)
@@ -85,30 +85,30 @@ function Lib.validateRootDir(root_dir)
   end
 end
 
-function Lib.initDir(dir)
+function Lib.init_dir(dir)
   if vim.fn.isdirectory(vim.fn.expand(dir)) == Lib._VIM_FALSE then
-    vim.cmd("!mkdir -p "..dir)
+    vim.fn.mkdir(dir, "p")
   end
 end
 
-function Lib.initFile(file_path)
-  if not Lib.isReadable(file_path) then
+function Lib.init_file(file_path)
+  if not Lib.is_readable(file_path) then
     vim.cmd("!touch "..file_path)
   end
 end
 
 
-function Lib.getEscapedSessionNameFromCwd()
+function Lib.escaped_session_name_from_cwd()
   local cwd = vim.fn.getcwd()
   return cwd:gsub("/", "\\%%")
 end
 
-function Lib.getLegacySessionNameFromCmd()
+function Lib.legacy_session_name_from_cwd()
   local cwd = vim.fn.getcwd()
   return cwd:gsub("/", "-")
 end
 
-function Lib.isReadable(file_path)
+function Lib.is_readable(file_path)
   return vim.fn.filereadable(vim.fn.expand(file_path)) ~= Lib._VIM_FALSE
 end
 -- ===================================================================================
@@ -123,13 +123,13 @@ end
 
 function Lib.logger.info(...)
   local valid_values = {'info', 'debug'}
-  if hasValue(valid_values, Lib.conf.logLevel) then
+  if has_value(valid_values, Lib.conf.logLevel) then
     print(...)
   end
 end
 
 function Lib.logger.error(...)
-  print(...)
+  error(...)
 end
 -- =========================================================
 

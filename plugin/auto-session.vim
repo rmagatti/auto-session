@@ -25,8 +25,9 @@ augroup autosession
   autocmd!
   autocmd VimEnter * nested if g:in_pager_mode == 0 | call LuaAutoRestoreSession() | endif
   autocmd VimLeave * if g:in_pager_mode == 0 | call LuaAutoSaveSession() | endif
-  autocmd WinNew * if g:in_pager_mode == 0 | call LuaAutoSaveSession() | endif
-  autocmd WinClosed * if g:in_pager_mode == 0 | call LuaAutoSaveSession() | endif
+  " TODO: Experiment with saving session on more than just VimEnter and VimLeave
+  " autocmd BufWinEnter * if g:in_pager_mode == 0 | call LuaAutoSaveSession() | endif
+  " autocmd BufWinLeave * if g:in_pager_mode == 0 | call LuaAutoSaveSession() | endif
 augroup end
 
 let &cpo = s:save_cpo " and restore after
