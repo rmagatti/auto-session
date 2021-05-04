@@ -134,24 +134,24 @@ function AutoSession.SaveSession(sessions_dir, auto)
 end
 
 -- This function checks if the session dir is in ignore list
-local function check_if_in_ignore()
+local function is_ignored_dir()
   local session_name = Lib.escaped_session_name_from_cwd()
   if vim.g.auto_session_ignore then
     for _, entry in pairs(vim.g.auto_session_ignore) do
       entry = Lib.escaped_path(entry)
       if entry == session_name then
-        return false
+        return true
       end
     end
   end
-  return true
+  return false
 end
 
 -- This function avoids calling RestoreSession automatically when argv is not nil.
 function AutoSession.AutoRestoreSession(sessions_dir)
   if is_enabled() then
     if next(vim.fn.argv()) == nil then
-      if check_if_in_ignore() then
+      if not is_ignored_dir() then
         AutoSession.RestoreSession(sessions_dir)
       end
     end
