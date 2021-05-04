@@ -136,7 +136,7 @@ end
 -- This function checks if the session dir is in ignore list
 local function is_ignored_dir()
   local session_name = Lib.escaped_session_name_from_cwd()
-  if vim.g.auto_session_ignore then
+  if vim.g.auto_session_ignore and #vim.g.auto_session_ignore > 0 then
     for _, entry in pairs(vim.g.auto_session_ignore) do
       entry = Lib.escaped_path(entry)
       if entry == session_name then
