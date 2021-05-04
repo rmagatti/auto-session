@@ -17,16 +17,12 @@ local AutoSession = {
 }
 
 local defaultConf = {
-  -- Sets the log level of the plugin (debug, info, error)
-  logLevel = vim.g.auto_session_log_level or AutoSession.conf.logLevel or 'info',
-  -- Enables/disables the "last session" feature
-  auto_session_enable_last_session = vim.g.auto_session_enable_last_session or false,
-  -- (internal) last session, do not set unless you absolutely know what you're doing.
-  last_session = nil,
-  -- Root dir where sessions will be stored
-  auto_session_root_dir = vim.fn.stdpath('data').."/sessions/",
-  -- Enables/disables auto-session
-  auto_session_enabled = true
+  log_level = vim.g.auto_session_log_level or AutoSession.conf.logLevel or AutoSession.conf.log_level or 'info', -- Sets the log level of the plugin (debug, info, error). camelCase logLevel for compatibility.
+  auto_session_enable_last_session = vim.g.auto_session_enable_last_session or false, -- Enables/disables the "last session" feature
+  auto_session_root_dir = vim.fn.stdpath('data').."/sessions/", -- Root dir where sessions will be stored
+  auto_session_enabled = true, -- Enables/disables auto saving and restoring
+  auto_save_enabled = nil, -- Enables/disables auto save feature
+  auto_restore_enabled = nil -- Enables/disables auto restore feature
 }
 
 -- Set default config on plugin load
@@ -34,7 +30,7 @@ AutoSession.conf = defaultConf
 
 -- Pass configs to Lib
 Lib.conf = {
-  logLevel = AutoSession.conf.logLevel
+  log_level = AutoSession.conf.log_level
 }
 Lib.ROOT_DIR = defaultConf.ROOT_DIR
 
@@ -42,7 +38,7 @@ function AutoSession.setup(config)
   AutoSession.conf = Lib.Config.normalize(config, AutoSession.conf)
   Lib.ROOT_DIR = AutoSession.conf.auto_session_root_dir
   Lib.setup({
-    logLevel = AutoSession.conf.logLevel
+    log_level = AutoSession.conf.log_level
   })
 end
 
@@ -55,6 +51,22 @@ local function is_enabled()
   end
 
   return true
+end
+
+local auto_save = function()
+  if AutoSession.conf.auto_save_enabled ~= nil then
+    return AutoSession.conf.auto_save_enabled
+  else
+    return next(vim.fn.argv()) == nil
+  end
+end
+
+local auto_restore = function()
+  if AutoSession.conf.auto_restore_enabled ~= nil then
+    return AutoSession.conf.auto_restore_enabled
+  else
+    return next(vim.fn.argv()) == nil
+  end
 end
 
 do
@@ -82,7 +94,7 @@ end
 ------ MAIN FUNCTIONS ------
 function AutoSession.AutoSaveSession(sessions_dir)
   if is_enabled() then
-    if next(vim.fn.argv()) == nil then
+    if auto_save() then
       AutoSession.SaveSession(sessions_dir, true)
     end
   end
@@ -136,7 +148,7 @@ end
 -- This function avoids calling RestoreSession automatically when argv is not nil.
 function AutoSession.AutoRestoreSession(sessions_dir)
   if is_enabled() then
-    if next(vim.fn.argv()) == nil then
+    if auto_restore() then
       AutoSession.RestoreSession(sessions_dir)
     end
   end
