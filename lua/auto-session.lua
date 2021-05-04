@@ -133,11 +133,27 @@ function AutoSession.SaveSession(sessions_dir, auto)
   run_hook_cmds(post_cmds, "post-save")
 end
 
+-- This function checks if the session dir is in ignore list
+local function check_if_in_ignore()
+  local session_name = Lib.escaped_session_name_from_cwd()
+  if vim.g.auto_session_ignore then
+    for _, entry in pairs(vim.g.auto_session_ignore) do
+      entry = Lib.escaped_path(entry)
+      if entry == session_name then
+        return false
+      end
+    end
+  end
+  return true
+end
+
 -- This function avoids calling RestoreSession automatically when argv is not nil.
 function AutoSession.AutoRestoreSession(sessions_dir)
   if is_enabled() then
     if next(vim.fn.argv()) == nil then
-      AutoSession.RestoreSession(sessions_dir)
+      if check_if_in_ignore() then
+        AutoSession.RestoreSession(sessions_dir)
+      end
     end
   end
 end

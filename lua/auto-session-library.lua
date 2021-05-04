@@ -97,6 +97,9 @@ function Lib.init_file(file_path)
   end
 end
 
+function Lib.escaped_path(path)
+  return path:gsub("/", "\\%%")
+end
 
 function Lib.escaped_session_name_from_cwd()
   local cwd = vim.fn.getcwd()
