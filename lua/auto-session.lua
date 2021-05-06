@@ -122,10 +122,11 @@ local function is_ignored_dir()
   return false
 end
 
-
 -- Saves the session, overriding if previously existing.
 function AutoSession.SaveSession(sessions_dir, auto)
-  if Lib.is_empty(sessions_dir) then
+  if is_ignored_dir() then
+    return
+  elseif Lib.is_empty(sessions_dir) then
     sessions_dir = AutoSession.get_root_dir()
   else
     sessions_dir = Lib.append_slash(sessions_dir)
