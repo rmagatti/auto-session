@@ -26,7 +26,9 @@ local defaultConf = {
   -- Root dir where sessions will be stored
   auto_session_root_dir = vim.fn.stdpath('data').."/sessions/",
   -- Enables/disables auto-session
-  auto_session_enabled = true
+  auto_session_enabled = true,
+  -- Disables AutoRestoreSession for folders in list
+  auto_session_ignore = vim.g.auto_session_ignore or {}
 }
 
 -- Set default config on plugin load
@@ -106,6 +108,21 @@ function AutoSession.get_cmds(typ)
   return AutoSession.conf[typ.."_cmds"] or vim.g["auto_session_"..typ.."_cmds"]
 end
 
+-- This function checks if the session dir is in ignore list
+local function is_ignored_dir()
+  local session_name = Lib.escaped_session_name_from_cwd()
+  if AutoSession.conf.auto_session_ignore and #AutoSession.conf.auto_session_ignore > 0 then
+    for _, entry in pairs(AutoSession.conf) do
+      entry = Lib.escaped_path(entry)
+      if entry == session_name then
+        return true
+      end
+    end
+  end
+  return false
+end
+
+
 -- Saves the session, overriding if previously existing.
 function AutoSession.SaveSession(sessions_dir, auto)
   if Lib.is_empty(sessions_dir) then
@@ -131,20 +148,6 @@ function AutoSession.SaveSession(sessions_dir, auto)
 
   local post_cmds = AutoSession.get_cmds("post_save")
   run_hook_cmds(post_cmds, "post-save")
-end
-
--- This function checks if the session dir is in ignore list
-local function is_ignored_dir()
-  local session_name = Lib.escaped_session_name_from_cwd()
-  if vim.g.auto_session_ignore and #vim.g.auto_session_ignore > 0 then
-    for _, entry in pairs(vim.g.auto_session_ignore) do
-      entry = Lib.escaped_path(entry)
-      if entry == session_name then
-        return true
-      end
-    end
-  end
-  return false
 end
 
 -- This function avoids calling RestoreSession automatically when argv is not nil.
