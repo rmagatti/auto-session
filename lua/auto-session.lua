@@ -224,7 +224,7 @@ function AutoSession.DeleteSession(file_path)
   -- TODO: make the delete command customizable
   local cmd = "silent! !rm "
 
-  if file_path then
+  if not Lib.is_empty(file_path) then
     local escaped_file_path = file_path:gsub("%%", "\\%%")
     vim.cmd(cmd..escaped_file_path)
     Lib.logger.info("Deleted session "..file_path)
