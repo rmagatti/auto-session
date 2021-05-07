@@ -37,7 +37,8 @@ local opts = {
   auto_session_root_dir = vim.fn.stdpath('data').."/sessions/",
   auto_session_enabled = true,
   auto_save_enabled = true,
-  auto_restore_enabled = true
+  auto_restore_enabled = true,
+  auto_session_suppress_dirs = {}
 }
 
 require('auto-session').setup(opts)
@@ -52,6 +53,7 @@ EOF
 | auto_session_enabled              | false, true               | true                                  | Enables/disables the plugin's auto save _and_ restore features  |
 | auto_save_enabled                 | false, true, nil          | nil                                   | Enables/disables auto saving                                    |
 | auto_restore_enabled              | false, true, nil          | nil                                   | Enables/disables auto restoring                                 |
+| auto_session_suppress_dirs        | ["list", "of paths"]      | nil                                   | Suppress session create/restore if in one of a list of dirs     |
 
 
 ### Last Session

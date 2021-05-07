@@ -22,7 +22,8 @@ local defaultConf = {
   auto_session_root_dir = vim.fn.stdpath('data').."/sessions/", -- Root dir where sessions will be stored
   auto_session_enabled = true, -- Enables/disables auto saving and restoring
   auto_save_enabled = nil, -- Enables/disables auto save feature
-  auto_restore_enabled = nil -- Enables/disables auto restore feature
+  auto_restore_enabled = nil, -- Enables/disables auto restore feature
+  auto_session_suppress_dirs = nil -- Suppress session restore/create in certain directories
 }
 
 -- Set default config on plugin load
@@ -72,6 +73,19 @@ local auto_restore = function()
   end
 end
 
+local function suppress_session()
+  local dirs = vim.g.auto_session_suppress_dirs or AutoSession.conf.auto_session_suppress_dirs or {}
+
+  local cwd = vim.fn.getcwd()
+  for _, s in pairs(dirs) do
+    s = string.gsub(vim.fn.simplify(vim.fn.expand(s)), '/+$', '')
+    if cwd == s then
+      return true
+    end
+  end
+  return false
+end
+
 do
   function AutoSession.get_latest_session()
     local dir = vim.fn.expand(AutoSession.conf.auto_session_root_dir)
@@ -96,7 +110,7 @@ end
 
 ------ MAIN FUNCTIONS ------
 function AutoSession.AutoSaveSession(sessions_dir)
-  if is_enabled() and auto_save() then
+  if is_enabled() and auto_save() and not suppress_session() then
     AutoSession.SaveSession(sessions_dir, true)
   end
 end
@@ -148,7 +162,7 @@ end
 
 -- This function avoids calling RestoreSession automatically when argv is not nil.
 function AutoSession.AutoRestoreSession(sessions_dir)
-  if is_enabled() and auto_restore() then
+  if is_enabled() and auto_restore() and not suppress_session() then
     AutoSession.RestoreSession(sessions_dir)
   end
 end
