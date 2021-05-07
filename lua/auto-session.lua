@@ -112,9 +112,11 @@ end
 local function is_ignored_dir()
   local session_name = Lib.escaped_session_name_from_cwd()
   if AutoSession.conf.auto_session_ignore and #AutoSession.conf.auto_session_ignore > 0 then
-    for _, entry in pairs(AutoSession.conf) do
+    for _, entry in pairs(AutoSession.conf.auto_session_ignore) do
       entry = Lib.escaped_path(entry)
       if entry == session_name then
+        return true
+      elseif entry:sub(-1) == '*' and session_name:sub(1,entry:len()-1) == entry:gsub('*','') then
         return true
       end
     end
