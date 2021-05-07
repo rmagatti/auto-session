@@ -69,7 +69,6 @@ local function is_ignored_dir()
   return false
 end
 
-
 local auto_save = function()
   if vim.g.auto_session_enabled ~= nil then
     return vim.g.auto_save_enabled == Lib._VIM_TRUE
