@@ -2,7 +2,7 @@ local Config = {}
 local Lib = {
   logger = {},
   conf = {
-    logLevel = false
+    log_level = false
   },
   Config = Config,
   _VIM_FALSE = 0,
@@ -116,14 +116,14 @@ end
 
 -- Logger =========================================================
 function Lib.logger.debug(...)
-  if Lib.conf.logLevel == 'debug' then
+  if Lib.conf.log_level == 'debug' then
     print(...)
   end
 end
 
 function Lib.logger.info(...)
   local valid_values = {'info', 'debug'}
-  if has_value(valid_values, Lib.conf.logLevel) then
+  if has_value(valid_values, Lib.conf.log_level) then
     print(...)
   end
 end

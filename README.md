@@ -32,17 +32,27 @@ let g:auto_session_root_dir = path/to/my/custom/dir
 " or use lua
 lua << EOF
 local opts = {
-  -- Sets the log level of the plugin (debug, info, error)
-  logLevel = vim.g.auto_session_log_level or AutoSession.conf.logLevel or 'info',
-  -- Root dir where sessions will be stored
+  log_level = 'info',
+  auto_session_enable_last_session = false,
   auto_session_root_dir = vim.fn.stdpath('data').."/sessions/",
-  -- Enables/disables auto save/restore
-  auto_session_enabled = true
+  auto_session_enabled = true,
+  auto_save_enabled = true,
+  auto_restore_enabled = true
 }
 
 require('auto-session').setup(opts)
 EOF
 ```
+### Options
+| Config                            | Options                   | Default                               | Description                                                     |
+| --------------------------------- | ------------------------- | ------------------------------------- | ----------------------------------------------------------------|
+| log_level                         | 'debug', 'info', 'error'  | 'info'                                | Sets the log level of the plugin                                |
+| auto_session_enable_last_session  | false, true               | false                                 | Loads the last loaded session if session for cwd does not exist |
+| auto_session_root_dir             | "/some/path/you/want"     | vim.fn.stdpath('data').."/sessions/"  | Changes the root dir for sessions                               |
+| auto_session_enabled              | false, true               | true                                  | Enables/disables the plugin's auto save _and_ restore features  |
+| auto_save_enabled                 | false, true, nil          | nil                                   | Enables/disables auto saving                                    |
+| auto_restore_enabled              | false, true, nil          | nil                                   | Enables/disables auto restoring                                 |
+
 
 ### Last Session
 This optional feature enables the keeping track and loading of the last session.
