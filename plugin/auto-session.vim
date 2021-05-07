@@ -15,6 +15,7 @@ let LuaAutoRestoreSession = luaeval('require("auto-session").AutoRestoreSession'
 " Available commands
 command! -nargs=* SaveSession call LuaSaveSession(expand('<args>'))
 command! -nargs=* RestoreSession call LuaRestoreSession(expand('<args>'))
+command! -nargs=* DeleteSession call LuaDeleteSession(expand('<args>'))
 
 aug StdIn
   autocmd!

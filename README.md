@@ -59,19 +59,25 @@ require('auto-session').setup {
 
 # Commands
 Auto Session exposes two commands that can be used or mapped to any keybindings for manually saving and restoring sessions.
-- `:SaveSession` saves or creates a session in the currently set `auto_session_root_dir`.
-- `:SaveSession ~/my/custom/path` saves or creates a session in the specified directory path.
-- `:RestoreSession` restores a previously saved session based on the `cwd`.
-- `:RestoreSession ~/my/custom/path` restores a previously saved session based on the provided path.
+```viml
+:SaveSession " saves or creates a session in the currently set `auto_session_root_dir`.
+:SaveSession ~/my/custom/path " saves or creates a session in the specified directory path.
+:RestoreSession " restores a previously saved session based on the `cwd`.
+:RestoreSession ~/my/custom/path " restores a previously saved session based on the provided path.
+:DeleteSession " deletes a session in the currently set `auto_session_root_dir`.
+:DeleteSession ~/my/custom/path " deleetes a session based on the provided path.
+```
 
 ## Command Hooks
 #### Command hooks are a list of commands that get executed at different stages of the session management lifecycle.
 
-There are 4 command hooks {hook\_name}
+Command hooks exist in the format: {hook\_name}
 - {pre\_save}: executes _before_ a session is saved
 - {post\_save}: executes _after_ a session is saved
 - {pre\_restore}: executs _before_ a session is restored
 - {post\_restore}: executs _after_ a session is restored
+- {pre\_delete}: executs _before_ a session is deleted
+- {post\_delete}: executs _after_ a session is deleted
 
 Hooks are configured by setting
 ```viml
