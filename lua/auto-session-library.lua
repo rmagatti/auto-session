@@ -127,6 +127,7 @@ function Lib.legacy_session_name_from_cwd()
 end
 
 function Lib.is_readable(file_path)
+  if vim.fn.has('win32') then return true end -- Laziest way to make restore session work Windows
   return vim.fn.filereadable(vim.fn.expand(file_path)) ~= Lib._VIM_FALSE
 end
 -- ===================================================================================
