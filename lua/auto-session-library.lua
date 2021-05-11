@@ -100,11 +100,29 @@ end
 
 function Lib.escaped_session_name_from_cwd()
   local cwd = vim.fn.getcwd()
+  if vim.fn.has('win32') then
+    cwd = cwd:gsub(':', '++')
+    if not vim.o.shellslash then
+      cwd = cwd:gsub("\\", "\\%%")
+    end
+
+    return cwd
+  end
+
   return cwd:gsub("/", "\\%%")
 end
 
 function Lib.legacy_session_name_from_cwd()
   local cwd = vim.fn.getcwd()
+  if vim.fn.has('win32') then
+    cwd = cwd:gsub(':', '++')
+    if not vim.o.shellslash then
+      cwd = cwd:gsub("\\", "-")
+    end
+
+    return cwd
+   end
+
   return cwd:gsub("/", "-")
 end
 
