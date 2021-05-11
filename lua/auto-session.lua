@@ -255,10 +255,18 @@ function AutoSession.DeleteSession(file_path)
     Lib.logger.info("Deleted session "..file_path)
   else
     local session_name = Lib.escaped_session_name_from_cwd()
-    local session_file_path = string.format(AutoSession.get_root_dir().."%s.vim", session_name)
 
-    vim.cmd(cmd..session_file_path)
-    Lib.logger.info("Deleted session "..session_file_path)
+    -- custom session for using vim.fn.delete()
+    if vim.fn.has('win32') then
+      session_name = session_name:gsub('\\','')
+      local session_file_path = string.format(AutoSession.get_root_dir().."%s.vim", session_name)
+      vim.fn.delete(session_file_path)
+      Lib.logger.info("Deleted session "..session_file_path)
+    else
+      local session_file_path = string.format(AutoSession.get_root_dir().."%s.vim", session_name)
+      vim.cmd(cmd..session_file_path)
+      Lib.logger.info("Deleted session "..session_file_path)
+    end
   end
 
   local post_cmds = AutoSession.get_cmds("post_delete")
