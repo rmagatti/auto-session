@@ -53,23 +53,25 @@ local function is_enabled()
   return true
 end
 
+local in_pager_mode = next(vim.fn.argv()) == nil -- Neovim was opened with zero args
+
 local auto_save = function()
+  if in_pager_mode then return false end
+
   if vim.g.auto_session_enabled ~= nil then
     return vim.g.auto_save_enabled == Lib._VIM_TRUE
   elseif AutoSession.conf.auto_save_enabled ~= nil then
     return AutoSession.conf.auto_save_enabled
-  else
-    return next(vim.fn.argv()) == nil
   end
 end
 
 local auto_restore = function()
+  if in_pager_mode then return false end
+
   if vim.g.auto_restore_enabled ~= nil then
     return vim.g.auto_restore_enabled == Lib._VIM_TRUE
   elseif AutoSession.conf.auto_restore_enabled ~= nil then
     return AutoSession.conf.auto_restore_enabled
-  else
-    return next(vim.fn.argv()) == nil
   end
 end
 
