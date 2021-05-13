@@ -97,37 +97,41 @@ function Lib.init_file(file_path)
   end
 end
 
+local function win32_escaped_cwd(cwd)
+  cwd = cwd:gsub(':', '++')
+  if not vim.o.shellslash then
+    cwd = cwd:gsub("\\", "\\%%")
+  end
+
+  return cwd
+end
+
+local IS_WIN32 = vim.fn.has('win32') == Lib._VIM_TRUE
 
 function Lib.escaped_session_name_from_cwd()
   local cwd = vim.fn.getcwd()
-  if vim.fn.has('win32') then
-    cwd = cwd:gsub(':', '++')
-    if not vim.o.shellslash then
-      cwd = cwd:gsub("\\", "\\%%")
-    end
+  return IS_WIN32 and win32_escaped_cwd(cwd) or cwd:gsub("/", "\\%%")
+end
 
-    return cwd
+local function get_win32_legacy_cwd(cwd)
+  cwd = cwd:gsub(':', '++')
+  if not vim.o.shellslash then
+    cwd = cwd:gsub("\\", "-")
   end
 
-  return cwd:gsub("/", "\\%%")
+  return cwd
 end
 
 function Lib.legacy_session_name_from_cwd()
   local cwd = vim.fn.getcwd()
-  if vim.fn.has('win32') then
-    cwd = cwd:gsub(':', '++')
-    if not vim.o.shellslash then
-      cwd = cwd:gsub("\\", "-")
-    end
-
-    return cwd
-   end
-
-  return cwd:gsub("/", "-")
+  return IS_WIN32 and get_win32_legacy_cwd(cwd) or cwd:gsub("/", "-")
 end
 
 function Lib.is_readable(file_path)
-  if vim.fn.has('win32') then return true end -- Laziest way to make restore session work Windows
+  if IS_WIN32 then
+    file_path = file_path:gsub('\\%%','%%')
+  end
+
   return vim.fn.filereadable(vim.fn.expand(file_path)) ~= Lib._VIM_FALSE
 end
 -- ===================================================================================
