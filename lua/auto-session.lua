@@ -213,7 +213,14 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
     run_hook_cmds(pre_cmds, "pre-restore")
 
     local cmd = "source "..file_path
-    vim.cmd(cmd)
+    local success, result = pcall(vim.cmd, cmd)
+
+    if not success then
+      Lib.logger.error("Error restoring session, the session might be corrupted. Disabling auto save.", result)
+      AutoSession.conf.auto_save_enabled = false
+      return
+    end
+
     Lib.logger.info("Session restored from "..file_path)
 
     local post_cmds = AutoSession.get_cmds("post_restore")
