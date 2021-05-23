@@ -10,6 +10,9 @@ Auto Session takes advantage of Neovim's existing session management capabilitie
 4. Any session saving and restoration takes into consideration the current working directory `cwd`.
 5. When piping to `nvim`, e.g: `cat myfile | nvim`, auto-session behaves like #2.
 
+:warning: Please note that if there are errors in your config, restoring the session might fail, if that happens, auto session will then disable auto saving for the current session.
+Manually saving a session can still be done by calling `:SaveSession`.
+
 # Installation
 Any plugin manager should do, I use [Plug](https://github.com/junegunn/vim-plug).
 
