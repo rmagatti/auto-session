@@ -216,7 +216,10 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
     local success, result = pcall(vim.cmd, cmd)
 
     if not success then
-      Lib.logger.error("Error restoring session, the session might be corrupted. Disabling auto save. "..result)
+      Lib.logger.error([[
+        Error restoring session! The session might be corrupted.
+        Disabling auto save. Please check for errors in your config. Error: 
+      ]]..result)
       AutoSession.conf.auto_save_enabled = false
       return
     end
