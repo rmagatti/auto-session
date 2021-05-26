@@ -266,6 +266,20 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
   end
 end
 
+local maybe_disable_autosave = function(session_name)
+  local current_session = Lib.escaped_session_name_from_cwd()
+  if session_name == current_session then
+    Lib.logger.debug("Auto Save disabled for current session.", vim.inspect({
+      session_name = session_name, current_session = current_session 
+    }))
+    AutoSession.conf.auto_save_enabled = false
+  else
+    Lib.logger.debug("Auto Save is still enabled for current session.", vim.inspect({
+      session_name = session_name, current_session = current_session 
+    }))
+  end
+end
+
 function AutoSession.DeleteSession(file_path)
   Lib.logger.debug("session_file_path", file_path)
 
@@ -276,24 +290,10 @@ function AutoSession.DeleteSession(file_path)
   local cmd = "silent! !rm "
   local is_win32 = vim.fn.has('win32') == Lib._VIM_TRUE
 
-  local maybe_disable_autosave = function(session_name)
-    if session_name == Lib.escaped_session_name_from_cwd() then
-      Lib.logger.debug("Auto Save disabled for current session.", vim.inspect({
-        session_name = session_name, current_session = Lib.escaped_session_name_from_cwd()
-      }))
-      AutoSession.conf.auto_save_enabled = false
-    else
-      Lib.logger.debug("Auto Save is still enabled for current session.", vim.inspect({
-        session_name = session_name, current_session = Lib.escaped_session_name_from_cwd()
-      }))
-    end
-  end
-
   if not Lib.is_empty(file_path) then
     local escaped_file_path = file_path:gsub("%%", "\\%%")
     vim.cmd(cmd..escaped_file_path)
 
-    maybe_disable_autosave(escaped_file_path)
     Lib.logger.info("Deleted session "..file_path)
   else
     local session_name = Lib.escaped_session_name_from_cwd()
