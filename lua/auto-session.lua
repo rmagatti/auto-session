@@ -277,11 +277,15 @@ function AutoSession.DeleteSession(file_path)
   local is_win32 = vim.fn.has('win32') == Lib._VIM_TRUE
 
   local maybe_disable_autosave = function(session_name)
-    Lib.logger.debug("Auto Save disabled for current session.", vim.inspect({
-      session_name = session_name, current_session = Lib.escaped_session_name_from_cwd()
-    }))
     if session_name == Lib.escaped_session_name_from_cwd() then
+      Lib.logger.debug("Auto Save disabled for current session.", vim.inspect({
+        session_name = session_name, current_session = Lib.escaped_session_name_from_cwd()
+      }))
       AutoSession.conf.auto_save_enabled = false
+    else
+      Lib.logger.debug("Auto Save is still enabled for current session.", vim.inspect({
+        session_name = session_name, current_session = Lib.escaped_session_name_from_cwd()
+      }))
     end
   end
 
