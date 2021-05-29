@@ -280,6 +280,10 @@ local maybe_disable_autosave = function(session_name)
   end
 end
 
+function AutoSession.CompleteSessions()
+  return table.concat(vim.fn.glob(AutoSession.conf.auto_session_root_dir .. '/*', true, true), "\n")
+end
+
 function AutoSession.DeleteSession(file_path)
   Lib.logger.debug("session_file_path", file_path)
 
