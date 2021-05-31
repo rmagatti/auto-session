@@ -12,10 +12,14 @@ let LuaDeleteSession = luaeval('require("auto-session").DeleteSession')
 let LuaAutoSaveSession = luaeval('require("auto-session").AutoSaveSession')
 let LuaAutoRestoreSession = luaeval('require("auto-session").AutoRestoreSession')
 
+function! CompleteSessions(A,L,P) abort
+  return luaeval('require"auto-session".CompleteSessions()')
+endfunction
+
 " Available commands
 command! -nargs=* SaveSession call LuaSaveSession(expand('<args>'))
 command! -nargs=* RestoreSession call LuaRestoreSession(expand('<args>'))
-command! -nargs=* DeleteSession call LuaDeleteSession(expand('<args>'))
+command! -nargs=* -complete=custom,CompleteSessions DeleteSession call LuaDeleteSession(expand('<args>'))
 
 aug StdIn
   autocmd!
