@@ -132,7 +132,7 @@ function AutoSession.AutoSaveSession(sessions_dir)
 end
 
 function AutoSession.get_root_dir()
-  if AutoSession.valiated then
+  if AutoSession.validated then
     return AutoSession.conf.auto_session_root_dir
   end
 
@@ -281,12 +281,27 @@ local maybe_disable_autosave = function(session_name)
 end
 
 function AutoSession.CompleteSessions()
-  return table.concat(vim.fn.glob(AutoSession.conf.auto_session_root_dir .. '/*', true, true), "\n")
+  local session_files = vim.fn.glob(AutoSession.get_root_dir() .. '/*', true, true)
+  local session_names = {}
+  for _, sf in ipairs(session_files) do
+    local name = Lib.unescape_dir(vim.fn.fnamemodify(sf,":t:r"))
+    table.insert(session_names, name)
+  end
+  return table.concat(session_names, "\n")
 end
 
-function AutoSession.DeleteSession(file_path)
-  Lib.logger.debug("session_file_path", file_path)
+function AutoSession.DeleteSessionByName(...)
+  local session_paths = {}
+  for _, name in ipairs{...} do
+    local escaped_session = Lib.escape_dir(name)
+    maybe_disable_autosave(escaped_session)
+    local session_path = string.format("%s/%s.vim", AutoSession.get_root_dir(), escaped_session)
+    table.insert(session_paths, session_path)
+  end
+  AutoSession.DeleteSession(unpack(session_paths))
+end
 
+function AutoSession.DeleteSession(...)
   local pre_cmds = AutoSession.get_cmds("pre_delete")
   run_hook_cmds(pre_cmds, "pre-delete")
 
@@ -294,11 +309,15 @@ function AutoSession.DeleteSession(file_path)
   local cmd = "silent! !rm "
   local is_win32 = vim.fn.has('win32') == Lib._VIM_TRUE
 
-  if not Lib.is_empty(file_path) then
-    local escaped_file_path = file_path:gsub("%%", "\\%%")
-    vim.cmd(cmd..escaped_file_path)
+  if not Lib.is_empty(...) then
+    for _, file_path in ipairs{...} do
+      Lib.logger.debug("session_file_path", file_path)
 
-    Lib.logger.info("Deleted session "..file_path)
+      local escaped_file_path = file_path:gsub("%%", "\\%%")
+      vim.cmd(cmd..escaped_file_path)
+
+      Lib.logger.info("Deleted session "..file_path)
+    end
   else
     local session_name = Lib.escaped_session_name_from_cwd()
     if is_win32 then
