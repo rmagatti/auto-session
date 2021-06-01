@@ -97,20 +97,36 @@ function Lib.init_file(file_path)
   end
 end
 
-local function win32_escaped_cwd(cwd)
-  cwd = cwd:gsub(':', '++')
+local function win32_escaped_dir(dir)
+  dir = dir:gsub('++', ':')
   if not vim.o.shellslash then
-    cwd = cwd:gsub("\\", "\\%%")
+    dir = dir:gsub("%%", "\\")
   end
 
-  return cwd
+  return dir
+end
+
+local function win32_unescaped_dir(dir)
+  dir = dir:gsub(':', '++')
+  if not vim.o.shellslash then
+    dir = dir:gsub("\\", "\\%%")
+  end
+
+  return dir
 end
 
 local IS_WIN32 = vim.fn.has('win32') == Lib._VIM_TRUE
 
+function Lib.unescape_dir(dir)
+  return IS_WIN32 and win32_unescaped_dir(dir) or dir:gsub("%%", "/")
+end
+
+function Lib.escape_dir(dir)
+  return IS_WIN32 and win32_escaped_dir(dir) or dir:gsub("/", "\\%%")
+end
+
 function Lib.escaped_session_name_from_cwd()
-  local cwd = vim.fn.getcwd()
-  return IS_WIN32 and win32_escaped_cwd(cwd) or cwd:gsub("/", "\\%%")
+  return Lib.escape_dir(vim.fn.getcwd())
 end
 
 local function get_win32_legacy_cwd(cwd)
