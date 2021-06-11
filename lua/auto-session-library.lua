@@ -144,11 +144,12 @@ function Lib.legacy_session_name_from_cwd()
 end
 
 function Lib.is_readable(file_path)
-  if IS_WIN32 then
-    file_path = file_path:gsub('\\%%','%%')
-  end
+  local path, _ = file_path:gsub('\\%%','%%')
+  local readable = vim.fn.filereadable(path) == Lib._VIM_TRUE
 
-  return vim.fn.filereadable(vim.fn.expand(file_path)) ~= Lib._VIM_FALSE
+  Lib.logger.debug('==== is_readable', readable)
+
+  return readable
 end
 -- ===================================================================================
 
