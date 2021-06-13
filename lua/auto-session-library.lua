@@ -126,7 +126,7 @@ function Lib.escape_dir(dir)
 end
 
 function Lib.escaped_session_name_from_cwd()
-  return Lib.escape_dir(vim.fn.getcwd())
+  return IS_WIN32 and Lib.unescape_dir(vim.fn.getcwd()) or Lib.escape_dir(vim.fn.getcwd()) 
 end
 
 local function get_win32_legacy_cwd(cwd)
