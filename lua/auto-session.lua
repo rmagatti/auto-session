@@ -108,7 +108,6 @@ do
     local latest_session = { session = nil, last_edited = 0 }
 
     for _, filename in ipairs(vim.fn.readdir(dir)) do
-
       local session = AutoSession.conf.auto_session_root_dir..filename
       local last_edited = vim.fn.getftime(session)
 
@@ -118,8 +117,12 @@ do
       end
     end
 
-    -- Need to escape % chars on the filename so expansion doesn't happen
-    return latest_session.session:gsub("%%", "\\%%")
+    if (latest_session.session ~= nil) then
+      -- Need to escape % chars on the filename so expansion doesn't happen
+      return latest_session.session:gsub("%%", "\\%%")
+    else
+      return nil
+    end
   end
 end
 
@@ -246,8 +249,10 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
     else
       if AutoSession.conf.auto_session_enable_last_session then
         local last_session_file_path = AutoSession.get_latest_session()
-        Lib.logger.info("Restoring last session", last_session_file_path)
-        restore(last_session_file_path)
+        if (last_session_file_path ~= nil) then
+          Lib.logger.info("Restoring last session", last_session_file_path)
+          restore(last_session_file_path)
+        end
       else
         Lib.logger.debug("File not readable, not restoring session")
       end
@@ -270,12 +275,12 @@ local maybe_disable_autosave = function(session_name)
   local current_session = Lib.escaped_session_name_from_cwd()
   if session_name == current_session then
     Lib.logger.debug("Auto Save disabled for current session.", vim.inspect({
-      session_name = session_name, current_session = current_session 
+      session_name = session_name, current_session = current_session
     }))
     AutoSession.conf.auto_save_enabled = false
   else
     Lib.logger.debug("Auto Save is still enabled for current session.", vim.inspect({
-      session_name = session_name, current_session = current_session 
+      session_name = session_name, current_session = current_session
     }))
   end
 end
