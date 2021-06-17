@@ -117,7 +117,7 @@ do
       end
     end
 
-    if (latest_session.session ~= nil) then
+    if latest_session.session ~= nil then
       -- Need to escape % chars on the filename so expansion doesn't happen
       return latest_session.session:gsub("%%", "\\%%")
     else
@@ -249,7 +249,7 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
     else
       if AutoSession.conf.auto_session_enable_last_session then
         local last_session_file_path = AutoSession.get_latest_session()
-        if (last_session_file_path ~= nil) then
+        if last_session_file_path ~= nil then
           Lib.logger.info("Restoring last session", last_session_file_path)
           restore(last_session_file_path)
         end
