@@ -285,6 +285,11 @@ local maybe_disable_autosave = function(session_name)
   end
 end
 
+function AutoSession.DisableAutoSave()
+  Lib.logger.debug("Auto Save disabled manually.")
+  AutoSession.conf.auto_save_enabled = false
+end
+
 function AutoSession.CompleteSessions()
   local session_files = vim.fn.glob(AutoSession.get_root_dir() .. '/*', true, true)
   local session_names = {}
