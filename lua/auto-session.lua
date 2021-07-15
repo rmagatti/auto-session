@@ -163,7 +163,8 @@ function AutoSession.SaveSession(sessions_dir, auto)
   local pre_cmds = AutoSession.get_cmds("pre_save")
   run_hook_cmds(pre_cmds, "pre-save")
 
-  local session_name = Lib.escaped_session_name_from_cwd()
+  local session_name = Lib.conf.last_loaded_session or Lib.escaped_session_name_from_cwd()
+  Lib.logger.debug("==== Save - Session Name", session_name)
   local full_path = string.format(sessions_dir.."%s.vim", session_name)
   local cmd = "mks! "..full_path
 
@@ -211,7 +212,7 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
   Lib.logger.debug("sessions dir or file", sessions_dir_or_file)
   local sessions_dir, session_file = extract_dir_or_file(sessions_dir_or_file)
 
-  local restore = function(file_path)
+  local restore = function(file_path, session_name)
     local pre_cmds = AutoSession.get_cmds("pre_restore")
     run_hook_cmds(pre_cmds, "pre-restore")
 
@@ -228,6 +229,7 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
     end
 
     Lib.logger.info("Session restored from "..file_path)
+    Lib.conf.last_loaded_session = session_name
 
     local post_cmds = AutoSession.get_cmds("post_restore")
     run_hook_cmds(post_cmds, "post-restore")
@@ -236,16 +238,17 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
   -- I still don't like reading this chunk, please cleanup
   if sessions_dir then
     Lib.logger.debug("==== Using session DIR")
-    local session_name = Lib.escaped_session_name_from_cwd()
+    local session_name = Lib.conf.last_loaded_session or Lib.escaped_session_name_from_cwd()
+    Lib.logger.debug("==== Session Name", session_name)
     local session_file_path = string.format(sessions_dir.."%s.vim", session_name)
 
     local legacy_session_name = Lib.legacy_session_name_from_cwd()
     local legacy_file_path = string.format(sessions_dir.."%s.vim", legacy_session_name)
 
     if Lib.is_readable(session_file_path) then
-      restore(session_file_path)
+      restore(session_file_path, session_name)
     elseif Lib.is_readable(legacy_file_path) then
-      restore(legacy_file_path)
+      restore(legacy_file_path, session_name)
     else
       if AutoSession.conf.auto_session_enable_last_session then
         local last_session_file_path = AutoSession.get_latest_session()
