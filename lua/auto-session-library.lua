@@ -2,7 +2,8 @@ local Config = {}
 local Lib = {
   logger = {},
   conf = {
-    log_level = false
+    log_level = false,
+    last_loaded_session = nil
   },
   Config = Config,
   _VIM_FALSE = 0,
@@ -126,7 +127,7 @@ function Lib.escape_dir(dir)
 end
 
 function Lib.escaped_session_name_from_cwd()
-  return IS_WIN32 and Lib.unescape_dir(vim.fn.getcwd()) or Lib.escape_dir(vim.fn.getcwd()) 
+  return IS_WIN32 and Lib.unescape_dir(vim.fn.getcwd()) or Lib.escape_dir(vim.fn.getcwd())
 end
 
 local function get_win32_legacy_cwd(cwd)
