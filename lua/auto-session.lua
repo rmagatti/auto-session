@@ -147,13 +147,23 @@ function AutoSession.get_root_dir()
   return root_dir
 end
 
-
 function AutoSession.get_cmds(typ)
   return AutoSession.conf[typ.."_cmds"] or vim.g["auto_session_"..typ.."_cmds"]
 end
 
+local function message_after_saving(path, auto)
+  if auto then
+    Lib.logger.debug("Session saved at "..path)
+  else
+    Lib.logger.info("Session saved at "..path)
+  end
+end
+
 -- Saves the session, overriding if previously existing.
 function AutoSession.SaveSession(sessions_dir, auto)
+  -- To be used for saving by file path
+  local session = sessions_dir
+
   if Lib.is_empty(sessions_dir) then
     sessions_dir = AutoSession.get_root_dir()
   else
@@ -163,18 +173,21 @@ function AutoSession.SaveSession(sessions_dir, auto)
   local pre_cmds = AutoSession.get_cmds("pre_save")
   run_hook_cmds(pre_cmds, "pre-save")
 
-  local session_name = Lib.conf.last_loaded_session or Lib.escaped_session_name_from_cwd()
-  Lib.logger.debug("==== Save - Session Name", session_name)
-  local full_path = string.format(sessions_dir.."%s.vim", session_name)
-  local cmd = "mks! "..full_path
+  if vim.fn.isdirectory(session) == Lib._VIM_FALSE then
+    Lib.logger.debug("SaveSession param is not a directory, saving as a file.")
+    vim.cmd("mks! "..session)
 
-  if auto then
-    Lib.logger.debug("Session saved at "..full_path)
+    message_after_saving(session, auto)
   else
-    Lib.logger.info("Session saved at "..full_path)
-  end
+    local session_name = Lib.conf.last_loaded_session or Lib.escaped_session_name_from_cwd()
+    Lib.logger.debug("==== Save - Session Name", session_name)
+    local full_path = string.format(sessions_dir.."%s.vim", session_name)
+    local cmd = "mks! "..full_path
 
-  vim.cmd(cmd)
+    message_after_saving(full_path, auto)
+
+    vim.cmd(cmd)
+  end
 
   local post_cmds = AutoSession.get_cmds("post_save")
   run_hook_cmds(post_cmds, "post-save")

@@ -23,10 +23,6 @@ Any plugin manager should do, I use [Plug](https://github.com/junegunn/vim-plug)
 ### Default
 Auto Session by default stores sessions in `vim.fn.stdpath('config').."/sessions/"`.  
 
-🛑 BREAKING CHANGE 🛑  
-The new version changes the default sessions dir from `~/.config/nvim/sessions/` to `vim.fn.stdpath('config').."/sessions/"`.  
-If you have not set your sessions dir manually, you might need to copy your existing sessions over to the new default, or alternatively set the old default as the `g:auto_session_root_dir`.
-
 ### Custom
 One can set the auto\_session root dir that will be used for auto session saving and restoring.
 ```viml
@@ -58,6 +54,18 @@ EOF
 | auto_restore_enabled              | false, true, nil          | nil                                   | Enables/disables auto restoring                                 |
 | auto_session_suppress_dirs        | ["list", "of paths"]      | nil                                   | Suppress session create/restore if in one of a list of dirs     |
 
+#### Recommended sessionoptions config
+For a better experience with the plugin overall using this config for `sessionoptions` is recommended.
+
+**Lua**
+```lua
+vim.o.sessionoptions="blank,buffers,curdir,folds,help,options,tabpages,winsize,resize,winpos,terminal"
+```
+
+**VimL**
+```viml
+set sessionoptions+=options,resize,winpos,terminal
+```
 
 ### Last Session
 This optional feature enables the keeping track and loading of the last session.
@@ -110,7 +118,6 @@ e.g. to close NERDTree before saving the session.
 ```viml
 let g:auto_session_pre_save_cmds = ["tabdo NERDTreeClose"]
 ```
-
 ## Session Lens
 [Session Lens](https://github.com/rmagatti/session-lens) is a companion plugin to auto-session built on top of [Telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) for easy switching between existing sessions.
 
