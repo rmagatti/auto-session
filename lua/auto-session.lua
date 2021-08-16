@@ -162,7 +162,7 @@ end
 -- Saves the session, overriding if previously existing.
 function AutoSession.SaveSession(sessions_dir, auto)
   -- To be used for saving by file path
-  local session = sessions_dir
+  local session = sessions_dir and sessions_dir ~= "" and sessions_dir or nil
 
   if Lib.is_empty(sessions_dir) then
     sessions_dir = AutoSession.get_root_dir()
@@ -173,7 +173,7 @@ function AutoSession.SaveSession(sessions_dir, auto)
   local pre_cmds = AutoSession.get_cmds("pre_save")
   run_hook_cmds(pre_cmds, "pre-save")
 
-  if vim.fn.isdirectory(session) == Lib._VIM_FALSE then
+  if vim.fn.isdirectory(session or sessions_dir) == Lib._VIM_FALSE then
     Lib.logger.debug("SaveSession param is not a directory, saving as a file.")
     vim.cmd("mks! "..session)
 
