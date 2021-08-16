@@ -57,12 +57,12 @@ EOF
 #### Recommended sessionoptions config
 For a better experience with the plugin overall using this config for `sessionoptions` is recommended.
 
-**If using lua**
+**Lua**
 ```lua
 vim.o.sessionoptions="blank,buffers,curdir,folds,help,options,tabpages,winsize,resize,winpos,terminal"
 ```
 
-**If using VimL**
+**VimL**
 ```viml
 set sessionoptions+=options,resize,winpos,terminal
 ```
