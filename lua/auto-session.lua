@@ -102,6 +102,21 @@ local function suppress_session()
   return false
 end
 
+local function filter_session()
+  local dirs = vim.g.auto_session_filter_dirs or
+                   AutoSession.conf.auth_session_filter_dirs or {}
+  local filter = vim.g.auto_session_filter_enable or
+                     AutoSession.conf.auth_session_filter_enabled or {}
+  local cwd = vim.fn.getcwd()
+  for _, s in pairs(dirs) do
+    s = string.gsub(vim.fn.simplify(vim.fn.expand(s)), '/+$', '')
+    if cwd == s and filter then
+      return true
+    end
+  end
+  return false
+end
+
 do
   function AutoSession.get_latest_session()
     local dir = vim.fn.expand(AutoSession.conf.auto_session_root_dir)
@@ -129,7 +144,7 @@ end
 
 ------ MAIN FUNCTIONS ------
 function AutoSession.AutoSaveSession(sessions_dir)
-  if is_enabled() and auto_save() and not suppress_session() then
+  if is_enabled() and auto_save() and not suppress_session() and filter_session() then
     AutoSession.SaveSession(sessions_dir, true)
   end
 end
