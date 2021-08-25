@@ -24,6 +24,8 @@ local defaultConf = {
   auto_save_enabled = nil, -- Enables/disables auto save feature
   auto_restore_enabled = nil, -- Enables/disables auto restore feature
   auto_session_suppress_dirs = nil -- Suppress session restore/create in certain directories
+  auto_session_allowed_dirs = nil -- Allow session restore/create in certain directories
+  auto_session_selective_enable = nil -- Enables auto-session only for selected paths
 }
 
 -- Set default config on plugin load
@@ -102,11 +104,11 @@ local function suppress_session()
   return false
 end
 
-local function filter_session()
-  local dirs = vim.g.auto_session_filter_dirs or
-                   AutoSession.conf.auth_session_filter_dirs or {}
-  local filter = vim.g.auto_session_filter_enable or
-                     AutoSession.conf.auth_session_filter_enabled or {}
+local function allowed_session()
+  local dirs = vim.g.auto_session_allowed_dirs or
+                   AutoSession.conf.auto_session_allowed_dirs or {}
+  local filter = vim.g.auto_session_selective_enable or
+                     AutoSession.conf.auto_session_selective_enable or false
   local cwd = vim.fn.getcwd()
   for _, s in pairs(dirs) do
     s = string.gsub(vim.fn.simplify(vim.fn.expand(s)), '/+$', '')
@@ -140,7 +142,6 @@ do
     end
   end
 end
-
 
 ------ MAIN FUNCTIONS ------
 function AutoSession.AutoSaveSession(sessions_dir)
