@@ -55,11 +55,14 @@ local function is_enabled()
 end
 
 local function is_allowed_dirs_enabled()
+  Lib.logger.debug("==== is_allowed_dirs_enabled")
   if vim.g.auto_session_allowed_dirs ~= nil then
     return not vim.tbl_isempty(vim.g.auto_session_allowed_dirs)
   else
-    return not vim.tbl_isempty(AutoSession.conf.auto_session_allowed_dirs)
+    return not vim.tbl_isempty(AutoSession.conf.auto_session_allowed_dirs or {})
   end
+
+  return false
 end
 
 local pager_mode = nil
@@ -119,9 +122,12 @@ local function is_allowed_dir()
   for _, s in pairs(dirs) do
     s = string.gsub(vim.fn.simplify(vim.fn.expand(s)), '/+$', '')
     if cwd == s then
+      Lib.logger.debug("is_allowed_dir", true)
       return true
     end
   end
+
+  Lib.logger.debug("is_allowed_dir", false)
   return false
 end
 
@@ -183,6 +189,7 @@ end
 
 -- Saves the session, overriding if previously existing.
 function AutoSession.SaveSession(sessions_dir, auto)
+  Lib.logger.debug("==== SaveSession")
   -- To be used for saving by file path
   local session = sessions_dir and sessions_dir ~= "" and sessions_dir or nil
 
