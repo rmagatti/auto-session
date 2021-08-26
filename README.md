@@ -53,8 +53,7 @@ EOF
 | auto_save_enabled                 | false, true, nil          | nil                                   | Enables/disables auto saving                                    |
 | auto_restore_enabled              | false, true, nil          | nil                                   | Enables/disables auto restoring                                 |
 | auto_session_suppress_dirs        | ["list", "of paths"]      | nil                                   | Suppress session create/restore if in one of the list of dirs   |
-| auto_session_selective_enable     | false, true, nil          | nil                                   | Enables auto-session only for selected paths                    |
-| auto_session_allowed_dirs         | ["list", "of paths"]      | nil                                   | Allow session create/restore if in one of the list of dirs     |  |
+| auto_session_allowed_dirs         | ["list", "of paths"]      | nil                                   | Allow session create/restore if in one of the list of dirs      |
 
 #### Recommended sessionoptions config
 For a better experience with the plugin overall using this config for `sessionoptions` is recommended.
