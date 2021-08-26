@@ -23,9 +23,8 @@ local defaultConf = {
   auto_session_enabled = true, -- Enables/disables auto saving and restoring
   auto_save_enabled = nil, -- Enables/disables auto save feature
   auto_restore_enabled = nil, -- Enables/disables auto restore feature
-  auto_session_suppress_dirs = nil -- Suppress session restore/create in certain directories
-  auto_session_allowed_dirs = nil -- Allow session restore/create in certain directories
-  auto_session_selective_enable = nil -- Enables auto-session only for selected paths
+  auto_session_suppress_dirs = nil, -- Suppress session restore/create in certain directories
+  auto_session_allowed_dirs = nil, -- Allow session restore/create in certain directories
 }
 
 -- Set default config on plugin load
@@ -53,6 +52,17 @@ local function is_enabled()
   end
 
   return true
+end
+
+local function is_allowed_dirs_enabled()
+  Lib.logger.debug("==== is_allowed_dirs_enabled")
+  if vim.g.auto_session_allowed_dirs ~= nil then
+    return not vim.tbl_isempty(vim.g.auto_session_allowed_dirs)
+  else
+    return not vim.tbl_isempty(AutoSession.conf.auto_session_allowed_dirs or {})
+  end
+
+  return false
 end
 
 local pager_mode = nil
@@ -104,18 +114,20 @@ local function suppress_session()
   return false
 end
 
-local function allowed_session()
-  local dirs = vim.g.auto_session_allowed_dirs or
-                   AutoSession.conf.auto_session_allowed_dirs or {}
-  local filter = vim.g.auto_session_selective_enable or
-                     AutoSession.conf.auto_session_selective_enable or false
+local function is_allowed_dir()
+  if not is_allowed_dirs_enabled() then return true end
+
+  local dirs = vim.g.auto_session_allowed_dirs or AutoSession.conf.auto_session_allowed_dirs or {}
   local cwd = vim.fn.getcwd()
   for _, s in pairs(dirs) do
     s = string.gsub(vim.fn.simplify(vim.fn.expand(s)), '/+$', '')
-    if cwd == s and filter then
+    if cwd == s then
+      Lib.logger.debug("is_allowed_dir", true)
       return true
     end
   end
+
+  Lib.logger.debug("is_allowed_dir", false)
   return false
 end
 
@@ -145,7 +157,7 @@ end
 
 ------ MAIN FUNCTIONS ------
 function AutoSession.AutoSaveSession(sessions_dir)
-  if is_enabled() and auto_save() and not suppress_session() and filter_session() then
+  if is_enabled() and auto_save() and not suppress_session() and is_allowed_dir() then
     AutoSession.SaveSession(sessions_dir, true)
   end
 end
@@ -177,6 +189,7 @@ end
 
 -- Saves the session, overriding if previously existing.
 function AutoSession.SaveSession(sessions_dir, auto)
+  Lib.logger.debug("==== SaveSession")
   -- To be used for saving by file path
   local session = sessions_dir and sessions_dir ~= "" and sessions_dir or nil
 
