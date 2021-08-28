@@ -5,7 +5,14 @@ local function run_hook_cmds(cmds, hook_name)
   if not Lib.is_empty_table(cmds) then
     for _,cmd in ipairs(cmds) do
       Lib.logger.debug(string.format("Running %s command: %s", hook_name, cmd))
-      local success, result = pcall(vim.cmd, cmd)
+      local success, result
+
+      if type(cmd) == "function" then
+        success, result = pcall(cmd)
+      else
+        success, result = pcall(vim.cmd, cmd)
+      end
+
       if not success then Lib.logger.error(string.format("Error running %s. error: %s", cmd, result)) end
     end
   end

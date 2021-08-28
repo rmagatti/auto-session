@@ -119,6 +119,19 @@ e.g. to close NERDTree before saving the session.
 ```viml
 let g:auto_session_pre_save_cmds = ["tabdo NERDTreeClose"]
 ```
+
+Hooks can also be lua functions
+Example:
+```lua
+local function custom_hook()
+    -- insert hook here
+end
+
+require('auto-session').setup {
+    {hook_name}_cmds = {"{vim_cmd_1}", custom_hook, "{vim_cmd_2}"}
+}
+```
+
 ## Session Lens
 [Session Lens](https://github.com/rmagatti/session-lens) is a companion plugin to auto-session built on top of [Telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) for easy switching between existing sessions.
 
