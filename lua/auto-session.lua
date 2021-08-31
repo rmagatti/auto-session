@@ -159,8 +159,8 @@ local function get_session_file_name(session_dir)
   end
 
   if vim.fn.isdirectory(session or sessions_dir) == Lib._VIM_FALSE then
-	-- When we get here session and sessions_dir either both point to a file or do not exist
-	return session
+    -- When we get here session and sessions_dir either both point to a file or do not exist
+    return session
   else
     local session_name = Lib.conf.last_loaded_session or Lib.escaped_session_name_from_cwd()
     return string.format(sessions_dir.."%s.vim", session_name)
