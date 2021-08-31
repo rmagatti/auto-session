@@ -27,7 +27,8 @@ local defaultConf = {
   log_level = vim.g.auto_session_log_level or AutoSession.conf.logLevel or AutoSession.conf.log_level or 'info', -- Sets the log level of the plugin (debug, info, error). camelCase logLevel for compatibility.
   auto_session_enable_last_session = vim.g.auto_session_enable_last_session or false, -- Enables/disables the "last session" feature
   auto_session_root_dir = vim.fn.stdpath('data').."/sessions/", -- Root dir where sessions will be stored
-  auto_session_enabled = true, -- Enables/disables auto saving and restoring
+  auto_session_enabled = true, -- Enables/disables auto creating, saving and restoring
+  auto_session_create_enabled = nil, -- Enables/disables auto creating new sessions
   auto_save_enabled = nil, -- Enables/disables auto save feature
   auto_restore_enabled = nil, -- Enables/disables auto restore feature
   auto_session_suppress_dirs = nil, -- Suppress session restore/create in certain directories
@@ -70,6 +71,16 @@ local function is_allowed_dirs_enabled()
   end
 
   return false
+end
+
+local function is_auto_create_enabled()
+  if vim.g.auto_session_create_enabled ~= nil then
+    return vim.g.auto_session_create_enabled == Lib._VIM_TRUE
+  elseif AutoSession.conf.auto_session_create_enabled ~= nil then
+    return AutoSession.conf.auto_session_create_enabled
+  end
+
+  return true
 end
 
 local pager_mode = nil
@@ -138,6 +149,24 @@ local function is_allowed_dir()
   return false
 end
 
+local function get_session_file_name(session_dir)
+  local session = sessions_dir and sessions_dir ~= "" and sessions_dir or nil
+
+  if Lib.is_empty(sessions_dir) then
+    sessions_dir = AutoSession.get_root_dir()
+  else
+    sessions_dir = Lib.append_slash(sessions_dir)
+  end
+
+  if vim.fn.isdirectory(session or sessions_dir) == Lib._VIM_FALSE then
+    -- When we get here session and sessions_dir either both point to a file or do not exist
+    return session
+  else
+    local session_name = Lib.conf.last_loaded_session or Lib.escaped_session_name_from_cwd()
+    return string.format(sessions_dir.."%s.vim", session_name)
+  end
+end
+
 do
   function AutoSession.get_latest_session()
     local dir = vim.fn.expand(AutoSession.conf.auto_session_root_dir)
@@ -165,7 +194,13 @@ end
 ------ MAIN FUNCTIONS ------
 function AutoSession.AutoSaveSession(sessions_dir)
   if is_enabled() and auto_save() and not suppress_session() and is_allowed_dir() then
-    AutoSession.SaveSession(sessions_dir, true)
+	if not is_auto_create_enabled() then
+	  local session_file_name = get_session_file_name(sessions_dir)
+	  if not Lib.is_readable(session_file_name) then
+	    return
+	  end
+	end
+	AutoSession.SaveSession(sessions_dir, true)
   end
 end
 
@@ -197,33 +232,14 @@ end
 -- Saves the session, overriding if previously existing.
 function AutoSession.SaveSession(sessions_dir, auto)
   Lib.logger.debug("==== SaveSession")
-  -- To be used for saving by file path
-  local session = sessions_dir and sessions_dir ~= "" and sessions_dir or nil
-
-  if Lib.is_empty(sessions_dir) then
-    sessions_dir = AutoSession.get_root_dir()
-  else
-    sessions_dir = Lib.append_slash(sessions_dir)
-  end
+  local session_file_name = get_session_file_name(session_dir)
 
   local pre_cmds = AutoSession.get_cmds("pre_save")
   run_hook_cmds(pre_cmds, "pre-save")
 
-  if vim.fn.isdirectory(session or sessions_dir) == Lib._VIM_FALSE then
-    Lib.logger.debug("SaveSession param is not a directory, saving as a file.")
-    vim.cmd("mks! "..session)
+  vim.cmd("mks! "..session_file_name)
 
-    message_after_saving(session, auto)
-  else
-    local session_name = Lib.conf.last_loaded_session or Lib.escaped_session_name_from_cwd()
-    Lib.logger.debug("==== Save - Session Name", session_name)
-    local full_path = string.format(sessions_dir.."%s.vim", session_name)
-    local cmd = "mks! "..full_path
-
-    message_after_saving(full_path, auto)
-
-    vim.cmd(cmd)
-  end
+  message_after_saving(session_file_name, auto)
 
   local post_cmds = AutoSession.get_cmds("post_save")
   run_hook_cmds(post_cmds, "post-save")
