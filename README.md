@@ -68,7 +68,7 @@ vim.o.sessionoptions="blank,buffers,curdir,folds,help,options,tabpages,winsize,r
 set sessionoptions+=options,resize,winpos,terminal
 ```
 
-*Note*: if you use [packer.nvim](https://github.com/wbthomason/packer.nvim)'s lazy loading feature, you might want to _not_ add the `options` value to `sessionoptions`.
+**Note**: if you use [packer.nvim](https://github.com/wbthomason/packer.nvim)'s lazy loading feature, you might want to _not_ add the `options` value to `sessionoptions`.
 It might lead to weird behaviour with the lazy loading, especially around key-based lazy loading.
 
 ### Last Session
