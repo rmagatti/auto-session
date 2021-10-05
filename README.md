@@ -21,7 +21,7 @@ Any plugin manager should do, I use [Plug](https://github.com/junegunn/vim-plug)
 # ⚙️ Configuration
 
 ### Default
-Auto Session by default stores sessions in `vim.fn.stdpath('config').."/sessions/"`.  
+Auto Session by default stores sessions in `vim.fn.stdpath('data').."/sessions/"`.  
 
 ### Custom
 One can set the auto\_session root dir that will be used for auto session saving and restoring.
