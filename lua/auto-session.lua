@@ -195,13 +195,13 @@ end
 ------ MAIN FUNCTIONS ------
 function AutoSession.AutoSaveSession(sessions_dir)
   if is_enabled() and auto_save() and not suppress_session() and is_allowed_dir() then
-	if not is_auto_create_enabled() then
-	  local session_file_name = get_session_file_name(sessions_dir)
-	  if not Lib.is_readable(session_file_name) then
-	    return
-	  end
-	end
-	AutoSession.SaveSession(sessions_dir, true)
+    if not is_auto_create_enabled() then
+      local session_file_name = get_session_file_name(sessions_dir)
+      if not Lib.is_readable(session_file_name) then
+        return
+      end
+    end
+  AutoSession.SaveSession(sessions_dir, true)
   end
 end
 
