@@ -33,6 +33,7 @@ local defaultConf = {
   auto_restore_enabled = nil, -- Enables/disables auto restore feature
   auto_session_suppress_dirs = nil, -- Suppress session restore/create in certain directories
   auto_session_allowed_dirs = nil, -- Allow session restore/create in certain directories
+  restore_quietly = false,
 }
 
 -- Set default config on plugin load
@@ -282,6 +283,10 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
     run_hook_cmds(pre_cmds, "pre-restore")
 
     local cmd = "source "..file_path
+    if AutoSession.conf.restore_quietly then
+      cmd = "execute('silent') \'" .. cmd .. "\'"
+    end
+
     local success, result = pcall(vim.cmd, cmd)
 
     if not success then
