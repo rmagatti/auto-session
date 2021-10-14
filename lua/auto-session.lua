@@ -201,7 +201,7 @@ function AutoSession.AutoSaveSession(sessions_dir)
         return
       end
     end
-  AutoSession.SaveSession(sessions_dir, true)
+    AutoSession.SaveSession(sessions_dir, true)
   end
 end
 
