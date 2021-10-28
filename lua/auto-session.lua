@@ -149,7 +149,7 @@ local function is_allowed_dir()
   return false
 end
 
-local function get_session_file_name(session_dir)
+local function get_session_file_name(sessions_dir)
   local session = sessions_dir and sessions_dir ~= "" and sessions_dir or nil
 
   if Lib.is_empty(sessions_dir) then
@@ -232,7 +232,7 @@ end
 -- Saves the session, overriding if previously existing.
 function AutoSession.SaveSession(sessions_dir, auto)
   Lib.logger.debug("==== SaveSession")
-  local session_file_name = get_session_file_name(session_dir)
+  local session_file_name = get_session_file_name(sessions_dir)
 
   local pre_cmds = AutoSession.get_cmds("pre_save")
   run_hook_cmds(pre_cmds, "pre-save")
