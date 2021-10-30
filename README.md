@@ -14,9 +14,19 @@ Auto Session takes advantage of Neovim's existing session management capabilitie
 Manually saving a session can still be done by calling `:SaveSession`.
 
 # 📦 Installation
-Any plugin manager should do, I use [Plug](https://github.com/junegunn/vim-plug).
+Any plugin manager should do, I use [Packer.nvim](https://github.com/wbthomason/packer.nvim)
 
-`Plug 'rmagatti/auto-session'`
+```lua
+use {
+  'rmagatti/auto-session',
+  config = function()
+    require('auto-session').setup {
+      log_level = 'info',
+      auto_session_suppress_dirs = {'~/', '~/Projects'}
+    }
+  end
+}
+```
 
 # ⚙️ Configuration
 
