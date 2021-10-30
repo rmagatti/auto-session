@@ -57,7 +57,7 @@ EOF
 ### Statusline
 One can show the current session name in the statusline by using an auto-session helper function.
 
-Lualine example config
+Lualine example config and how it looks
 ```lua
 require('lualine').setup{
   options = {
@@ -66,6 +66,8 @@ require('lualine').setup{
   sections = {lualine_c = {require('auto-session-library').current_session_name}}
 }
 ```
+<img width="1904" alt="Screen Shot 2021-10-30 at 3 58 57 PM" src="https://user-images.githubusercontent.com/2881382/139559478-8edefdb8-8254-42e7-a0f3-babd3dfd6ff2.png">
+
 
 ### Options
 | Config                            | Options                   | Default                               | Description                                                     |
