@@ -53,6 +53,20 @@ local opts = {
 require('auto-session').setup(opts)
 EOF
 ```
+
+### Statusline
+One can show the current session name in the statusline by using an auto-session helper function.
+
+Lualine example config
+```lua
+require('lualine').setup{
+  options = {
+    theme = 'tokyonight',
+  },
+  sections = {lualine_c = {require('auto-session-library').current_session_name}}
+}
+```
+
 ### Options
 | Config                            | Options                   | Default                               | Description                                                     |
 | --------------------------------- | ------------------------- | ------------------------------------- | ----------------------------------------------------------------|
