@@ -221,6 +221,19 @@ function AutoSession.get_cmds(typ)
   return AutoSession.conf[typ.."_cmds"] or vim.g["auto_session_"..typ.."_cmds"]
 end
 
+local function save_extra_cmds(session_file_name)
+  local extra_cmds = AutoSession.get_cmds("extra")
+  if type(extra_cmds) == "function" then
+    extra_cmds = extra_cmds
+  end
+  if type(extra_cmds) ~= "table" then
+    return
+  end
+  local extra_file = string.gsub(session_file_name, ".vim$", "x.vim")
+  extra_file = string.gsub(extra_file, "\\%%", "%%")
+  vim.fn.writefile({ "echo('hello, world')" }, extra_file)
+end
+
 local function message_after_saving(path, auto)
   if auto then
     Lib.logger.debug("Session saved at "..path)
@@ -239,6 +252,7 @@ function AutoSession.SaveSession(sessions_dir, auto)
 
   vim.cmd("mks! "..session_file_name)
 
+  save_extra_cmds(session_file_name)
   message_after_saving(session_file_name, auto)
 
   local post_cmds = AutoSession.get_cmds("post_save")
