@@ -98,7 +98,7 @@ end
 local auto_save = function()
   if in_pager_mode() then return false end
 
-  if vim.g.auto_session_enabled ~= nil then
+  if vim.g.auto_save_enabled ~= nil then
     return vim.g.auto_save_enabled == Lib._VIM_TRUE
   elseif AutoSession.conf.auto_save_enabled ~= nil then
     return AutoSession.conf.auto_save_enabled
