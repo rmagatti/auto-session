@@ -161,6 +161,21 @@ require('auto-session').setup {
 }
 ```
 
+## Disabling the plugin
+One might run into issues with Firenvim or another plugin and want to disable auto_session altogether based some condition.
+For this example, as to not try and save sessions for Firenvim, we disable the plugin if the started_by_firenvim variable is set.
+
+```viml
+if exists('g:started_by_firenvim')
+  let g:auto_session_enabled = v:false
+endif
+```
+
+One can also disable the plugin by setting the `auto_session_enabled` option to false at startup.
+```sh
+nvim "+let g:auto_session_enabled = v:false"
+```
+
 ## 🔭 Session Lens
 [Session Lens](https://github.com/rmagatti/session-lens) is a companion plugin to auto-session built on top of [Telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) for easy switching between existing sessions.
 
