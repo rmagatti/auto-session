@@ -162,7 +162,7 @@ require('auto-session').setup {
 ```
 
 ## Disabling the plugin
-One might run into issues with Firenvim or another plugin and want to disable auto_session altogether based some condition.
+One might run into issues with Firenvim or another plugin and want to disable auto_session altogether based on some condition.
 For this example, as to not try and save sessions for Firenvim, we disable the plugin if the started_by_firenvim variable is set.
 
 ```viml
