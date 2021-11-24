@@ -150,14 +150,16 @@ let g:auto_session_pre_save_cmds = ["tabdo NERDTreeClose"]
 ```
 
 Hooks can also be lua functions
-Example:
+For example to update the directory of the session in nvim-tree:
 ```lua
-local function custom_hook()
-    -- insert hook here
+local function restore_nvim_tree()
+    local nvim_tree = require('nvim-tree')
+    nvim_tree.change_dir(vim.fn.getcwd())
+    nvim_tree.refresh()
 end
 
 require('auto-session').setup {
-    {hook_name}_cmds = {"{vim_cmd_1}", custom_hook, "{vim_cmd_2}"}
+    {hook_name}_cmds = {"{vim_cmd_1}", restore_nvim_tree, "{vim_cmd_2}"}
 }
 ```
 
