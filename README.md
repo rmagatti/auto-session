@@ -87,16 +87,15 @@ For a better experience with the plugin overall using this config for `sessionop
 
 **Lua**
 ```lua
-vim.o.sessionoptions="blank,buffers,curdir,folds,help,options,tabpages,winsize,resize,winpos,terminal"
+vim.o.sessionoptions="blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal"
 ```
 
 **VimL**
 ```viml
-set sessionoptions+=options,resize,winpos,terminal
+set sessionoptions+=winpos,terminal
 ```
 
-**Note**: if you use [packer.nvim](https://github.com/wbthomason/packer.nvim)'s lazy loading feature, you might want to _not_ add the `options` value to `sessionoptions`.
-It might lead to weird behaviour with the lazy loading, especially around key-based lazy loading.
+**Note**: if you use [packer.nvim](https://github.com/wbthomason/packer.nvim)'s lazy loading feature, and you have the `options` value in your `sessionoptions`. Beware it might lead to weird behaviour with the lazy loading, especially around key-based lazy loading where keymaps are kept and thus the lazy loading mapping packer creates never gets set again.
 
 ### Last Session
 This optional feature enables the keeping track and loading of the last session.
