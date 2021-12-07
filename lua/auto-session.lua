@@ -55,13 +55,6 @@ function AutoSession.setup(config)
 end
 
 local function is_enabled()
-  print(
-    "is_enabled()",
-    vim.g.auto_session_enabled ~= nil,
-    vim.g.auto_session_enabled,
-    AutoSession.conf.auto_session_enabled ~= nil,
-    AutoSession.conf.auto_session_enabled
-  )
   if vim.g.auto_session_enabled ~= nil then
     return vim.g.auto_session_enabled == Lib._VIM_TRUE
   elseif AutoSession.conf.auto_session_enabled ~= nil then
@@ -264,14 +257,6 @@ end
 
 -- This function avoids calling RestoreSession automatically when argv is not nil.
 function AutoSession.AutoRestoreSession(sessions_dir)
-  print(
-    "==== AutoRestoreSession got called",
-    is_enabled(),
-    auto_restore(),
-    not suppress_session(),
-    is_allowed_dir(),
-    sessions_dir
-  )
   if is_enabled() and auto_restore() and not suppress_session() then
     AutoSession.RestoreSession(sessions_dir)
   end
