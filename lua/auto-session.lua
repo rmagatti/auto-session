@@ -402,7 +402,6 @@ function AutoSession.DeleteSession(...)
   run_hook_cmds(pre_cmds, "pre-delete")
 
   -- TODO: make the delete command customizable
-  local cmd = "silent! !rm "
   local is_win32 = vim.fn.has "win32" == Lib._VIM_TRUE
 
   if not Lib.is_empty(...) then
@@ -410,18 +409,19 @@ function AutoSession.DeleteSession(...)
       Lib.logger.debug("session_file_path", file_path)
 
       local escaped_file_path = file_path:gsub("%%", "\\%%")
-      vim.cmd(cmd .. escaped_file_path)
+      vim.fn.delete(vim.fn.expand(escaped_file_path))
 
       Lib.logger.info("Deleted session " .. file_path)
     end
   else
     local session_name = Lib.escaped_session_name_from_cwd()
+    Lib.logger.debug("session_name", session_name)
     if is_win32 then
       session_name = session_name:gsub("\\", "")
     end
 
     local session_file_path = string.format(AutoSession.get_root_dir() .. "%s.vim", session_name)
-    local _ = is_win32 and vim.fn.delete(session_file_path) or vim.cmd(cmd .. session_file_path)
+    vim.fn.delete(vim.fn.expand(session_file_path))
 
     maybe_disable_autosave(session_name)
     Lib.logger.info("Deleted session " .. session_file_path)
