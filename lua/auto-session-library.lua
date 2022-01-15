@@ -174,14 +174,14 @@ end
 -- Logger =========================================================
 function Lib.logger.debug(...)
   if Lib.conf.log_level == "debug" then
-    print(...)
+    print('debug', ...)
   end
 end
 
 function Lib.logger.info(...)
   local valid_values = { "info", "debug" }
   if has_value(valid_values, Lib.conf.log_level) then
-    print(...)
+    print('info', ...)
   end
 end
 
