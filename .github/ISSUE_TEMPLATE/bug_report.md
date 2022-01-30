@@ -24,6 +24,7 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Baseline (please complete the following information):**
+ - Result of `set sessionoptions?`:
  - OS. e.g `uname -a`:
  - Neovim version `nvim --version`
  - URL to your current config (if public)
