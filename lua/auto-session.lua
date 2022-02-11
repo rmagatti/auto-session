@@ -133,10 +133,10 @@ end
 
 local function bypass_save_by_filetype()
   local file_types_to_bypass = AutoSession.conf.bypass_session_save_file_types or {}
-  local window = vim.api.nvim_list_wins()
+  local windows = vim.api.nvim_list_wins()
 
-  if #window == 1 then
-    local buf = vim.api.nvim_win_get_buf(window[1])
+  if #windows == 1 then
+    local buf = vim.api.nvim_win_get_buf(windows[1])
     local buf_ft = vim.api.nvim_buf_get_option(buf, "filetype")
 
     for _, ft_to_bypass in ipairs(file_types_to_bypass) do
