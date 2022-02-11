@@ -37,8 +37,12 @@ local defaultConf = {
   auto_session_allowed_dirs = nil, -- Allow session restore/create in certain directories
 }
 
+local luaOnlyConf = {
+  bypass_session_save_file_types = nil, -- Bypass auto save when only buffer open is one of these file types
+}
+
 -- Set default config on plugin load
-AutoSession.conf = defaultConf
+AutoSession.conf = vim.tbl_extend("force", defaultConf, luaOnlyConf)
 
 -- Pass configs to Lib
 Lib.conf = {
@@ -127,6 +131,26 @@ local auto_restore = function()
   return true
 end
 
+local function bypass_save_by_filetype()
+  local file_types_to_bypass = AutoSession.conf.bypass_session_save_file_types or {}
+  local windows = vim.api.nvim_list_wins()
+
+  if #windows == 1 then
+    local buf = vim.api.nvim_win_get_buf(windows[1])
+    local buf_ft = vim.api.nvim_buf_get_option(buf, "filetype")
+
+    for _, ft_to_bypass in ipairs(file_types_to_bypass) do
+      if buf_ft == ft_to_bypass then
+        Lib.logger.debug("bypass_save_by_filetype: true")
+        return true
+      end
+    end
+  end
+
+  Lib.logger.debug("bypass_save_by_filetype: false")
+  return false
+end
+
 local function suppress_session()
   local dirs = vim.g.auto_session_suppress_dirs or AutoSession.conf.auto_session_suppress_dirs or {}
 
@@ -201,15 +225,20 @@ do
   end
 end
 
+local function auto_save_conditions_met()
+  return is_enabled() and auto_save() and not suppress_session() and is_allowed_dir() and not bypass_save_by_filetype()
+end
+
 ------ MAIN FUNCTIONS ------
 function AutoSession.AutoSaveSession(sessions_dir)
-  if is_enabled() and auto_save() and not suppress_session() and is_allowed_dir() then
+  if auto_save_conditions_met() then
     if not is_auto_create_enabled() then
       local session_file_name = get_session_file_name(sessions_dir)
       if not Lib.is_readable(session_file_name) then
         return
       end
     end
+
     AutoSession.SaveSession(sessions_dir, true)
   end
 end

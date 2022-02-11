@@ -47,7 +47,9 @@ local opts = {
   auto_session_enabled = true,
   auto_save_enabled = nil,
   auto_restore_enabled = nil,
-  auto_session_suppress_dirs = nil
+  auto_session_suppress_dirs = nil,
+  -- the configs below are lua only
+  bypass_session_save_file_types = nil
 }
 
 require('auto-session').setup(opts)
@@ -70,17 +72,21 @@ require('lualine').setup{
 
 
 ### Options
-| Config                            | Options                   | Default                               | Description                                                     |
-| --------------------------------- | ------------------------- | ------------------------------------- | ----------------------------------------------------------------|
-| log_level                         | 'debug', 'info', 'error'  | 'info'                                | Sets the log level of the plugin                                |
-| auto_session_enable_last_session  | false, true               | false                                 | Loads the last loaded session if session for cwd does not exist |
-| auto_session_root_dir             | "/some/path/you/want"     | vim.fn.stdpath('data').."/sessions/"  | Changes the root dir for sessions                               |
-| auto_session_enabled              | false, true               | true                                  | Enables/disables the plugin's auto save _and_ restore features  |
-| auto_session_create_enabled       | false, true               | true                                  | Enables/disables the plugin's session auto creation |
-| auto_save_enabled                 | false, true, nil          | nil                                   | Enables/disables auto saving                                    |
-| auto_restore_enabled              | false, true, nil          | nil                                   | Enables/disables auto restoring                                 |
-| auto_session_suppress_dirs        | ["list", "of paths"]      | nil                                   | Suppress session create/restore if in one of the list of dirs   |
-| auto_session_allowed_dirs         | ["list", "of paths"]      | nil                                   | Allow session create/restore if in one of the list of dirs      |
+| Config                            | Options                       | Default                               | Description                                                            |
+| --------------------------------- | -------------------------     | ------------------------------------- | ----------------------------------------------------------------       |
+| log_level                         | 'debug', 'info', 'error'      | 'info'                                | Sets the log level of the plugin                                       |
+| auto_session_enable_last_session  | false, true                   | false                                 | Loads the last loaded session if session for cwd does not exist        |
+| auto_session_root_dir             | "/some/path/you/want"         | vim.fn.stdpath('data').."/sessions/"  | Changes the root dir for sessions                                      |
+| auto_session_enabled              | false, true                   | true                                  | Enables/disables the plugin's auto save _and_ restore features         |
+| auto_session_create_enabled       | false, true                   | true                                  | Enables/disables the plugin's session auto creation                    |
+| auto_save_enabled                 | false, true, nil              | nil                                   | Enables/disables auto saving                                           |
+| auto_restore_enabled              | false, true, nil              | nil                                   | Enables/disables auto restoring                                        |
+| auto_session_suppress_dirs        | ["list", "of paths"]          | nil                                   | Suppress session create/restore if in one of the list of dirs          |
+| auto_session_allowed_dirs         | ["list", "of paths"]          | nil                                   | Allow session create/restore if in one of the list of dirs             |
+
+### Lua Only Options
+| Config                            | Options                       | Default                               | Description                                                            |
+| bypass_session_save_file_types    | ["list", "of filetype names"] | nil                                   | Bypass session save if _only_ buffer open is of one of these filetypes |
 
 #### Recommended sessionoptions config
 For a better experience with the plugin overall using this config for `sessionoptions` is recommended.
@@ -92,10 +98,10 @@ vim.o.sessionoptions="blank,buffers,curdir,folds,help,tabpages,winsize,winpos,te
 
 **VimL**
 ```viml
-set sessionoptions+=winpos,terminal
+set sessionoptions+=winpos,terminal,folds
 ```
 
-**Note**: if you use [packer.nvim](https://github.com/wbthomason/packer.nvim)'s lazy loading feature, and you have the `options` value in your `sessionoptions`. Beware it might lead to weird behaviour with the lazy loading, especially around key-based lazy loading where keymaps are kept and thus the lazy loading mapping packer creates never gets set again.
+:warning: if you use [packer.nvim](https://github.com/wbthomason/packer.nvim)'s lazy loading feature, and you have the `options` value in your `sessionoptions` beware it might lead to weird behaviour with the lazy loading, especially around key-based lazy loading where keymaps are kept and thus the lazy loading mapping packer creates never gets set again.
 
 ### Last Session
 This optional feature enables the keeping track and loading of the last session.
