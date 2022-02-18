@@ -86,6 +86,7 @@ require('lualine').setup{
 
 ### Lua Only Options
 | Config                            | Options                       | Default                               | Description                                                            |
+| --------------------------------- | -------------------------     | ------------------------------------- | ----------------------------------------------------------------       |
 | bypass_session_save_file_types    | ["list", "of filetype names"] | nil                                   | Bypass session save if _only_ buffer open is of one of these filetypes |
 
 #### Recommended sessionoptions config
