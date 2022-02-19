@@ -437,8 +437,7 @@ function AutoSession.DeleteSession(...)
     for _, file_path in ipairs { ... } do
       Lib.logger.debug("session_file_path", file_path)
 
-      local escaped_file_path = file_path:gsub("%%", "\\%%")
-      vim.fn.delete(vim.fn.expand(escaped_file_path))
+      vim.fn.delete(vim.fn.expand(file_path))
 
       Lib.logger.info("Deleted session " .. file_path)
     end
