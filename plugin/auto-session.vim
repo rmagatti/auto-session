@@ -7,6 +7,7 @@ let g:in_pager_mode = 0
 
 let LuaSaveSession = luaeval('require("auto-session").SaveSession')
 let LuaRestoreSession = luaeval('require("auto-session").RestoreSession')
+let LuaRestoreSessionFromFile = luaeval('require("auto-session").RestoreSessionFromFile')
 let LuaDeleteSessionByName = luaeval('require("auto-session").DeleteSessionByName')
 let LuaDisableAutoSave = luaeval('require("auto-session").DisableAutoSave')
 
@@ -20,6 +21,7 @@ endfunction
 " Available commands
 command! -nargs=* SaveSession call LuaSaveSession(expand('<args>'))
 command! -nargs=* RestoreSession call LuaRestoreSession(expand('<args>'))
+command! -nargs=1 -complete=custom,CompleteSessions RestoreSessionFromFile call LuaRestoreSessionFromFile(expand('<args>'))
 command! -nargs=* -complete=custom,CompleteSessions DeleteSession call LuaDeleteSessionByName(<f-args>)
 command! -nargs=* DisableAutoSave call LuaDisableAutoSave()
 

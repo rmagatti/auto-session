@@ -124,6 +124,7 @@ Auto Session exposes two commands that can be used or mapped to any keybindings 
 :SaveSession ~/my/custom/path " saves or creates a session in the specified directory path.
 :RestoreSession " restores a previously saved session based on the `cwd`.
 :RestoreSession ~/my/custom/path " restores a previously saved session based on the provided path.
+:RestoreSessionFromFile ~/session/path " restores any currently saved session
 :DeleteSession " deletes a session in the currently set `auto_session_root_dir`.
 :DeleteSession ~/my/custom/path " deleetes a session based on the provided path.
 ```
