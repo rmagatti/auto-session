@@ -141,13 +141,13 @@ local function bypass_save_by_filetype()
 
     for _, ft_to_bypass in ipairs(file_types_to_bypass) do
       if buf_ft == ft_to_bypass then
-        Lib.logger.debug("bypass_save_by_filetype: true")
+        Lib.logger.debug "bypass_save_by_filetype: true"
         return true
       end
     end
   end
 
-  Lib.logger.debug("bypass_save_by_filetype: false")
+  Lib.logger.debug "bypass_save_by_filetype: false"
   return false
 end
 
@@ -310,6 +310,10 @@ local function extract_dir_or_file(sessions_dir_or_file)
   return sessions_dir, session_file
 end
 
+function AutoSession.RestoreSessionFromFile(session_file)
+    AutoSession.RestoreSession(string.format(AutoSession.get_root_dir() .. "%s.vim", session_file:gsub("/", "%%")))
+end
+
 -- TODO: make this more readable!
 -- Restores the session by sourcing the session file if it exists/is readable.
 function AutoSession.RestoreSession(sessions_dir_or_file)
@@ -326,7 +330,7 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
     if not success then
       Lib.logger.error([[
         Error restoring session! The session might be corrupted.
-        Disabling auto save. Please check for errors in your config. Error: 
+        Disabling auto save. Please check for errors in your config. Error:
       ]] .. result)
       AutoSession.conf.auto_save_enabled = false
       return
