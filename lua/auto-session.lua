@@ -35,6 +35,7 @@ local defaultConf = {
   auto_restore_enabled = nil, -- Enables/disables auto restore feature
   auto_session_suppress_dirs = nil, -- Suppress session restore/create in certain directories
   auto_session_allowed_dirs = nil, -- Allow session restore/create in certain directories
+  auto_session_use_git_branch = vim.g.auto_session_use_git_branch or false -- use the current git branch name as part of the session name
 }
 
 local luaOnlyConf = {
@@ -87,6 +88,20 @@ local function is_auto_create_enabled()
   end
 
   return true
+end
+
+-- get the current git branch name, if any, and only if configured to do so
+local function get_branch_name()
+  if AutoSession.conf.auto_session_use_git_branch then
+    local out = vim.fn.systemlist('git rev-parse --abbrev-ref HEAD')
+    if vim.v.shell_error ~= 0 then
+      vim.api.nvim_err_writeln(string.format("git failed with: %s", table.concat(out, "\n")))
+      return ""
+    end
+    return out[1]
+  end
+
+  return ""
 end
 
 local pager_mode = nil
@@ -196,7 +211,13 @@ local function get_session_file_name(sessions_dir)
     -- When we get here session and sessions_dir either both point to a file or do not exist
     return session
   else
-    local session_name = Lib.conf.last_loaded_session or Lib.escaped_session_name_from_cwd()
+    local session_name = Lib.conf.last_loaded_session
+    if not session_name then
+      session_name = Lib.escaped_session_name_from_cwd()
+      local branch_name = get_branch_name()
+      branch_name = branch_name ~= "" and "_"..branch_name or ""
+      session_name = string.format("%s%s", session_name, branch_name)
+    end
     return string.format(sessions_dir .. "%s.vim", session_name)
   end
 end
@@ -346,9 +367,15 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
   -- I still don't like reading this chunk, please cleanup
   if sessions_dir then
     Lib.logger.debug "==== Using session DIR"
-    local session_name = Lib.conf.last_loaded_session or Lib.escaped_session_name_from_cwd()
+    local session_name = Lib.conf.last_loaded_session
+    local session_file_path
+    if not session_name then
+      session_file_path = get_session_file_name(sessions_dir)
+      session_name = vim.fn.fnamemodify(session_file_path, ':t:r')
+    else
+      session_file_path = string.format(sessions_dir .. "%s.vim", session_name)
+    end
     Lib.logger.debug("==== Session Name", session_name)
-    local session_file_path = string.format(sessions_dir .. "%s.vim", session_name)
 
     local legacy_session_name = Lib.legacy_session_name_from_cwd()
     local legacy_file_path = string.format(sessions_dir .. "%s.vim", legacy_session_name)

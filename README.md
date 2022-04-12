@@ -48,6 +48,7 @@ local opts = {
   auto_save_enabled = nil,
   auto_restore_enabled = nil,
   auto_session_suppress_dirs = nil,
+  auto_session_use_git_branch = nil,
   -- the configs below are lua only
   bypass_session_save_file_types = nil
 }
@@ -83,6 +84,7 @@ require('lualine').setup{
 | auto_restore_enabled              | false, true, nil              | nil                                   | Enables/disables auto restoring                                        |
 | auto_session_suppress_dirs        | ["list", "of paths"]          | nil                                   | Suppress session create/restore if in one of the list of dirs          |
 | auto_session_allowed_dirs         | ["list", "of paths"]          | nil                                   | Allow session create/restore if in one of the list of dirs             |
+| auto_session_use_git_branch       | false, true, nil              | nil                                   | Use the git branch to differentiate the session name                   |
 
 ### Lua Only Options
 | Config                            | Options                       | Default                               | Description                                                            |
