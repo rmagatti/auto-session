@@ -147,6 +147,10 @@ function Lib.escaped_session_name_from_cwd()
   return IS_WIN32 and Lib.unescape_dir(vim.fn.getcwd()) or Lib.escape_dir(vim.fn.getcwd())
 end
 
+function Lib.escape_branch_name(branch_name)
+  return IS_WIN32 and Lib.unescape_dir(branch_name) or Lib.escape_dir(branch_name)
+end
+
 local function get_win32_legacy_cwd(cwd)
   cwd = cwd:gsub(":", "++")
   if not vim.o.shellslash then

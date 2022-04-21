@@ -215,7 +215,7 @@ local function get_session_file_name(sessions_dir)
     if not session_name then
       session_name = Lib.escaped_session_name_from_cwd()
       local branch_name = get_branch_name()
-      branch_name = branch_name ~= "" and "_"..branch_name or ""
+      branch_name = Lib.escape_branch_name(branch_name ~= "" and "_" .. branch_name or "")
       session_name = string.format("%s%s", session_name, branch_name)
     end
     return string.format(sessions_dir .. "%s.vim", session_name)
