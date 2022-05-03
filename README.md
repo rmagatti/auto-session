@@ -188,6 +188,9 @@ One can also disable the plugin by setting the `auto_session_enabled` option to 
 nvim "+let g:auto_session_enabled = v:false"
 ```
 
+## 🚧 Troubleshooting
+For troubleshooting refer to the [wiki page](https://github.com/rmagatti/auto-session/wiki/Troubleshooting)
+
 ## 🔭 Session Lens
 [Session Lens](https://github.com/rmagatti/session-lens) is a companion plugin to auto-session built on top of [Telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) for easy switching between existing sessions.
 
