@@ -95,7 +95,7 @@ local function get_branch_name()
   if AutoSession.conf.auto_session_use_git_branch then
     local out = vim.fn.systemlist('git rev-parse --abbrev-ref HEAD')
     if vim.v.shell_error ~= 0 then
-      vim.api.nvim_err_writeln(string.format("git failed with: %s", table.concat(out, "\n")))
+      Lib.logger.debug(string.format("git failed with: %s", table.concat(out, "\n")))
       return ""
     end
     return out[1]
