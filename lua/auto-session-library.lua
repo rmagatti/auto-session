@@ -51,7 +51,8 @@ end
 
 function Lib.current_session_name()
   local fname = Lib.get_file_name(vim.v.this_session)
-  local fname_without_extension = fname:gsub(Lib.get_file_extension(fname), "")
+  local extension = Lib.get_file_extension(fname)
+  local fname_without_extension = fname:gsub(extension:gsub("%.", "%%%.") .. "$", "")
   local fname_split = vim.split(fname_without_extension, "%%")
   local session_name = fname_split[#fname_split] or ""
   return session_name
