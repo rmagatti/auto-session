@@ -321,6 +321,7 @@ end
 local function open_picker(files, prompt, callback)
   vim.ui.select(files, {
     prompt = prompt,
+    kind = "auto-session",
     format_item = function(item)
       return item.display_name
     end,
