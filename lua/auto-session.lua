@@ -289,6 +289,45 @@ local function message_after_saving(path, auto)
   end
 end
 
+local function get_session_files()
+  local files = {}
+  local sessions_dir = AutoSession.get_root_dir()
+  if not vim.fn.isdirectory(sessions_dir) then
+    return files
+  end
+  for path, path_type in vim.fs.dir(sessions_dir) do
+    if path_type == "file" then
+      table.insert(files, path)
+    end
+  end
+  return files
+end
+
+local function formatter(path)
+  return Lib.unescape_dir(path):match "(.+)%.vim"
+end
+
+vim.api.nvim_create_user_command("SelectSession", function(_)
+  local files = get_session_files()
+  vim.ui.select(files, { prompt = "Select a session to load: ", format_item = formatter }, function(choice)
+    if choice then
+      AutoSession.AutoSaveSession()
+      vim.cmd "%bd!"
+      AutoSession.RestoreSession(choice)
+    end
+  end)
+end, {})
+
+vim.api.nvim_create_user_command("DeleteSession", function(_)
+  local files = get_session_files()
+  vim.ui.select(files, { prompt = "Select a session to delete: ", format_item = formatter }, function(choice)
+    if not choice then
+      return
+    end
+    AutoSession.DeleteSession { choice }
+  end)
+end, {})
+
 -- Saves the session, overriding if previously existing.
 function AutoSession.SaveSession(sessions_dir, auto)
   Lib.logger.debug "==== SaveSession"
