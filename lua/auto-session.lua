@@ -301,7 +301,7 @@ local function format_file_name(path)
 end
 
 ---@return PickerItem[]
-local function get_session_files()
+function AutoSession.get_session_files()
   local files = {}
   local sessions_dir = AutoSession.get_root_dir()
   if not vim.fn.isdirectory(sessions_dir) then
@@ -333,7 +333,7 @@ end
 
 ---@param data table
 local function handle_autosession_command(data)
-  local files = get_session_files()
+  local files = AutoSession.get_session_files()
   if data.args:match "search" then
     open_picker(files, "Select a session to select:", function(choice)
       AutoSession.AutoSaveSession()
