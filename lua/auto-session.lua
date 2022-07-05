@@ -303,30 +303,39 @@ local function get_session_files()
   return files
 end
 
-local function formatter(path)
-  return Lib.unescape_dir(path):match "(.+)%.vim"
+---@param files string[]
+---@param prompt string
+---@param callback fun(choice: string)
+local function open_picker(files, prompt, callback)
+  vim.ui.select(files, {
+    prompt = prompt,
+    format_item = function(path)
+      return Lib.unescape_dir(path):match "(.+)%.vim"
+    end,
+  }, function(choice)
+    if choice then
+      callback(choice)
+    end
+  end)
 end
 
-vim.api.nvim_create_user_command("SelectSession", function(_)
+---@param data table
+local function handle_autosession_command(data)
   local files = get_session_files()
-  vim.ui.select(files, { prompt = "Select a session to load: ", format_item = formatter }, function(choice)
-    if choice then
+  if data.args:match "search" then
+    open_picker(files, "Select a session to select: ", function(choice)
       AutoSession.AutoSaveSession()
       vim.cmd "%bd!"
       AutoSession.RestoreSession(choice)
-    end
-  end)
-end, {})
+    end)
+  elseif data.args:match "delete" then
+    open_picker(files, "Select a session to delete: ", function(choice)
+      AutoSession.DeleteSession { choice }
+    end)
+  end
+end
 
-vim.api.nvim_create_user_command("DeleteSession", function(_)
-  local files = get_session_files()
-  vim.ui.select(files, { prompt = "Select a session to delete: ", format_item = formatter }, function(choice)
-    if not choice then
-      return
-    end
-    AutoSession.DeleteSession { choice }
-  end)
-end, {})
+vim.api.nvim_create_user_command("Autosession", handle_autosession_command, { nargs = 1 })
 
 -- Saves the session, overriding if previously existing.
 function AutoSession.SaveSession(sessions_dir, auto)
