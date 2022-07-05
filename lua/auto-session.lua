@@ -289,6 +289,18 @@ local function message_after_saving(path, auto)
   end
 end
 
+---@class PickerItem
+---@field display_name string
+---@field path string
+
+--- Formats an autosession file name to be more presentable to a user
+---@param path string
+---@return string
+local function format_file_name(path)
+  return Lib.unescape_dir(path):match "(.+)%.vim"
+end
+
+---@return PickerItem[]
 local function get_session_files()
   local files = {}
   local sessions_dir = AutoSession.get_root_dir()
@@ -297,7 +309,7 @@ local function get_session_files()
   end
   for path, path_type in vim.fs.dir(sessions_dir) do
     if path_type == "file" then
-      table.insert(files, path)
+      table.insert(files, { display_name = format_file_name(path), path = path })
     end
   end
   return files
@@ -305,12 +317,12 @@ end
 
 ---@param files string[]
 ---@param prompt string
----@param callback fun(choice: string)
+---@param callback fun(choice: PickerItem)
 local function open_picker(files, prompt, callback)
   vim.ui.select(files, {
     prompt = prompt,
-    format_item = function(path)
-      return Lib.unescape_dir(path):match "(.+)%.vim"
+    format_item = function(item)
+      return item.display_name
     end,
   }, function(choice)
     if choice then
@@ -323,14 +335,14 @@ end
 local function handle_autosession_command(data)
   local files = get_session_files()
   if data.args:match "search" then
-    open_picker(files, "Select a session to select: ", function(choice)
+    open_picker(files, "Select a session to select:", function(choice)
       AutoSession.AutoSaveSession()
       vim.cmd "%bd!"
-      AutoSession.RestoreSession(choice)
+      AutoSession.RestoreSessionFromFile(choice.display_name)
     end)
   elseif data.args:match "delete" then
-    open_picker(files, "Select a session to delete: ", function(choice)
-      AutoSession.DeleteSession { choice }
+    open_picker(files, "Select a session to delete:", function(choice)
+      AutoSession.DeleteSessionByName(choice.display_name)
     end)
   end
 end
