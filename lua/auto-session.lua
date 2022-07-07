@@ -289,6 +289,67 @@ local function message_after_saving(path, auto)
   end
 end
 
+---@class PickerItem
+---@field display_name string
+---@field path string
+
+--- Formats an autosession file name to be more presentable to a user
+---@param path string
+---@return string
+local function format_file_name(path)
+  return Lib.unescape_dir(path):match "(.+)%.vim"
+end
+
+---@return PickerItem[]
+function AutoSession.get_session_files()
+  local files = {}
+  local sessions_dir = AutoSession.get_root_dir()
+  if not vim.fn.isdirectory(sessions_dir) then
+    return files
+  end
+  for path, path_type in vim.fs.dir(sessions_dir) do
+    if path_type == "file" then
+      table.insert(files, { display_name = format_file_name(path), path = path })
+    end
+  end
+  return files
+end
+
+---@param files string[]
+---@param prompt string
+---@param callback fun(choice: PickerItem)
+local function open_picker(files, prompt, callback)
+  vim.ui.select(files, {
+    prompt = prompt,
+    kind = "auto-session",
+    format_item = function(item)
+      return item.display_name
+    end,
+  }, function(choice)
+    if choice then
+      callback(choice)
+    end
+  end)
+end
+
+---@param data table
+local function handle_autosession_command(data)
+  local files = AutoSession.get_session_files()
+  if data.args:match "search" then
+    open_picker(files, "Select a session to select:", function(choice)
+      AutoSession.AutoSaveSession()
+      vim.cmd "%bd!"
+      AutoSession.RestoreSessionFromFile(choice.display_name)
+    end)
+  elseif data.args:match "delete" then
+    open_picker(files, "Select a session to delete:", function(choice)
+      AutoSession.DeleteSessionByName(choice.display_name)
+    end)
+  end
+end
+
+vim.api.nvim_create_user_command("Autosession", handle_autosession_command, { nargs = 1 })
+
 -- Saves the session, overriding if previously existing.
 function AutoSession.SaveSession(sessions_dir, auto)
   Lib.logger.debug "==== SaveSession"
