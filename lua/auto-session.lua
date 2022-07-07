@@ -336,13 +336,13 @@ end
 local function handle_autosession_command(data)
   local files = AutoSession.get_session_files()
   if data.args:match "search" then
-    open_picker(files, "Select a session to select:", function(choice)
+    open_picker(files, "Select a session:", function(choice)
       AutoSession.AutoSaveSession()
       vim.cmd "%bd!"
       AutoSession.RestoreSessionFromFile(choice.display_name)
     end)
   elseif data.args:match "delete" then
-    open_picker(files, "Select a session to delete:", function(choice)
+    open_picker(files, "Delete a session:", function(choice)
       AutoSession.DeleteSessionByName(choice.display_name)
     end)
   end
