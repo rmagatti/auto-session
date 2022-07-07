@@ -129,7 +129,11 @@ Auto Session exposes two commands that can be used or mapped to any keybindings 
 :RestoreSessionFromFile ~/session/path " restores any currently saved session
 :DeleteSession " deletes a session in the currently set `auto_session_root_dir`.
 :DeleteSession ~/my/custom/path " deleetes a session based on the provided path.
+:Autosession search
+:Autosession delete
 ```
+
+You can use the `Autosession {delete|search}` command to open a picker using `vim.ui.select` this will allow you to either delete or search for a session to restore.
 
 ## 🪝 Command Hooks
 #### Command hooks are a list of commands that get executed at different stages of the session management lifecycle.
