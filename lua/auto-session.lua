@@ -35,7 +35,7 @@ local defaultConf = {
   auto_restore_enabled = nil, -- Enables/disables auto restore feature
   auto_session_suppress_dirs = nil, -- Suppress session restore/create in certain directories
   auto_session_allowed_dirs = nil, -- Allow session restore/create in certain directories
-  auto_session_use_git_branch = vim.g.auto_session_use_git_branch or false -- use the current git branch name as part of the session name
+  auto_session_use_git_branch = vim.g.auto_session_use_git_branch or false, -- use the current git branch name as part of the session name
 }
 
 local luaOnlyConf = {
@@ -93,7 +93,7 @@ end
 -- get the current git branch name, if any, and only if configured to do so
 local function get_branch_name()
   if AutoSession.conf.auto_session_use_git_branch then
-    local out = vim.fn.systemlist('git rev-parse --abbrev-ref HEAD')
+    local out = vim.fn.systemlist "git rev-parse --abbrev-ref HEAD"
     if vim.v.shell_error ~= 0 then
       Lib.logger.debug(string.format("git failed with: %s", table.concat(out, "\n")))
       return ""
@@ -332,7 +332,7 @@ local function extract_dir_or_file(sessions_dir_or_file)
 end
 
 function AutoSession.RestoreSessionFromFile(session_file)
-    AutoSession.RestoreSession(string.format(AutoSession.get_root_dir() .. "%s.vim", session_file:gsub("/", "%%")))
+  AutoSession.RestoreSession(string.format(AutoSession.get_root_dir() .. "%s.vim", session_file:gsub("/", "%%")))
 end
 
 -- TODO: make this more readable!
@@ -371,7 +371,7 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
     local session_file_path
     if not session_name then
       session_file_path = get_session_file_name(sessions_dir)
-      session_name = vim.fn.fnamemodify(session_file_path, ':t:r')
+      session_name = vim.fn.fnamemodify(session_file_path, ":t:r")
     else
       session_file_path = string.format(sessions_dir .. "%s.vim", session_name)
     end
@@ -439,19 +439,24 @@ end
 function AutoSession.CompleteSessions()
   local session_files = vim.fn.glob(AutoSession.get_root_dir() .. "/*", true, true)
   local session_names = {}
+
   for _, sf in ipairs(session_files) do
     local name = Lib.unescape_dir(vim.fn.fnamemodify(sf, ":t:r"))
     table.insert(session_names, name)
   end
+
   return table.concat(session_names, "\n")
 end
 
 function AutoSession.DeleteSessionByName(...)
   local session_paths = {}
+
   for _, name in ipairs { ... } do
     local escaped_session = Lib.escape_dir(name)
     maybe_disable_autosave(escaped_session)
+    
     local session_path = string.format("%s/%s.vim", AutoSession.get_root_dir(), escaped_session)
+    Lib.logger.debug("Deleting session", session_path)
     table.insert(session_paths, session_path)
   end
   AutoSession.DeleteSession(unpack(session_paths))
