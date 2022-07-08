@@ -86,6 +86,8 @@ require('lualine').setup{
 | auto_session_allowed_dirs         | ["list", "of paths"]          | nil                                   | Allow session create/restore if in one of the list of dirs             |
 | auto_session_use_git_branch       | false, true, nil              | nil                                   | Use the git branch to differentiate the session name                   |
 
+`auto_session_suppress_dirs` and `auto_session_allowed_dirs` support base paths with `*` wildcard (e.g.: `/my/base/path/*`)
+
 ### Lua Only Options
 | Config                            | Options                       | Default                               | Description                                                            |
 | --------------------------------- | -------------------------     | ------------------------------------- | ----------------------------------------------------------------       |
