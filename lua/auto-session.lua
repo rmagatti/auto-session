@@ -307,12 +307,12 @@ function AutoSession.get_session_files()
   if not vim.fn.isdirectory(sessions_dir) then
     return files
   end
-  for path, path_type in vim.fs.dir(sessions_dir) do
-    if path_type == "file" then
-      table.insert(files, { display_name = format_file_name(path), path = path })
-    end
-  end
-  return files
+  local entries =  vim.fn.readdir(sessions_dir, function (item)
+    return vim.fn.isdirectory(item) == 0
+  end)
+  return vim.tbl_map(function (entry)
+    return { display_name = format_file_name(entry), path = entry }
+  end, entries)
 end
 
 ---@param files string[]
