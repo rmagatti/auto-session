@@ -83,7 +83,7 @@ function Lib.append_slash(str)
 end
 
 function Lib.validate_root_dir(root_dir)
-  if Lib.is_empty(root_dir) or vim.fn.expand(root_dir) == vim.fn.expand(Lib.ROOT_DIR) then
+  if Lib.is_empty(root_dir) or Lib.expand(root_dir) == Lib.expand(Lib.ROOT_DIR) then
     return Lib.ROOT_DIR
   end
 
@@ -91,7 +91,7 @@ function Lib.validate_root_dir(root_dir)
     root_dir = root_dir .. "/"
   end
 
-  if vim.fn.isdirectory(vim.fn.expand(root_dir)) == Lib._VIM_FALSE then
+  if vim.fn.isdirectory(Lib.expand(root_dir)) == Lib._VIM_FALSE then
     vim.cmd(
       "echoerr 'Invalid g:auto_session_root_dir. "
         .. "Path does not exist or is not a directory. "
@@ -105,7 +105,7 @@ function Lib.validate_root_dir(root_dir)
 end
 
 function Lib.init_dir(dir)
-  if vim.fn.isdirectory(vim.fn.expand(dir)) == Lib._VIM_FALSE then
+  if vim.fn.isdirectory(Lib.expand(dir)) == Lib._VIM_FALSE then
     vim.fn.mkdir(dir, "p")
   end
 end
@@ -174,6 +174,15 @@ function Lib.is_readable(file_path)
 
   return readable
 end
+
+function Lib.expand(file_or_dir)
+  local saved_wildignore = vim.api.nvim_get_option "wildignore"
+  vim.api.nvim_set_option("wildignore", "")
+  local ret = vim.fn.expand(file_or_dir)
+  vim.api.nvim_set_option("wildignore", saved_wildignore)
+  return ret
+end
+
 -- ===================================================================================
 
 -- Logger =========================================================

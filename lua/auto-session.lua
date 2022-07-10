@@ -171,7 +171,7 @@ local function suppress_session()
 
   local cwd = vim.fn.getcwd()
   for _, s in pairs(dirs) do
-    s = string.gsub(vim.fn.simplify(vim.fn.expand(s)), "/+$", "")
+    s = string.gsub(vim.fn.simplify(Lib.expand(s)), "/+$", "")
     if string.find(s, cwd, 1, true) ~= nil then
       return true
     end
@@ -187,7 +187,7 @@ local function is_allowed_dir()
   local dirs = vim.g.auto_session_allowed_dirs or AutoSession.conf.auto_session_allowed_dirs or {}
   local cwd = vim.fn.getcwd()
   for _, s in pairs(dirs) do
-    s = string.gsub(vim.fn.simplify(vim.fn.expand(s)), "/+$", "")
+    s = string.gsub(vim.fn.simplify(Lib.expand(s)), "/+$", "")
     if string.find(s, cwd, 1, true) ~= nil then
       Lib.logger.debug("is_allowed_dir", true)
       return true
@@ -224,7 +224,7 @@ end
 
 do
   function AutoSession.get_latest_session()
-    local dir = vim.fn.expand(AutoSession.conf.auto_session_root_dir)
+    local dir = Lib.expand(AutoSession.conf.auto_session_root_dir)
     local latest_session = { session = nil, last_edited = 0 }
 
     for _, filename in ipairs(vim.fn.readdir(dir)) do
@@ -379,7 +379,7 @@ local function extract_dir_or_file(sessions_dir_or_file)
 
   if Lib.is_empty(sessions_dir_or_file) then
     sessions_dir = AutoSession.get_root_dir()
-  elseif vim.fn.isdirectory(vim.fn.expand(sessions_dir_or_file)) == Lib._VIM_TRUE then
+  elseif vim.fn.isdirectory(Lib.expand(sessions_dir_or_file)) == Lib._VIM_TRUE then
     if not Lib.ends_with(sessions_dir_or_file, "/") then
       sessions_dir = Lib.append_slash(sessions_dir_or_file)
     else
@@ -515,7 +515,6 @@ function AutoSession.DeleteSessionByName(...)
   for _, name in ipairs { ... } do
     local escaped_session = Lib.escape_dir(name)
     maybe_disable_autosave(escaped_session)
-    
     local session_path = string.format("%s/%s.vim", AutoSession.get_root_dir(), escaped_session)
     Lib.logger.debug("Deleting session", session_path)
     table.insert(session_paths, session_path)
@@ -534,7 +533,7 @@ function AutoSession.DeleteSession(...)
     for _, file_path in ipairs { ... } do
       Lib.logger.debug("session_file_path", file_path)
 
-      vim.fn.delete(vim.fn.expand(file_path))
+      vim.fn.delete(Lib.expand(file_path))
 
       Lib.logger.info("Deleted session " .. file_path)
     end
@@ -546,7 +545,7 @@ function AutoSession.DeleteSession(...)
     end
 
     local session_file_path = string.format(AutoSession.get_root_dir() .. "%s.vim", session_name)
-    vim.fn.delete(vim.fn.expand(session_file_path))
+    vim.fn.delete(Lib.expand(session_file_path))
 
     maybe_disable_autosave(session_name)
     Lib.logger.info("Deleted session " .. session_file_path)
