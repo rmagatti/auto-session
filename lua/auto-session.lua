@@ -307,10 +307,10 @@ function AutoSession.get_session_files()
   if not vim.fn.isdirectory(sessions_dir) then
     return files
   end
-  local entries =  vim.fn.readdir(sessions_dir, function (item)
+  local entries = vim.fn.readdir(sessions_dir, function(item)
     return vim.fn.isdirectory(item) == 0
   end)
-  return vim.tbl_map(function (entry)
+  return vim.tbl_map(function(entry)
     return { display_name = format_file_name(entry), path = entry }
   end, entries)
 end
@@ -472,7 +472,16 @@ end
 
 local maybe_disable_autosave = function(session_name)
   local current_session = Lib.escaped_session_name_from_cwd()
-  if session_name == current_session then
+  if not next(vim.api.nvim_list_uis()) then
+    Lib.logger.debug(
+      "Auto Save disabled in headless mode.",
+      vim.inspect {
+        session_name = session_name,
+        current_session = current_session,
+      }
+    )
+    AutoSession.conf.auto_save_enabled = false
+  elseif session_name == current_session then
     Lib.logger.debug(
       "Auto Save disabled for current session.",
       vim.inspect {
