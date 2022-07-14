@@ -172,10 +172,13 @@ local function suppress_session()
   local cwd = vim.fn.getcwd()
   for _, s in pairs(dirs) do
     s = string.gsub(vim.fn.simplify(Lib.expand(s)), "/+$", "")
-    if string.find(s, cwd, 1, true) ~= nil then
-      return true
+    for path in string.gmatch(s, "[^\r\n]+") do
+      if cwd == path then
+        return true
+      end
     end
   end
+
   return false
 end
 
@@ -188,9 +191,11 @@ local function is_allowed_dir()
   local cwd = vim.fn.getcwd()
   for _, s in pairs(dirs) do
     s = string.gsub(vim.fn.simplify(Lib.expand(s)), "/+$", "")
-    if string.find(s, cwd, 1, true) ~= nil then
-      Lib.logger.debug("is_allowed_dir", true)
-      return true
+    for path in string.gmatch(s, "[^\r\n]+") do
+      if cwd == path then
+        Lib.logger.debug("is_allowed_dir", true)
+        return true
+      end
     end
   end
 
