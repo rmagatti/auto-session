@@ -28,6 +28,7 @@ function Config.normalize(config, existing)
 
   return conf
 end
+
 -- ====================================================
 
 -- Helper functions ===============================================================
@@ -188,20 +189,21 @@ end
 -- Logger =========================================================
 function Lib.logger.debug(...)
   if Lib.conf.log_level == "debug" then
-    print('debug', ...)
+    print("debug", ...)
   end
 end
 
 function Lib.logger.info(...)
   local valid_values = { "info", "debug" }
   if has_value(valid_values, Lib.conf.log_level) then
-    print('info', ...)
+    print("info", ...)
   end
 end
 
 function Lib.logger.error(...)
   error(...)
 end
+
 -- =========================================================
 
 return Lib
