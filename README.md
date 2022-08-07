@@ -2,7 +2,7 @@
 
 Auto Session takes advantage of Neovim's existing session management capabilities to provide seamless automatic session management.
 
-<img src="https://github.com/rmagatti/readme-assets/blob/main/auto-session-new-example.gif" width="1000" />
+<img src="https://github.com/rmagatti/readme-assets/blob/main/auto-session-new-example.gif" width="800" />
 
 # 💡 Behaviour
 
