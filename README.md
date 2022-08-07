@@ -2,7 +2,7 @@
 
 Auto Session takes advantage of Neovim's existing session management capabilities to provide seamless automatic session management.
 
-<img src="https://github.com/rmagatti/readme-assets/blob/main/auto-session-zoomed.gif" width="1000" />
+<img src="https://github.com/rmagatti/readme-assets/blob/main/auto-session-new-example.gif" width="1000" />
 
 # 💡 Behaviour
 
@@ -15,17 +15,17 @@ Auto Session takes advantage of Neovim's existing session management capabilitie
 :warning: Please note that if there are errors in your config, restoring the session might fail, if that happens, auto session will then disable auto saving for the current session.
 Manually saving a session can still be done by calling `:SaveSession`.
 
-AutoSession now tracks `cwd` changes!
-By default, handling is as follows:
-  DirChangedPre (before the cwd actually changes):
-    - Save the current session
-    - Clear all buffers `%bd!`. This guarantees buffers don't bleed to the
-      next session.
-    - Clear jumps. Also done so there is no bleading between sessions.
-    - Run the `pre_cwd_changed_hook`
-  DirChanged (after the cwd has changed):
-    - Restore session using new cwd
-    - Run the `post_cwd_changed_hook`
+AutoSession now tracks `cwd` changes!  
+By default, handling is as follows:  
+  DirChangedPre (before the cwd actually changes):  
+    - Save the current session  
+    - Clear all buffers `%bd!`. This guarantees buffers don't bleed to the  
+      next session.  
+    - Clear jumps. Also done so there is no bleading between sessions.  
+    - Run the `pre_cwd_changed_hook`  
+  DirChanged (after the cwd has changed):  
+    - Restore session using new cwd  
+    - Run the `post_cwd_changed_hook`  
     
 Now when the user changes the cwd with `:cd some/new/dir` auto-session handles it gracefully, saving the current session so there aren't losses and loading the session for the upcoming cwd if it exists.
 
