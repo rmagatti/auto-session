@@ -151,8 +151,12 @@ local in_pager_mode = function()
   return pager_mode
 end
 
+local in_headless_mode = function()
+  return not next(vim.api.nvim_list_uis())
+end
+
 local auto_save = function()
-  if in_pager_mode() then
+  if in_pager_mode() or in_headless_mode() then
     return false
   end
 
@@ -166,7 +170,7 @@ local auto_save = function()
 end
 
 local auto_restore = function()
-  if in_pager_mode() then
+  if in_pager_mode() or in_headless_mode() then
     return false
   end
 
@@ -542,6 +546,7 @@ end
 
 local maybe_disable_autosave = function(session_name)
   local current_session = Lib.escaped_session_name_from_cwd()
+
   if session_name == current_session then
     Lib.logger.debug(
       "Auto Save disabled for current session.",
