@@ -6,7 +6,7 @@ local M = {}
 ---@param config table auto session config
 ---@param AutoSession table auto session instance
 M.setup_autocmds = function(config, AutoSession)
-  if vim.tbl_isempty(config.cwd_change_handling) or config.cwd_change_handling == nil then
+  if vim.tbl_isempty(config.cwd_change_handling) or not config.cwd_change_handling then
     return
   end
 
