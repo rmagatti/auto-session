@@ -39,7 +39,7 @@ local AutoSession = {
 ---@field auto_session_use_git_branch boolean|nil Include git branch name in session name to differentiate between sessions for different git branches
 
 ---Default config for auto session
----@type defaultConf 
+---@type defaultConf
 local defaultConf = {
   log_level = vim.g.auto_session_log_level or AutoSession.conf.logLevel or AutoSession.conf.log_level or "info", -- Sets the log level of the plugin (debug, info, error). camelCase logLevel for compatibility.
   auto_session_enable_last_session = vim.g.auto_session_enable_last_session or false, -- Enables/disables the "last session" feature
@@ -73,7 +73,7 @@ local luaOnlyConf = {
 }
 
 -- Set default config on plugin load
-AutoSession.conf = vim.tbl_extend("force", defaultConf, luaOnlyConf)
+AutoSession.conf = vim.tbl_deep_extend("force", defaultConf, luaOnlyConf)
 
 -- Pass configs to Lib
 Lib.conf = {
@@ -83,7 +83,7 @@ Lib.conf = {
 ---Setup function for AutoSession
 ---@param config defaultConf config for auto session
 function AutoSession.setup(config)
-  AutoSession.conf = Lib.Config.normalize(config, AutoSession.conf)
+  AutoSession.conf = vim.tbl_deep_extend("force", AutoSession.conf, config or {})
   Lib.ROOT_DIR = AutoSession.conf.auto_session_root_dir
   Lib.setup {
     log_level = AutoSession.conf.log_level,

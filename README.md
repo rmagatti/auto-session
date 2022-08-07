@@ -29,6 +29,22 @@ By default, handling is as follows:
     
 Now when the user changes the cwd with `:cd some/new/dir` auto-session handles it gracefully, saving the current session so there aren't losses and loading the session for the upcoming cwd if it exists.
 
+Hooks are available for custom actions _before_ and _after_ the `cwd` is changed. These hooks can be configured through the `cwd_change_handling` key as follows:
+```lua
+require("auto-session").setup {
+  log_level = "error",
+
+  cwd_change_handling = {
+    restore_upcoming_session = true, -- already the default, no need to specify like this, only here as an example
+    pre_cwd_changed_hook = nil, -- already the default, no need to specify like this, only here as an example
+    post_cwd_changed_hook = function() -- example refreshing the lualine status line _after_ the cwd changes
+      require("lualine").refresh() -- refresh lualine so the new session name is displayed in the status bar
+    end,
+  },
+}
+
+```
+
 
 # 📦 Installation
 

@@ -11,35 +11,8 @@ local Lib = {
   ROOT_DIR = nil,
 }
 
--- Setup ======================================================
 function Lib.setup(config)
-  Lib.conf = Config.normalize(config)
-end
-
-function Config.normalize(config, existing)
-  local conf = existing or {}
-  if Lib.is_empty_table(config) then
-    return conf
-  end
-
-  for k, v in pairs(config) do
-    conf[k] = v
-  end
-
-  return conf
-end
-
--- ====================================================
-
--- Helper functions ===============================================================
-local function has_value(tab, val)
-  for _, value in ipairs(tab) do
-    if value == val then
-      return true
-    end
-  end
-
-  return false
+  Lib.conf = vim.tbl_deep_extend("force", Lib.conf, config or {})
 end
 
 function Lib.get_file_name(url)
@@ -71,7 +44,7 @@ function Lib.is_empty(s)
 end
 
 function Lib.ends_with(str, ending)
-  return ending == "" or str:sub(-#ending) == ending
+  return ending == "" or str:sub(- #ending) == ending
 end
 
 function Lib.append_slash(str)
@@ -95,8 +68,8 @@ function Lib.validate_root_dir(root_dir)
   if vim.fn.isdirectory(Lib.expand(root_dir)) == Lib._VIM_FALSE then
     vim.cmd(
       "echoerr 'Invalid g:auto_session_root_dir. "
-        .. "Path does not exist or is not a directory. "
-        .. string.format("Defaulting to %s.", Lib.ROOT_DIR)
+      .. "Path does not exist or is not a directory. "
+      .. string.format("Defaulting to %s.", Lib.ROOT_DIR)
     )
     return Lib.ROOT_DIR
   else
@@ -179,14 +152,12 @@ end
 function Lib.expand(file_or_dir)
   local saved_wildignore = vim.api.nvim_get_option "wildignore"
   vim.api.nvim_set_option("wildignore", "")
-  local ret = vim.fn.expand(file_or_dir)
+  ---@diagnostic disable-next-line: param-type-mismatch
+  local ret = vim.fn.expand(file_or_dir, nil, nil)
   vim.api.nvim_set_option("wildignore", saved_wildignore)
   return ret
 end
 
--- ===================================================================================
-
--- Logger =========================================================
 function Lib.logger.debug(...)
   if Lib.conf.log_level == "debug" then
     print("debug", ...)
@@ -195,7 +166,7 @@ end
 
 function Lib.logger.info(...)
   local valid_values = { "info", "debug" }
-  if has_value(valid_values, Lib.conf.log_level) then
+  if vim.tbl_contains(valid_values, Lib.conf.log_level) then
     print("info", ...)
   end
 end
@@ -203,7 +174,5 @@ end
 function Lib.logger.error(...)
   error(...)
 end
-
--- =========================================================
 
 return Lib
