@@ -90,9 +90,16 @@ require('lualine').setup{
 `auto_session_suppress_dirs` and `auto_session_allowed_dirs` support base paths with `*` wildcard (e.g.: `/my/base/path/*`)
 
 ### Lua Only Options
-| Config                            | Options                       | Default                               | Description                                                            |
-| --------------------------------- | -------------------------     | ------------------------------------- | ----------------------------------------------------------------       |
-| bypass_session_save_file_types    | ["list", "of filetype names"] | nil                                   | Bypass session save if _only_ buffer open is of one of these filetypes |
+```lua
+require("auto-session").setup {
+  bypass_session_save_file_types = nil, -- boolean: Bypass auto save when only buffer open is one of these file types
+  cwd_change_handling = { -- table: Config for handling the DirChangePre and DirChanged autocmds, can be set to nil to disable altogether
+    restore_upcoming_session = true, -- boolean: restore session for upcoming cwd on cwd change
+    pre_cwd_changed_hook = nil, -- function: This is called after auto_session code runs for the `DirChangedPre` autocmd
+    post_cwd_changed_hook = nil, -- function: This is called after auto_session code runs for the `DirChanged` autocmd
+  },
+}
+```
 
 #### Recommended sessionoptions config
 For a better experience with the plugin overall using this config for `sessionoptions` is recommended.

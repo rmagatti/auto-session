@@ -2,6 +2,9 @@ local Lib = require "auto-session-library"
 
 local M = {}
 
+---Setup autocmds for DirChangedPre and DirChanged
+---@param config table auto session config
+---@param AutoSession table auto session instance
 M.setup_autocmds = function(config, AutoSession)
   if vim.tbl_isempty(config.cwd_change_handling) or config.cwd_change_handling == nil then
     return
