@@ -6,7 +6,8 @@ local M = {}
 ---@param config table auto session config
 ---@param AutoSession table auto session instance
 M.setup_autocmds = function(config, AutoSession)
-  if vim.tbl_isempty(config.cwd_change_handling) or not config.cwd_change_handling then
+  if not config.cwd_change_handling or vim.tbl_isempty(config.cwd_change_handling or {}) then
+    Lib.logger.debug "cwd_change_handling is disabled, skipping setting DirChangedPre and DirChanged autocmd handling"
     return
   end
 
