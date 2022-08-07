@@ -26,7 +26,7 @@ local AutoSession = {
   conf = {},
 }
 
----@class defaultLuaConf table default config for auto session
+---@class defaultConf table default config for auto session
 ---@field log_level string debug, info, error
 ---@field auto_session_enable_last_session boolean
 ---@field auto_session_root_dir string root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
@@ -39,7 +39,7 @@ local AutoSession = {
 ---@field auto_session_use_git_branch boolean|nil Include git branch name in session name to differentiate between sessions for different git branches
 
 ---Default config for auto session
----@type defaultLuaConf
+---@type defaultConf 
 local defaultConf = {
   log_level = vim.g.auto_session_log_level or AutoSession.conf.logLevel or AutoSession.conf.log_level or "info", -- Sets the log level of the plugin (debug, info, error). camelCase logLevel for compatibility.
   auto_session_enable_last_session = vim.g.auto_session_enable_last_session or false, -- Enables/disables the "last session" feature
@@ -55,6 +55,7 @@ local defaultConf = {
 
 ---@class luaOnlyConf Lua Only Configs for Auto Session
 ---@field bypass_session_save_file_types string? Bypass auto save when only buffer open is one of these file types
+---@field cwd_change_handling CwdChangeHandling
 local luaOnlyConf = {
   bypass_session_save_file_types = nil, -- Bypass auto save when only buffer open is one of these file types
 
@@ -62,6 +63,8 @@ local luaOnlyConf = {
   ---@field restore_upcoming_session boolean {true} restore session for upcoming cwd on cwd change
   ---@field pre_cwd_changed_hook boolean? {true} This is called after auto_session code runs for the `DirChangedPre` autocmd
   ---@field post_cwd_changed_hook boolean? {true} This is called after auto_session code runs for the `DirChanged` autocmd
+
+  ---@type CwdChangeHandling
   cwd_change_handling = { -- Config for handling the DirChangePre and DirChanged autocmds, can be set to nil to disable altogether
     restore_upcoming_session = true,
     pre_cwd_changed_hook = nil, -- lua function hook. This is called after auto_session code runs for the `DirChangedPre` autocmd
@@ -76,10 +79,9 @@ AutoSession.conf = vim.tbl_extend("force", defaultConf, luaOnlyConf)
 Lib.conf = {
   log_level = AutoSession.conf.log_level,
 }
-Lib.ROOT_DIR = defaultConf.ROOT_DIR
 
 ---Setup function for AutoSession
----@param config table|nil config for auto session
+---@param config defaultConf config for auto session
 function AutoSession.setup(config)
   AutoSession.conf = Lib.Config.normalize(config, AutoSession.conf)
   Lib.ROOT_DIR = AutoSession.conf.auto_session_root_dir

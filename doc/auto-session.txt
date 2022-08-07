@@ -1,4 +1,4 @@
-defaultLuaConf                                                  *defaultLuaConf*
+defaultConf                                                        *defaultConf*
     table default config for auto session
 
     Fields: ~
@@ -17,7 +17,8 @@ luaOnlyConf                                                        *luaOnlyConf*
     Lua Only Configs for Auto Session
 
     Fields: ~
-        {bypass_session_save_file_types}  (string?)  Bypass auto save when only buffer open is one of these file types
+        {bypass_session_save_file_types}  (string?)            Bypass auto save when only buffer open is one of these file types
+        {cwd_change_handling}             (CwdChangeHandling)
 
 
 CwdChangeHandling                                            *CwdChangeHandling*
@@ -33,7 +34,7 @@ AutoSession.setup({config})                                  *AutoSession.setup*
     Setup function for AutoSession
 
     Parameters: ~
-        {config}  (table|nil)  config for auto session
+        {config}  (defaultConf)  config for auto session
 
 
 AutoSession.get_latest_session()                *AutoSession.get_latest_session*
