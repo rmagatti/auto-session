@@ -26,6 +26,20 @@ local AutoSession = {
   conf = {},
 }
 
+---@class defaultLuaConf table default config for auto session
+---@field log_level string debug, info, error
+---@field auto_session_enable_last_session boolean
+---@field auto_session_root_dir string root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
+---@field auto_session_enabled boolean enable auto session
+---@field auto_session_create_enabled boolean|nil Enables/disables auto creating new sessions
+---@field auto_save_enabled boolean|nil Enables/disables auto saving session
+---@field auto_restore_enabled boolean|nil Enables/disables auto restoring session
+---@fied auto_session_suppress_dirs table|nil Suppress auto session for directories
+---@field auto_session_allowed_dirs table|nil Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
+---@field auto_session_use_git_branch boolean|nil Include git branch name in session name to differentiate between sessions for different git branches
+
+---Default config for auto session
+---@type defaultLuaConf
 local defaultConf = {
   log_level = vim.g.auto_session_log_level or AutoSession.conf.logLevel or AutoSession.conf.log_level or "info", -- Sets the log level of the plugin (debug, info, error). camelCase logLevel for compatibility.
   auto_session_enable_last_session = vim.g.auto_session_enable_last_session or false, -- Enables/disables the "last session" feature
@@ -36,18 +50,18 @@ local defaultConf = {
   auto_restore_enabled = nil, -- Enables/disables auto restore feature
   auto_session_suppress_dirs = nil, -- Suppress session restore/create in certain directories
   auto_session_allowed_dirs = nil, -- Allow session restore/create in certain directories
-  auto_session_use_git_branch = vim.g.auto_session_use_git_branch or false, -- use the current git branch name as part of the session name
+  auto_session_use_git_branch = vim.g.auto_session_use_git_branch or false,
 }
 
----@class Lua Only Configs for Auto Session 
+---@class luaOnlyConf Lua Only Configs for Auto Session
 ---@field bypass_session_save_file_types string? Bypass auto save when only buffer open is one of these file types
 local luaOnlyConf = {
   bypass_session_save_file_types = nil, -- Bypass auto save when only buffer open is one of these file types
 
   ---@class CwdChangeHandling CWD Change Handling Config
   ---@field restore_upcoming_session boolean {true} restore session for upcoming cwd on cwd change
-  ---@field pre_cwd_changed_hook boolean? {true} This is called after auto_session code runs for the `DirChangedPre` autocmd 
-  ---@field post_cwd_changed_hook boolean? {true} This is called after auto_session code runs for the `DirChanged` autocmd 
+  ---@field pre_cwd_changed_hook boolean? {true} This is called after auto_session code runs for the `DirChangedPre` autocmd
+  ---@field post_cwd_changed_hook boolean? {true} This is called after auto_session code runs for the `DirChanged` autocmd
   cwd_change_handling = { -- Config for handling the DirChangePre and DirChanged autocmds, can be set to nil to disable altogether
     restore_upcoming_session = true,
     pre_cwd_changed_hook = nil, -- lua function hook. This is called after auto_session code runs for the `DirChangedPre` autocmd
@@ -64,6 +78,8 @@ Lib.conf = {
 }
 Lib.ROOT_DIR = defaultConf.ROOT_DIR
 
+---Setup function for AutoSession
+---@param config table|nil config for auto session
 function AutoSession.setup(config)
   AutoSession.conf = Lib.Config.normalize(config, AutoSession.conf)
   Lib.ROOT_DIR = AutoSession.conf.auto_session_root_dir
@@ -384,7 +400,7 @@ end
 vim.api.nvim_create_user_command("Autosession", handle_autosession_command, { nargs = 1 })
 
 --Saves the session, overriding if previously existing.
----@param sessions_dir string? 
+---@param sessions_dir string?
 ---@param auto boolean
 function AutoSession.SaveSession(sessions_dir, auto)
   Lib.logger.debug "==== SaveSession"
@@ -409,6 +425,8 @@ function AutoSession.AutoRestoreSession(sessions_dir)
   if is_enabled() and auto_restore() and not suppress_session() then
     return AutoSession.RestoreSession(sessions_dir)
   end
+
+  return false
 end
 
 local function extract_dir_or_file(sessions_dir_or_file)
@@ -552,7 +570,7 @@ end
 ---CompleteSessions is used by the vimscript command for session name/path completion.
 ---@return string
 function AutoSession.CompleteSessions()
-  local session_files = vim.fn.glob(AutoSession.get_root_dir() .. "/*", true, true)
+  local session_files = vim.fn.glob(AutoSession.get_root_dir() .. "/*", true, { true })
   local session_names = {}
 
   for _, sf in ipairs(session_files) do
@@ -564,7 +582,7 @@ function AutoSession.CompleteSessions()
 end
 
 ---DeleteSessionByName deletes sessions given a provided list of paths
----@param ... unknown
+---@param ... string[]
 function AutoSession.DeleteSessionByName(...)
   local session_paths = {}
 
@@ -579,7 +597,7 @@ function AutoSession.DeleteSessionByName(...)
 end
 
 ---DeleteSession delets a single session given a provided path
----@param ... unknown
+---@param ... string[]
 function AutoSession.DeleteSession(...)
   local pre_cmds = AutoSession.get_cmds "pre_delete"
   run_hook_cmds(pre_cmds, "pre-delete")
