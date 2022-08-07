@@ -44,7 +44,7 @@ function Lib.is_empty(s)
 end
 
 function Lib.ends_with(str, ending)
-  return ending == "" or str:sub(- #ending) == ending
+  return ending == "" or str:sub(-#ending) == ending
 end
 
 function Lib.append_slash(str)
@@ -68,8 +68,8 @@ function Lib.validate_root_dir(root_dir)
   if vim.fn.isdirectory(Lib.expand(root_dir)) == Lib._VIM_FALSE then
     vim.cmd(
       "echoerr 'Invalid g:auto_session_root_dir. "
-      .. "Path does not exist or is not a directory. "
-      .. string.format("Defaulting to %s.", Lib.ROOT_DIR)
+        .. "Path does not exist or is not a directory. "
+        .. string.format("Defaulting to %s.", Lib.ROOT_DIR)
     )
     return Lib.ROOT_DIR
   else
