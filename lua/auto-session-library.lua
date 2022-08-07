@@ -11,34 +11,8 @@ local Lib = {
   ROOT_DIR = nil,
 }
 
--- Setup ======================================================
 function Lib.setup(config)
-  Lib.conf = Config.normalize(config)
-end
-
-function Config.normalize(config, existing)
-  local conf = existing or {}
-  if Lib.is_empty_table(config) then
-    return conf
-  end
-
-  for k, v in pairs(config) do
-    conf[k] = v
-  end
-
-  return conf
-end
--- ====================================================
-
--- Helper functions ===============================================================
-local function has_value(tab, val)
-  for _, value in ipairs(tab) do
-    if value == val then
-      return true
-    end
-  end
-
-  return false
+  Lib.conf = vim.tbl_deep_extend("force", Lib.conf, config or {})
 end
 
 function Lib.get_file_name(url)
@@ -178,30 +152,27 @@ end
 function Lib.expand(file_or_dir)
   local saved_wildignore = vim.api.nvim_get_option "wildignore"
   vim.api.nvim_set_option("wildignore", "")
-  local ret = vim.fn.expand(file_or_dir)
+  ---@diagnostic disable-next-line: param-type-mismatch
+  local ret = vim.fn.expand(file_or_dir, nil, nil)
   vim.api.nvim_set_option("wildignore", saved_wildignore)
   return ret
 end
 
--- ===================================================================================
-
--- Logger =========================================================
 function Lib.logger.debug(...)
   if Lib.conf.log_level == "debug" then
-    print('debug', ...)
+    print("debug", ...)
   end
 end
 
 function Lib.logger.info(...)
   local valid_values = { "info", "debug" }
-  if has_value(valid_values, Lib.conf.log_level) then
-    print('info', ...)
+  if vim.tbl_contains(valid_values, Lib.conf.log_level) then
+    print("info", ...)
   end
 end
 
 function Lib.logger.error(...)
   error(...)
 end
--- =========================================================
 
 return Lib

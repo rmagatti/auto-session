@@ -1,0 +1,176 @@
+defaultConf                                                        *defaultConf*
+    table default config for auto session
+
+    Fields: ~
+        {log_level}                         (string)       debug, info, error
+        {auto_session_enable_last_session}  (boolean)
+        {auto_session_root_dir}             (string)       root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
+        {auto_session_enabled}              (boolean)      enable auto session
+        {auto_session_create_enabled}       (boolean|nil)  Enables/disables auto creating new sessions
+        {auto_save_enabled}                 (boolean|nil)  Enables/disables auto saving session
+        {auto_restore_enabled}              (boolean|nil)  Enables/disables auto restoring session
+        {auto_session_allowed_dirs}         (table|nil)    Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
+        {auto_session_use_git_branch}       (boolean|nil)  Include git branch name in session name to differentiate between sessions for different git branches
+
+
+luaOnlyConf                                                        *luaOnlyConf*
+    Lua Only Configs for Auto Session
+
+    Fields: ~
+        {bypass_session_save_file_types}  (string?)            Bypass auto save when only buffer open is one of these file types
+        {cwd_change_handling}             (CwdChangeHandling)
+
+
+CwdChangeHandling                                            *CwdChangeHandling*
+    CWD Change Handling Config
+
+    Fields: ~
+        {restore_upcoming_session}  (boolean)   {true} restore session for upcoming cwd on cwd change
+        {pre_cwd_changed_hook}      (boolean?)  {true} This is called after auto_session code runs for the `DirChangedPre` autocmd
+        {post_cwd_changed_hook}     (boolean?)  {true} This is called after auto_session code runs for the `DirChanged` autocmd
+
+
+AutoSession.setup({config})                                  *AutoSession.setup*
+    Setup function for AutoSession
+
+    Parameters: ~
+        {config}  (defaultConf)  config for auto session
+
+
+AutoSession.get_latest_session()                *AutoSession.get_latest_session*
+    Get latest session for the "last session" feature
+
+    Returns: ~
+        {string|nil}
+
+
+                                                   *AutoSession.AutoSaveSession*
+AutoSession.AutoSaveSession({sessions_dir})
+    AutoSaveSession
+    Function called by auto_session to trigger auto_saving sessions, for example on VimExit events.
+
+    Parameters: ~
+        {sessions_dir}  (string?)  the session directory to auto_save a session for. If empty this function will end up using the cwd to infer what session to save for.
+
+
+AutoSession.get_root_dir()                            *AutoSession.get_root_dir*
+    Gets the root directory of where to save the sessions.
+    By default this resolves to `vim.fn.stdpath "data" .. "/sessions/"`
+
+    Returns: ~
+        {string}
+
+
+AutoSession.get_cmds({typ})                               *AutoSession.get_cmds*
+    Get the hook commands to run
+    This function gets cmds from both lua and vimscript configs
+
+    Parameters: ~
+        {typ}  (string)
+
+    Returns: ~
+        {function[]|string[]}
+
+
+PickerItem                                                          *PickerItem*
+
+
+    Fields: ~
+        {display_name}  (string)
+        {path}          (string)
+
+
+AutoSession.format_file_name({path})              *AutoSession.format_file_name*
+     Formats an autosession file name to be more presentable to a user
+
+    Parameters: ~
+        {path}  (string)
+
+    Returns: ~
+        {string}
+
+
+AutoSession.get_session_files()                  *AutoSession.get_session_files*
+
+
+    Returns: ~
+        {PickerItem[]}
+
+
+                                                       *AutoSession.SaveSession*
+AutoSession.SaveSession({sessions_dir}, {auto})
+
+
+    Parameters: ~
+        {sessions_dir}  (string?)
+        {auto}          (boolean)
+
+
+                                                *AutoSession.AutoRestoreSession*
+AutoSession.AutoRestoreSession({sessions_dir})
+    Function called by AutoSession when automatically restoring a session.
+    This function avoids calling RestoreSession automatically when argv is not nil.
+
+    Parameters: ~
+        {sessions_dir}  (any)
+
+    Returns: ~
+        {boolean}  returns whether restoring the session was successful or not.
+
+
+                                            *AutoSession.RestoreSessionFromFile*
+AutoSession.RestoreSessionFromFile({session_file})
+    RestoreSessionFromFile takes a session_file and calls RestoreSession after parsing the provided parameter.
+
+    Parameters: ~
+        {session_file}  (string)
+
+
+                                                    *AutoSession.RestoreSession*
+AutoSession.RestoreSession({sessions_dir_or_file})
+    Restores the session by sourcing the session file if it exists/is readable.
+    This function is intended to be called by the user but it is also called by `AutoRestoreSession`
+
+    Parameters: ~
+        {sessions_dir_or_file}  (string)  a dir string or a file string
+
+    Returns: ~
+        {boolean}  returns whether restoring the session was successful or not.
+
+
+AutoSession.DisableAutoSave()                      *AutoSession.DisableAutoSave*
+    DisableAutoSave
+    Intended to be called by the user
+
+
+AutoSession.CompleteSessions()                    *AutoSession.CompleteSessions*
+    CompleteSessions is used by the vimscript command for session name/path completion.
+
+    Returns: ~
+        {string}
+
+
+AutoSession.DeleteSessionByName({...})         *AutoSession.DeleteSessionByName*
+    DeleteSessionByName deletes sessions given a provided list of paths
+
+    Parameters: ~
+        {...}  (string[])
+
+
+AutoSession.DeleteSession({...})                     *AutoSession.DeleteSession*
+    DeleteSession delets a single session given a provided path
+
+    Parameters: ~
+        {...}  (string[])
+
+
+                                                              *M.setup_autocmds*
+M.setup_autocmds({config}, {AutoSession})
+    Setup autocmds for DirChangedPre and DirChanged
+
+    Parameters: ~
+        {config}       (table)  auto session config
+        {AutoSession}  (table)  auto session instance
+
+
+vim:tw=78:ts=8:noet:ft=help:norl:
