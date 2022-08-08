@@ -64,12 +64,15 @@ local luaOnlyConf = {
   ---@field pre_cwd_changed_hook boolean? {true} This is called after auto_session code runs for the `DirChangedPre` autocmd
   ---@field post_cwd_changed_hook boolean? {true} This is called after auto_session code runs for the `DirChanged` autocmd
 
-  ---@type CwdChangeHandling CwdChangeHandling can also be set to `nil` or `false` to disable cwd change handling.
-  cwd_change_handling = { -- Config for handling the DirChangePre and DirChanged autocmds, can be set to nil to disable altogether
-    restore_upcoming_session = true,
-    pre_cwd_changed_hook = nil, -- lua function hook. This is called after auto_session code runs for the `DirChangedPre` autocmd
-    post_cwd_changed_hook = nil, -- lua function hook. This is called after auto_session code runs for the `DirChanged` autocmd
-  },
+  ---@type CwdChangeHandling this config can also be set to `false` to disable cwd change handling altogether.
+  --- Can also be set to a table with any of the following keys:
+  ---  {
+  ---    restore_upcoming_session = true,
+  ---    pre_cwd_changed_hook = nil, -- lua function hook. This is called after auto_session code runs for the `DirChangedPre` autocmd
+  ---    post_cwd_changed_hook = nil, -- lua function hook. This is called after auto_session code runs for the `DirChanged` autocmd
+  ---  }
+  ---@diagnostic disable-next-line: assign-type-mismatch
+  cwd_change_handling = false, -- Config for handling the DirChangePre and DirChanged autocmds, can be set to false to disable altogether
 }
 
 -- Set default config on plugin load
