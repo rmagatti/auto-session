@@ -9,7 +9,7 @@ local SessionLens = {
 
 ---@class DefaultConf
 ---@field theme_conf table telescope theme configuration
----@field previewer boolean telescope theme configuration
+---@field previewer boolean|table telescope preview configs
 
 ---@type DefaultConf
 local defaultConf = {
