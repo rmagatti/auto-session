@@ -14,9 +14,10 @@ SessionLensActions.source_session = function(prompt_bufnr)
 
   vim.defer_fn(function()
     if
-      type(AutoSession.conf.cwd_change_handling) == "table"
-      and not vim.tbl_isempty(AutoSession.conf.cwd_change_handling or {})
-      and AutoSession.conf.cwd_change_handling.restore_upcoming_session
+      -- type(AutoSession.conf.cwd_change_handling) == "table"
+      -- and not vim.tbl_isempty(AutoSession.conf.cwd_change_handling or {})
+      -- and AutoSession.conf.cwd_change_handling.restore_upcoming_session
+      false
     then
       Lib.logger.debug "Triggering vim.fn.chdir since cwd_change_handling feature is enabled"
       vim.fn.chdir(AutoSession.format_file_name(selection.filename))
