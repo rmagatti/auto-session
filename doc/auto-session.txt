@@ -173,4 +173,46 @@ M.setup_autocmds({config}, {AutoSession})
         {AutoSession}  (table)  auto session instance
 
 
+DefaultConf                                                        *DefaultConf*
+
+
+    Fields: ~
+        {theme_conf}  (table)    telescope theme configuration
+        {previewer}   (boolean)  telescope theme configuration
+
+
+SessionLens.setup({config})                                  *SessionLens.setup*
+    Session lens setup function
+
+    Parameters: ~
+        {config}  (DefaultConf)  the optional config for the setup function
+
+
+                                                    *SessionLens.search_session*
+SessionLens.search_session({custom_opts})
+    Search session
+    Triggers the customized telescope picker for switching sessions
+
+    Parameters: ~
+        {custom_opts}  (any)
+
+
+                                             *SessionLensActions.source_session*
+SessionLensActions.source_session({prompt_bufnr})
+    Source session action
+    Source a selected session after doing proper current session saving and cleanup
+
+    Parameters: ~
+        {prompt_bufnr}  (number)  the telescope prompt bufnr
+
+
+                                             *SessionLensActions.delete_session*
+SessionLensActions.delete_session({prompt_bufnr})
+    Delete session action
+    Delete a selected session file
+
+    Parameters: ~
+        {prompt_bufnr}  (number)  the telescope prompt bufnr
+
+
 vim:tw=78:ts=8:noet:ft=help:norl:

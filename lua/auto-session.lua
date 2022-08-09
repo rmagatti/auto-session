@@ -233,13 +233,13 @@ local function is_allowed_dir()
     s = string.gsub(vim.fn.simplify(Lib.expand(s)), "/+$", "")
     for path in string.gmatch(s, "[^\r\n]+") do
       if cwd == path then
-        Lib.logger.debug("is_allowed_dir true")
+        Lib.logger.debug "is_allowed_dir true"
         return true
       end
     end
   end
 
-  Lib.logger.debug("is_allowed_dir false")
+  Lib.logger.debug "is_allowed_dir false"
   return false
 end
 
