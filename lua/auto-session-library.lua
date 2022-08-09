@@ -160,19 +160,19 @@ end
 
 function Lib.logger.debug(...)
   if Lib.conf.log_level == "debug" then
-    print("debug", ...)
+    vim.notify(string.format("debug: %s", vim.fn.join({ ... }, " ")), vim.log.levels.DEBUG)
   end
 end
 
 function Lib.logger.info(...)
   local valid_values = { "info", "debug" }
   if vim.tbl_contains(valid_values, Lib.conf.log_level) then
-    print("info", ...)
+    vim.notify(string.format("info: %s", vim.fn.join({ ... }, " ")), vim.log.levels.INFO)
   end
 end
 
 function Lib.logger.error(...)
-  error(...)
+  vim.notify(string.format("error: %s", vim.fn.join({ ... }, " ")), vim.log.levels.ERROR)
 end
 
 return Lib

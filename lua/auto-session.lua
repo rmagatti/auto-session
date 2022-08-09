@@ -88,9 +88,7 @@ Lib.conf = {
 function AutoSession.setup(config)
   AutoSession.conf = vim.tbl_deep_extend("force", AutoSession.conf, config or {})
   Lib.ROOT_DIR = AutoSession.conf.auto_session_root_dir
-  Lib.setup {
-    log_level = AutoSession.conf.log_level,
-  }
+  Lib.setup(AutoSession.conf)
 
   autocmds.setup_autocmds(AutoSession.conf, AutoSession)
 end
