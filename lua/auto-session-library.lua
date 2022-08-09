@@ -144,7 +144,7 @@ function Lib.is_readable(file_path)
   local path, _ = file_path:gsub("\\%%", "%%")
   local readable = vim.fn.filereadable(path) == Lib._VIM_TRUE
 
-  Lib.logger.debug("==== is_readable %d", tostring(readable))
+  Lib.logger.debug("==== is_readable", readable)
 
   return readable
 end
@@ -160,22 +160,19 @@ end
 
 function Lib.logger.debug(...)
   if Lib.conf.log_level == "debug" then
-    local msg = string.format(...)
-    vim.notify(msg, vim.log.levels.debug)
+    print("debug", ...)
   end
 end
 
 function Lib.logger.info(...)
   local valid_values = { "info", "debug" }
   if vim.tbl_contains(valid_values, Lib.conf.log_level) then
-    local msg = string.format(...)
-    vim.notify(msg, vim.log.levels.INFO)
+    print("info", ...)
   end
 end
 
 function Lib.logger.error(...)
-  local msg = string.format(...)
-  vim.notify(msg, vim.log.levels.ERROR)
+  error(...)
 end
 
 return Lib

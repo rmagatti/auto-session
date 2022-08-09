@@ -1,6 +1,7 @@
-local AutoSession = require("auto-session")
-local action_state = require("telescope.actions.state")
-local actions = require("telescope.actions")
+local AutoSession = require "auto-session"
+local action_state = require "telescope.actions.state"
+local actions = require "telescope.actions"
+local Lib = require "auto-session-library"
 
 local SessionLensActions = {}
 
@@ -12,12 +13,18 @@ SessionLensActions.source_session = function(prompt_bufnr)
   actions.close(prompt_bufnr)
 
   vim.defer_fn(function()
-    if AutoSession.conf.cwd_change_handling then
+    if
+      type(AutoSession.conf.cwd_change_handling) == "table"
+      and not vim.tbl_isempty(AutoSession.conf.cwd_change_handling or {})
+      and AutoSession.conf.cwd_change_handling.restore_upcoming_session
+    then
+      Lib.logger.debug "Triggering vim.fn.chdir since cwd_change_handling feature is enabled"
       vim.fn.chdir(AutoSession.format_file_name(selection.filename))
     else
+      Lib.logger.debug "Triggering session-lens behaviour since cwd_change_handling feature is disabled"
       AutoSession.AutoSaveSession()
-      vim.cmd("%bd!")
-      vim.cmd("clearjumps")
+      vim.cmd "%bd!"
+      vim.cmd "clearjumps"
       AutoSession.RestoreSession(selection.path)
     end
   end, 50)
@@ -34,4 +41,3 @@ SessionLensActions.delete_session = function(prompt_bufnr)
 end
 
 return SessionLensActions
-
