@@ -265,7 +265,7 @@ For troubleshooting refer to the [wiki page](https://github.com/rmagatti/auto-se
 
 ## 🔭 Session Lens
 
-Auto Session has been merged with Session Lens! This means all the functionality of Session Lens is now available in Auto Session.
+Session Lens has been merged into Auto Session! This means all the functionality of Session Lens is now available in Auto Session.
 
 You still need to call the session-lens specific setup function for things to work properly since even though these plugins are now merged, they are effectily fully modular and auto-session does not depend on session-lens functionality.
 
