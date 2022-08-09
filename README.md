@@ -265,13 +265,29 @@ For troubleshooting refer to the [wiki page](https://github.com/rmagatti/auto-se
 
 ## 🔭 Session Lens
 
-[Session Lens](https://github.com/rmagatti/session-lens) is a companion plugin to auto-session built on top of [Telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) for easy switching between existing sessions.
+Auto Session has been merged with Session Lens! This means all the functionality of Session Lens is now available in Auto Session.
 
-See installation and usage instructions in the plugin's page.
+You still need to call the session-lens specific setup function for things to work properly since even though these plugins are now merged, they are effectily fully modular and auto-session does not depend on session-lens functionality.
+
+```lua
+require("session-lens").setup {
+  path_display = { "shorten" },
+  theme_conf = { border = true },
+  previewer = false,
+}
+
+-- Mapping to search sessions using the session-lens search_session function
+vim.keymap.set("n", "<C-s>", require("session-lens").search_session, {
+  noremap = true,
+})
+```
+Auto Session provides its own `:Autosession search` and `:Autosession delete` commands, but session-lens is a more complete version of those commands that is specificly built to be used with `telescope.nvim`. These commands make use of `vim.ui.select` which can itself be implemented by other plugins other than telescope.
+
+Sometime after `telescope.nvim` has been started, you'll want to call `require("telescope").load_extension "session-lens"` so that auto completion can happen for the `:Telescope session-lens` commands.
 
 ### Preview
 
-<img src="https://github.com/rmagatti/readme-assets/blob/main/session-lens.gif" width=1000 />
+<img src="https://github.com/rmagatti/readme-assets/blob/main/session-lens.gif" width=800 />
 
 # Compatibility
 
