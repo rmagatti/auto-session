@@ -3,6 +3,7 @@ local autocmds = require "auto-session-autocmds"
 
 -- Run comand hooks
 local function run_hook_cmds(cmds, hook_name)
+  local results = {}
   if not Lib.is_empty_table(cmds) then
     for _, cmd in ipairs(cmds) do
       Lib.logger.debug(string.format("Running %s command: %s", hook_name, cmd))
@@ -16,9 +17,12 @@ local function run_hook_cmds(cmds, hook_name)
 
       if not success then
         Lib.logger.error(string.format("Error running %s. error: %s", cmd, result))
+      else
+        table.insert(results, result)
       end
     end
   end
+  return results
 end
 
 ----------- Setup ----------
@@ -345,6 +349,15 @@ local function message_after_saving(path, auto)
   end
 end
 
+--Save extra info to "{session_file}x.vim"
+local function save_extra_cmds(session_file_name)
+  local extra_cmds = AutoSession.get_cmds("save_extra")
+  local datas = run_hook_cmds(extra_cmds, "save-extra")
+  local extra_file = string.gsub(session_file_name, ".vim$", "x.vim")
+  extra_file = string.gsub(extra_file, "\\%%", "%%")
+  vim.fn.writefile(datas, extra_file)
+end
+
 ---@class PickerItem
 ---@field display_name string
 ---@field path string
@@ -366,7 +379,7 @@ function AutoSession.get_session_files()
   end
 
   local entries = vim.fn.readdir(sessions_dir, function(item)
-    return vim.fn.isdirectory(item) == 0
+    return vim.fn.isdirectory(item) == 0 and not string.find(item, "x.vim$")
   end)
 
   return vim.tbl_map(function(entry)
@@ -420,6 +433,7 @@ function AutoSession.SaveSession(sessions_dir, auto)
 
   vim.cmd("mks! " .. session_file_name)
 
+  save_extra_cmds(session_file_name)
   message_after_saving(session_file_name, auto)
 
   local post_cmds = AutoSession.get_cmds "post_save"
