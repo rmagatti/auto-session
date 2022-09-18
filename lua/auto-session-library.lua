@@ -144,7 +144,7 @@ function Lib.is_readable(file_path)
   local path, _ = file_path:gsub("\\%%", "%%")
   local readable = vim.fn.filereadable(path) == Lib._VIM_TRUE
 
-  Lib.logger.debug("==== is_readable", readable)
+  Lib.logger.debug("==== is_readable ", readable)
 
   return readable
 end

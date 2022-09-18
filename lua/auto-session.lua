@@ -3,6 +3,7 @@ local autocmds = require "auto-session-autocmds"
 
 -- Run comand hooks
 local function run_hook_cmds(cmds, hook_name)
+  local results = {}
   if not Lib.is_empty_table(cmds) then
     for _, cmd in ipairs(cmds) do
       Lib.logger.debug(string.format("Running %s command: %s", hook_name, cmd))
@@ -17,9 +18,12 @@ local function run_hook_cmds(cmds, hook_name)
 
       if not success then
         Lib.logger.error(string.format("Error running %s. error: %s", cmd, result))
+      else
+        table.insert(results, result)
       end
     end
   end
+  return results
 end
 
 ----------- Setup ----------
@@ -149,7 +153,7 @@ local in_pager_mode = function()
   local reading_from_stdin = vim.g.in_pager_mode == Lib._VIM_TRUE -- Set from StdinReadPre
 
   pager_mode = opened_with_args or reading_from_stdin
-  Lib.logger.debug("==== Pager mode", pager_mode)
+  Lib.logger.debug("==== Pager mode ", pager_mode)
   return pager_mode
 end
 
@@ -344,6 +348,15 @@ local function message_after_saving(path, auto)
   end
 end
 
+--Save extra info to "{session_file}x.vim"
+local function save_extra_cmds(session_file_name)
+  local extra_cmds = AutoSession.get_cmds("save_extra")
+  local datas = run_hook_cmds(extra_cmds, "save-extra")
+  local extra_file = string.gsub(session_file_name, ".vim$", "x.vim")
+  extra_file = string.gsub(extra_file, "\\%%", "%%")
+  vim.fn.writefile(datas, extra_file)
+end
+
 ---@class PickerItem
 ---@field display_name string
 ---@field path string
@@ -365,7 +378,7 @@ function AutoSession.get_session_files()
   end
 
   local entries = vim.fn.readdir(sessions_dir, function(item)
-    return vim.fn.isdirectory(item) == 0
+    return vim.fn.isdirectory(item) == 0 and not string.find(item, "x.vim$")
   end)
 
   return vim.tbl_map(function(entry)
@@ -419,6 +432,7 @@ function AutoSession.SaveSession(sessions_dir, auto)
 
   vim.cmd("mks! " .. session_file_name)
 
+  save_extra_cmds(session_file_name)
   message_after_saving(session_file_name, auto)
 
   local post_cmds = AutoSession.get_cmds "post_save"
@@ -509,7 +523,7 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
     else
       session_file_path = string.format(sessions_dir .. "%s.vim", session_name)
     end
-    Lib.logger.debug("==== Session Name", session_name)
+    Lib.logger.debug("==== Session Name:", session_name)
 
     local legacy_session_name = Lib.legacy_session_name_from_cwd()
     local legacy_file_path = string.format(sessions_dir .. "%s.vim", legacy_session_name)
@@ -522,7 +536,7 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
       if AutoSession.conf.auto_session_enable_last_session then
         local last_session_file_path = AutoSession.get_latest_session()
         if last_session_file_path ~= nil then
-          Lib.logger.info("Restoring last session", last_session_file_path)
+          Lib.logger.info("Restoring last session:", last_session_file_path)
           restore(last_session_file_path)
         end
       else
