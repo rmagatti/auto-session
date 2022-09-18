@@ -11,6 +11,7 @@ local function run_hook_cmds(cmds, hook_name)
       if type(cmd) == "function" then
         success, result = pcall(cmd)
       else
+        ---@diagnostic disable-next-line: param-type-mismatch
         success, result = pcall(vim.cmd, cmd)
       end
 
