@@ -201,6 +201,7 @@ You can use the `Autosession {delete|search}` command to open a picker using `vi
 Command hooks exist in the format: {hook_name}
 
 - {pre*save}: executes \_before* a session is saved
+- {save*extra}: execute \_after* a session is saved, return string will save to `*x.vim`, reference `:help mks`
 - {post*save}: executes \_after* a session is saved
 - {pre*restore}: executs \_before* a session is restored
 - {post*restore}: executs \_after* a session is restored
@@ -216,6 +217,11 @@ let g:auto_session_{hook_name}_cmds = ["{hook_command1}", "{hook_command2}"]
 lua << EOF
 require('auto-session').setup {
     {hook_name}_cmds = {"{hook_command1}", "{hook_command2}"}
+    save_extra_cmds = {
+        function()
+            return [[echo "hello world"]]
+        end
+    }
 }
 EOF
 ```
