@@ -166,8 +166,17 @@ end
 
 function Lib.logger.info(...)
   local valid_values = { "info", "debug" }
+
   if vim.tbl_contains(valid_values, Lib.conf.log_level) then
     vim.notify(vim.fn.join({ "info: ", tostring(...) }, " "), vim.log.levels.INFO)
+  end
+end
+
+function Lib.logger.warn(...)
+  local valid_values = { "info", "debug", "warn" }
+
+  if vim.tbl_contains(valid_values, Lib.conf.log_level) then
+    vim.notify(vim.fn.join({ "warn: ", tostring(...) }, " "), vim.log.levels.WARN)
   end
 end
 

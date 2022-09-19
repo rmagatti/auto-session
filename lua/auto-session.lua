@@ -70,14 +70,18 @@ local luaOnlyConf = {
   ---@field post_cwd_changed_hook boolean? {true} This is called after auto_session code runs for the `DirChanged` autocmd
 
   ---@type CwdChangeHandling this config can also be set to `false` to disable cwd change handling altogether.
-  --- Can also be set to a table with any of the following keys:
-  ---  {
-  ---    restore_upcoming_session = true,
-  ---    pre_cwd_changed_hook = nil, -- lua function hook. This is called after auto_session code runs for the `DirChangedPre` autocmd
-  ---    post_cwd_changed_hook = nil, -- lua function hook. This is called after auto_session code runs for the `DirChanged` autocmd
-  ---  }
+  ---Can also be set to a table with any of the following keys:
+  --- {
+  ---   restore_upcoming_session = true,
+  ---   pre_cwd_changed_hook = nil, -- lua function hook. This is called after auto_session code runs for the `DirChangedPre` autocmd
+  ---   post_cwd_changed_hook = nil, -- lua function hook. This is called after auto_session code runs for the `DirChanged` autocmd
+  --- }
   ---@diagnostic disable-next-line: assign-type-mismatch
-  cwd_change_handling = false, -- Config for handling the DirChangePre and DirChanged autocmds, can be set to false to disable altogether
+  cwd_change_handling = false,
+  session_control = {
+    control_dir = vim.fn.stdpath "data" .. "/auto_session/", -- Auto session control dir, for control files, like alternating between two sessions with session-lens
+    control_filename = "session_control.txt", -- File name of the session control file
+  },
 }
 
 -- Set default config on plugin load
@@ -115,8 +119,6 @@ local function is_allowed_dirs_enabled()
   else
     return not vim.tbl_isempty(AutoSession.conf.auto_session_allowed_dirs or {})
   end
-
-  return false
 end
 
 local function is_auto_create_enabled()
@@ -350,7 +352,7 @@ end
 
 --Save extra info to "{session_file}x.vim"
 local function save_extra_cmds(session_file_name)
-  local extra_cmds = AutoSession.get_cmds("save_extra")
+  local extra_cmds = AutoSession.get_cmds "save_extra"
   local datas = run_hook_cmds(extra_cmds, "save-extra")
   local extra_file = string.gsub(session_file_name, ".vim$", "x.vim")
   extra_file = string.gsub(extra_file, "\\%%", "%%")
@@ -420,6 +422,38 @@ end
 
 vim.api.nvim_create_user_command("Autosession", handle_autosession_command, { nargs = 1 })
 
+local function write_to_session_control(session_file_name)
+  local control_dir = AutoSession.conf.session_control.control_dir
+  local control_file = AutoSession.conf.session_control.control_filename
+  session_file_name = Lib.expand(session_file_name)
+
+  Lib.init_dir(control_dir)
+
+  local session_control_file = control_dir .. control_file
+
+  if vim.fn.filereadable(session_control_file) == 1 then
+    local content = vim.fn.readfile(session_control_file)
+    local sessions = { new = session_file_name, alternate = Lib.expand(content[#content - 1]) }
+
+    print(vim.inspect { sessions = sessions, content = content })
+
+    if sessions.new == sessions.alternate then
+      -- Do not write to file when the new session would be the same as the one already in the file
+      Lib.logger.debug "Not writing to session control file, alternate would be the same as current"
+      return
+    end
+
+    if #content >= 2 then
+      -- File is too big, keep only latest and second latest
+      Lib.logger.debug " Session control file is at or over the limit of 2, re-writing to keep size down"
+      vim.fn.writefile({ content[#content] }, session_control_file)
+    end
+  end
+
+  -- Write latest restored session
+  vim.fn.writefile({ session_file_name }, session_control_file, "a")
+end
+
 --Saves the session, overriding if previously existing.
 ---@param sessions_dir string?
 ---@param auto boolean
@@ -437,6 +471,8 @@ function AutoSession.SaveSession(sessions_dir, auto)
 
   local post_cmds = AutoSession.get_cmds "post_save"
   run_hook_cmds(post_cmds, "post-save")
+
+  return true
 end
 
 ---Function called by AutoSession when automatically restoring a session.
@@ -490,6 +526,7 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
     run_hook_cmds(pre_cmds, "pre-restore")
 
     local cmd = "source " .. file_path
+    ---@diagnostic disable-next-line: param-type-mismatch
     local success, result = pcall(vim.cmd, cmd)
 
     if not success then
@@ -509,6 +546,10 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
 
     local post_cmds = AutoSession.get_cmds "post_restore"
     run_hook_cmds(post_cmds, "post-restore")
+
+    write_to_session_control(file_path)
+
+    return file_path
   end
 
   -- I still don't like reading this chunk, please cleanup
@@ -516,6 +557,7 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
     Lib.logger.debug "==== Using session DIR"
 
     local session_name = AutoSession.conf.auto_session_enable_last_session and Lib.conf.last_loaded_session
+
     local session_file_path
     if not session_name then
       session_file_path = get_session_file_name(sessions_dir)
@@ -529,15 +571,15 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
     local legacy_file_path = string.format(sessions_dir .. "%s.vim", legacy_session_name)
 
     if Lib.is_readable(session_file_path) then
-      restore(session_file_path, session_name)
+      RESTORED_WITH = restore(session_file_path, session_name)
     elseif Lib.is_readable(legacy_file_path) then
-      restore(legacy_file_path, session_name)
+      RESTORED_WITH = restore(legacy_file_path, session_name)
     else
       if AutoSession.conf.auto_session_enable_last_session then
         local last_session_file_path = AutoSession.get_latest_session()
         if last_session_file_path ~= nil then
           Lib.logger.info("Restoring last session:", last_session_file_path)
-          restore(last_session_file_path)
+          RESTORED_WITH = restore(last_session_file_path)
         end
       else
         Lib.logger.debug "File not readable, not restoring session"
@@ -549,13 +591,15 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
     local escaped_file = session_file:gsub("%%", "\\%%")
     if Lib.is_readable(escaped_file) then
       Lib.logger.debug "isReadable, calling restore"
-      restore(escaped_file)
+      RESTORED_WITH = restore(escaped_file)
     else
       Lib.logger.debug "File not readable, not restoring session"
     end
   else
     Lib.logger.error "Error while trying to parse session dir or file"
   end
+
+  -- AutoSession.SaveSession(RESTORED_WITH, true)
 
   return true
 end

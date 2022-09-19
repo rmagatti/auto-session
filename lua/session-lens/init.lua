@@ -74,6 +74,7 @@ SessionLens.search_session = function(custom_opts)
     attach_mappings = function(_, map)
       actions.select_default:replace(SessionLensActions.source_session)
       map("i", "<c-d>", SessionLensActions.delete_session)
+      map("i", "<c-s>", SessionLensActions.alternate_session)
       return true
     end,
   }

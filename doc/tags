@@ -14,7 +14,13 @@ AutoSession.get_root_dir	auto-session.txt	/*AutoSession.get_root_dir*
 AutoSession.get_session_files	auto-session.txt	/*AutoSession.get_session_files*
 AutoSession.setup	auto-session.txt	/*AutoSession.setup*
 CwdChangeHandling	auto-session.txt	/*CwdChangeHandling*
+DefaultConf	auto-session.txt	/*DefaultConf*
 M.setup_autocmds	auto-session.txt	/*M.setup_autocmds*
 PickerItem	auto-session.txt	/*PickerItem*
+SessionLens.search_session	auto-session.txt	/*SessionLens.search_session*
+SessionLens.setup	auto-session.txt	/*SessionLens.setup*
+SessionLensActions.alternate_session	auto-session.txt	/*SessionLensActions.alternate_session*
+SessionLensActions.delete_session	auto-session.txt	/*SessionLensActions.delete_session*
+SessionLensActions.source_session	auto-session.txt	/*SessionLensActions.source_session*
 defaultConf	auto-session.txt	/*defaultConf*
 luaOnlyConf	auto-session.txt	/*luaOnlyConf*
