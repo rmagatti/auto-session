@@ -351,11 +351,14 @@ end
 
 --Save extra info to "{session_file}x.vim"
 local function save_extra_cmds(session_file_name)
-  local extra_cmds = AutoSession.get_cmds("save_extra")
-  local datas = run_hook_cmds(extra_cmds, "save-extra")
-  local extra_file = string.gsub(session_file_name, ".vim$", "x.vim")
-  extra_file = string.gsub(extra_file, "\\%%", "%%")
-  vim.fn.writefile(datas, extra_file)
+  local extra_cmds = AutoSession.get_cmds "save_extra"
+
+  if extra_cmds then
+    local datas = run_hook_cmds(extra_cmds, "save-extra")
+    local extra_file = string.gsub(session_file_name, ".vim$", "x.vim")
+    extra_file = string.gsub(extra_file, "\\%%", "%%")
+    vim.fn.writefile(datas, extra_file)
+  end
 end
 
 ---@class PickerItem
