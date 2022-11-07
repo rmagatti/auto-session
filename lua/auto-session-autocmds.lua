@@ -2,6 +2,26 @@ local Lib = require "auto-session-library"
 
 local M = {}
 
+-- don't autorestore if there are open buffers (indicating a failed save session
+local function has_open_buffers()
+  local result = false
+  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.fn.bufloaded(bufnr) then
+      local bufname = vim.api.nvim_buf_get_name(bufnr)
+      if bufname ~= "" then
+        if vim.fn.bufwinnr(bufnr) ~= -1 then
+          if result then
+            result = true
+            Lib.logger.debug("There are buffer(s) present: ")
+          end
+          Lib.logger.debug("  " .. bufname)
+        end
+      end
+    end
+  end
+  return result
+end
+
 ---Setup autocmds for DirChangedPre and DirChanged
 ---@param config table auto session config
 ---@param AutoSession table auto session instance
@@ -12,46 +32,69 @@ M.setup_autocmds = function(config, AutoSession)
   end
 
   local conf = config.cwd_change_handling
+  local scopes = { "global" }
+  if config.auto_session_enable_file_tree_integration then
+    table.insert(scopes, "window")
+  end
 
-  vim.api.nvim_create_autocmd("DirChangedPre", {
-    callback = function()
-      Lib.logger.debug "DirChangedPre"
-      Lib.logger.debug("cwd: " .. vim.fn.getcwd())
-
-      AutoSession.AutoSaveSession()
-
-      -- Clear all buffers and jumps after session save so session doesn't blead over to next session.
-      vim.cmd "%bd!"
-      vim.cmd "clearjumps"
-
-      if type(conf.pre_cwd_changed_hook) == "function" then
-        conf.pre_cwd_changed_hook()
-      end
-    end,
-    pattern = "global",
-  })
-
-  if conf.restore_upcoming_session then
-    vim.api.nvim_create_autocmd("DirChanged", {
+  for _, pattern in ipairs(scopes) do
+    vim.api.nvim_create_autocmd("DirChangedPre", {
       callback = function()
-        Lib.logger.debug "DirChanged"
-        Lib.logger.debug("cwd: " .. vim.fn.getcwd())
+        Lib.logger.debug "DirChangedPre"
+        Lib.logger.debug("  cwd: " .. vim.fn.getcwd())
+        Lib.logger.debug("  target: " .. vim.v.event.directory)
+        Lib.logger.debug("  changed window: " .. tostring(vim.v.event.changed_window))
+        Lib.logger.debug("  scope: " .. vim.v.event.scope)
 
-        -- Deferring to avoid otherwise there are tresitter highlighting issues
-        vim.defer_fn(function()
-          local success = AutoSession.AutoRestoreSession()
-
-          if not success then
-            Lib.logger.info("Could not load session. A session file is likely missing for this cwd." .. vim.fn.getcwd())
+        if vim.v.event.scope == "window" then
+          -- don't save session for all `lcd`'s (local change directory), just file tree explorers
+          if not Lib.tree_buf_type(vim.api.nvim_get_current_buf()) then
+            Lib.logger.debug("  not file tree event, returning")
+            return
           end
+        end
 
-          if type(conf.post_cwd_changed_hook) == "function" then
-            conf.post_cwd_changed_hook()
-          end
-        end, 50)
+        AutoSession.AutoSaveSession()
+
+        -- Clear all buffers and jumps after session save so session doesn't blead over to next session.
+        vim.cmd "%bd!"
+        vim.cmd "clearjumps"
+
+        if type(conf.pre_cwd_changed_hook) == "function" then
+          conf.pre_cwd_changed_hook()
+        end
       end,
-      pattern = "global",
+      pattern = pattern,
     })
+
+    if conf.restore_upcoming_session then
+        vim.api.nvim_create_autocmd("DirChanged", {
+          callback = function()
+            Lib.logger.debug "DirChanged"
+            Lib.logger.debug("  cwd: " .. vim.fn.getcwd() )
+            Lib.logger.debug("  changed window: " .. tostring(vim.v.event.changed_window))
+            Lib.logger.debug("  scope: " .. vim.v.event.scope)
+
+            -- all buffers should've been deleted in `DirChangedPre`, something probably went wrong
+            if has_open_buffers() then
+              Lib.logger.debug("Cancelling session restore")
+              return
+            end
+
+            local success = AutoSession.AutoRestoreSession()
+
+            if not success then
+              Lib.logger.info("Could not load session. A session file is likely missing for this cwd." .. vim.fn.getcwd())
+              return
+            end
+
+            if type(conf.post_cwd_changed_hook) == "function" then
+              conf.post_cwd_changed_hook()
+            end
+          end,
+          pattern = pattern,
+        })
+    end
   end
 end
 

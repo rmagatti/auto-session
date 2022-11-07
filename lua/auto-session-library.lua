@@ -175,4 +175,29 @@ function Lib.logger.error(...)
   vim.notify(vim.fn.join({ "error: ", tostring(...) }, " "), vim.log.levels.ERROR)
 end
 
+-- return type of file tree explorer or false if not a file tree explorers
+function Lib.tree_buf_type(bufnr)
+  if bufnr == nil then
+    bufnr = 0
+  end
+  if vim.fn.bufexists(bufnr) then
+    local bufname = vim.api.nvim_buf_get_name(bufnr)
+    local filename = vim.fn.fnamemodify(bufname, ":t")
+    if filename:match "^NvimTree_[0-9]+$" then
+      if vim.bo[bufnr].filetype == "NvimTree" then
+        return "nvimtree"
+      elseif vim.fn.filereadable(bufname) == 0 then
+        return "nvimtree"
+      end
+    elseif filename:match "^NERD_tree_[0-9]+$" then
+      if vim.bo[bufnr].filetype == "nerdtree" then
+        return "nerdtree"
+      elseif vim.fn.filereadable(bufname) == 0 then
+        return "nerdtree"
+      end
+    end
+  end
+  return false
+end
+
 return Lib
