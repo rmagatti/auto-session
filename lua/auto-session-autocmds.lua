@@ -2,7 +2,7 @@ local Lib = require "auto-session-library"
 
 local M = {}
 
--- don't autorestore if there are open buffers (indicating a failed save session
+-- don't autorestore if there are open buffers (indicating auto save session failed)
 local function has_open_buffers()
   local result = false
   for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
@@ -32,10 +32,7 @@ M.setup_autocmds = function(config, AutoSession)
   end
 
   local conf = config.cwd_change_handling
-  local scopes = { "global" }
-  if config.auto_session_enable_file_tree_integration then
-    table.insert(scopes, "window")
-  end
+  local scopes = { "global", "tabpage"}
 
   for _, pattern in ipairs(scopes) do
     vim.api.nvim_create_autocmd("DirChangedPre", {
@@ -46,12 +43,11 @@ M.setup_autocmds = function(config, AutoSession)
         Lib.logger.debug("  changed window: " .. tostring(vim.v.event.changed_window))
         Lib.logger.debug("  scope: " .. vim.v.event.scope)
 
-        if vim.v.event.scope == "window" then
-          -- don't save session for all `lcd`'s (local change directory), just file tree explorers
-          if not Lib.tree_buf_type(vim.api.nvim_get_current_buf()) then
-            Lib.logger.debug("  not file tree event, returning")
-            return
-          end
+        -- Don't want to save session if dir change was triggered
+        -- by a window change. This will corrupt the session data,
+        -- mixing the two different directory sessions
+        if vim.v.event.changed_window then
+          return
         end
 
         AutoSession.AutoSaveSession()
@@ -74,6 +70,11 @@ M.setup_autocmds = function(config, AutoSession)
             Lib.logger.debug("  cwd: " .. vim.fn.getcwd() )
             Lib.logger.debug("  changed window: " .. tostring(vim.v.event.changed_window))
             Lib.logger.debug("  scope: " .. vim.v.event.scope)
+
+            -- see above
+            if vim.v.event.changed_window then
+              return
+            end
 
             -- all buffers should've been deleted in `DirChangedPre`, something probably went wrong
             if has_open_buffers() then

@@ -15,18 +15,18 @@ Auto Session takes advantage of Neovim's existing session management capabilitie
 :warning: Please note that if there are errors in your config, restoring the session might fail, if that happens, auto session will then disable auto saving for the current session.
 Manually saving a session can still be done by calling `:SaveSession`.
 
-AutoSession now tracks `cwd` changes!
-By default, handling is as follows:
-  DirChangedPre (before the cwd actually changes):
-    - Save the current session
-    - Clear all buffers `%bd!`. This guarantees buffers don't bleed to the
-      next session.
-    - Clear jumps. Also done so there is no bleading between sessions.
-    - Run the `pre_cwd_changed_hook`
-  DirChanged (after the cwd has changed):
-    - Restore session using new cwd
-    - Run the `post_cwd_changed_hook`
-
+AutoSession now tracks `cwd` changes!  
+By default, handling is as follows:  
+  DirChangedPre (before the cwd actually changes):  
+    - Save the current session  
+    - Clear all buffers `%bd!`. This guarantees buffers don't bleed to the  
+      next session.  
+    - Clear jumps. Also done so there is no bleading between sessions.  
+    - Run the `pre_cwd_changed_hook`  
+  DirChanged (after the cwd has changed):  
+    - Restore session using new cwd  
+    - Run the `post_cwd_changed_hook`  
+    
 Now when the user changes the cwd with `:cd some/new/dir` auto-session handles it gracefully, saving the current session so there aren't losses and loading the session for the upcoming cwd if it exists.
 
 Hooks are available for custom actions _before_ and _after_ the `cwd` is changed. These hooks can be configured through the `cwd_change_handling` key as follows:
@@ -113,19 +113,18 @@ require('lualine').setup{
 
 ### Options
 
-| Config                                    | Options                  | Default                              | Description                                                     |
-| ------------------------------------------| ------------------------ | ------------------------------------ | --------------------------------------------------------------- |
-| log_level                                 | 'debug', 'info', 'error' | 'info'                               | Sets the log level of the plugin                                |
-| auto_session_enable_last_session          | false, true              | false                                | Loads the last loaded session if session for cwd does not exist |
-| auto_session_enable_file_tree_integration | false, true              | false                                | Fixes problems with nvim-tree and NERDTree compatibility        |
-| auto_session_root_dir                     | "/some/path/you/want"    | vim.fn.stdpath('data').."/sessions/" | Changes the root dir for sessions                               |
-| auto_session_enabled                      | false, true              | true                                 | Enables/disables the plugin's auto save _and_ restore features  |
-| auto_session_create_enabled               | false, true              | true                                 | Enables/disables the plugin's session auto creation             |
-| auto_save_enabled                         | false, true, nil         | nil                                  | Enables/disables auto saving                                    |
-| auto_restore_enabled                      | false, true, nil         | nil                                  | Enables/disables auto restoring                                 |
-| auto_session_suppress_dirs                | ["list", "of paths"]     | nil                                  | Suppress session create/restore if in one of the list of dirs   |
-| auto_session_allowed_dirs                 | ["list", "of paths"]     | nil                                  | Allow session create/restore if in one of the list of dirs      |
-| auto_session_use_git_branch               | false, true, nil         | nil                                  | Use the git branch to differentiate the session name            |
+| Config                           | Options                  | Default                              | Description                                                     |
+| -------------------------------- | ------------------------ | ------------------------------------ | --------------------------------------------------------------- |
+| log_level                        | 'debug', 'info', 'error' | 'info'                               | Sets the log level of the plugin                                |
+| auto_session_enable_last_session | false, true              | false                                | Loads the last loaded session if session for cwd does not exist |
+| auto_session_root_dir            | "/some/path/you/want"    | vim.fn.stdpath('data').."/sessions/" | Changes the root dir for sessions                               |
+| auto_session_enabled             | false, true              | true                                 | Enables/disables the plugin's auto save _and_ restore features  |
+| auto_session_create_enabled      | false, true              | true                                 | Enables/disables the plugin's session auto creation             |
+| auto_save_enabled                | false, true, nil         | nil                                  | Enables/disables auto saving                                    |
+| auto_restore_enabled             | false, true, nil         | nil                                  | Enables/disables auto restoring                                 |
+| auto_session_suppress_dirs       | ["list", "of paths"]     | nil                                  | Suppress session create/restore if in one of the list of dirs   |
+| auto_session_allowed_dirs        | ["list", "of paths"]     | nil                                  | Allow session create/restore if in one of the list of dirs      |
+| auto_session_use_git_branch      | false, true, nil         | nil                                  | Use the git branch to differentiate the session name            |
 
 #### Notes
 
@@ -176,21 +175,6 @@ require('auto-session').setup {
 ```
 
 :warning: WARNING :warning: If the directory does not exist, default directory will be used and an error message will be printed.
-
-### File Tree Integration
-
-This fixes a lot of conflics with [`nvim-tree`](https://github.com/nvim-tree/nvim-tree.lua) and [`NERDTree`](https://github.com/preservim/nerdtree),
-as they both try to control the `cwd`, which causes infinite loops and corrupted session data.
-This feature synchronizes the `cwd` between `auto-session` and the file tree plugin, which turns out to be very powerful and fun to use.
-:warning: This feature is still experimental. Bugs to be expected.
-
-```lua
-require('auto-session').setup {
-    auto_session_enable_file_tree_integration=true,
-}
-```
-
-:warning: Note :warning: If you already have broken session data, this will not fix it. You will have to delete that session and start again
 
 # 📢 Commands
 

@@ -47,7 +47,6 @@ local AutoSession = {
 local defaultConf = {
   log_level = vim.g.auto_session_log_level or AutoSession.conf.logLevel or AutoSession.conf.log_level or "info", -- Sets the log level of the plugin (debug, info, error). camelCase logLevel for compatibility.
   auto_session_enable_last_session = vim.g.auto_session_enable_last_session or false, -- Enables/disables the "last session" feature
-  auto_session_enable_file_tree_integration = vim.g.auto_session_enable_file_tree_integration or false, -- Enables/disables the "last session" feature
   auto_session_root_dir = vim.fn.stdpath "data" .. "/sessions/", -- Root dir where sessions will be stored
   auto_session_enabled = true, -- Enables/disables auto creating, saving and restoring
   auto_session_create_enabled = nil, -- Enables/disables auto creating new sessions
@@ -486,28 +485,11 @@ end
 local function post_restore_refresh()
   -- refresh sytax highlighting
   for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
-    if not vim.api.nvim_buf_is_loaded(bufnr) then
-      goto continue
+    if vim.api.nvim_buf_is_loaded(bufnr) then
+      vim.api.nvim_buf_call(bufnr, function()
+        vim.cmd 'filetype detect'
+      end)
     end
-
-    vim.api.nvim_buf_call(bufnr, function()
-      vim.cmd 'filetype detect'
-    end)
-
-    if AutoSession.conf.auto_session_enable_file_tree_integration then
-      -- refresh file trees
-      local tree_type = Lib.tree_buf_type(bufnr)
-      -- we only open the tree if it was open before
-      if (tree_type == "nvimtree") then
-        pcall(vim.api.nvim_buf_delete, bufnr, { force = true })
-        -- want no focus to avoid "'modifiable' is off" errors
-        require('nvim-tree').toggle(false, true)
-      elseif (tree_type == "nerdtree") then
-        pcall(vim.api.nvim_buf_delete, bufnr, { force = true })
-        vim.cmd 'NERDTreeOpen'
-      end
-    end
-    ::continue::
   end
 end
 
