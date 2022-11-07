@@ -500,7 +500,8 @@ local function post_restore_refresh()
       -- we only open the tree if it was open before
       if (tree_type == "nvimtree") then
         pcall(vim.api.nvim_buf_delete, bufnr, { force = true })
-        require('nvim-tree').open()
+        -- want no focus to avoid "'modifiable' is off" errors
+        require('nvim-tree').toggle(false, true)
       elseif (tree_type == "nerdtree") then
         pcall(vim.api.nvim_buf_delete, bufnr, { force = true })
         vim.cmd 'NERDTreeOpen'
