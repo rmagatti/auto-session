@@ -480,19 +480,6 @@ function AutoSession.RestoreSessionFromFile(session_file)
   AutoSession.RestoreSession(string.format(AutoSession.get_root_dir() .. "%s.vim", session_file:gsub("/", "%%")))
 end
 
---
--- Refresh syntax highlighting and file trees
-local function post_restore_refresh()
-  -- refresh sytax highlighting
-  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
-    if vim.api.nvim_buf_is_loaded(bufnr) then
-      vim.api.nvim_buf_call(bufnr, function()
-        vim.cmd 'filetype detect'
-      end)
-    end
-  end
-end
-
 -- TODO: make this more readable!
 ---Restores the session by sourcing the session file if it exists/is readable.
 ---This function is intended to be called by the user but it is also called by `AutoRestoreSession`
@@ -526,8 +513,6 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
 
     local post_cmds = AutoSession.get_cmds "post_restore"
     run_hook_cmds(post_cmds, "post-restore")
-
-    vim.defer_fn(post_restore_refresh, 0)
   end
 
   -- I still don't like reading this chunk, please cleanup
