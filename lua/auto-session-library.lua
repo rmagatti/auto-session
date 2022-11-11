@@ -158,6 +158,26 @@ function Lib.expand(file_or_dir)
   return ret
 end
 
+function Lib.has_open_buffers()
+  local result = false
+  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.fn.bufloaded(bufnr) then
+      local bufname = vim.api.nvim_buf_get_name(bufnr)
+      if bufname ~= "" then
+        if vim.fn.bufwinnr(bufnr) ~= -1 then
+          if result then
+            result = true
+            Lib.logger.debug("There are buffer(s) present: ")
+          end
+          Lib.logger.debug("  " .. bufname)
+        end
+      end
+    end
+  end
+  return result
+end
+
+
 function Lib.logger.debug(...)
   if Lib.conf.log_level == "debug" then
     vim.notify(vim.fn.join({ "debug: ", tostring(...) }, " "), vim.log.levels.DEBUG)
