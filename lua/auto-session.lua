@@ -113,12 +113,16 @@ local function is_enabled()
 end
 
 local function is_allowed_dirs_enabled()
-  Lib.logger.debug "==== is_allowed_dirs_enabled"
+  local enabled = false
+
   if vim.g.auto_session_allowed_dirs ~= nil then
-    return not vim.tbl_isempty(vim.g.auto_session_allowed_dirs)
+    enabled = not vim.tbl_isempty(vim.g.auto_session_allowed_dirs)
   else
-    return not vim.tbl_isempty(AutoSession.conf.auto_session_allowed_dirs or {})
+    enabled = not vim.tbl_isempty(AutoSession.conf.auto_session_allowed_dirs or {})
   end
+
+  Lib.logger.debug("is_allowed_dirs_enabled", enabled)
+  return enabled
 end
 
 local function is_auto_create_enabled()
@@ -155,7 +159,7 @@ local in_pager_mode = function()
   local reading_from_stdin = vim.g.in_pager_mode == Lib._VIM_TRUE -- Set from StdinReadPre
 
   pager_mode = opened_with_args or reading_from_stdin
-  Lib.logger.debug("==== Pager mode ", pager_mode)
+  Lib.logger.debug("in pager mode", pager_mode)
   return pager_mode
 end
 
@@ -250,14 +254,15 @@ end
 
 local function get_session_file_name(sessions_dir)
   local session = sessions_dir and sessions_dir ~= "" and sessions_dir or nil
+  local is_empty = Lib.is_empty(sessions_dir)
 
-  if Lib.is_empty(sessions_dir) then
+  if is_empty then
     sessions_dir = AutoSession.get_root_dir()
   else
     sessions_dir = Lib.append_slash(sessions_dir)
   end
 
-  if vim.fn.isdirectory(session or sessions_dir) == Lib._VIM_FALSE then
+  if not vim.fn.isdirectory(Lib.expand(session or sessions_dir)) then
     -- When we get here session and sessions_dir either both point to a file or do not exist
     return session
   else
@@ -461,8 +466,10 @@ end
 ---@param sessions_dir string?
 ---@param auto boolean
 function AutoSession.SaveSession(sessions_dir, auto)
-  Lib.logger.debug "==== SaveSession"
+  Lib.logger.debug { sessions_dir = sessions_dir, auto = auto }
   local session_file_name = get_session_file_name(sessions_dir)
+
+  Lib.logger.debug { session_file_name = session_file_name }
 
   local pre_cmds = AutoSession.get_cmds "pre_save"
   run_hook_cmds(pre_cmds, "pre-save")
@@ -522,7 +529,7 @@ end
 ---@return boolean boolean returns whether restoring the session was successful or not.
 function AutoSession.RestoreSession(sessions_dir_or_file)
   local sessions_dir, session_file = extract_dir_or_file(sessions_dir_or_file)
-  Lib.logger.debug("sessions_dir, session_file", sessions_dir, session_file)
+  Lib.logger.debug { sessions_dir = sessions_dir, session_file = session_file }
 
   local restore = function(file_path, session_name)
     local pre_cmds = AutoSession.get_cmds "pre_restore"
@@ -557,7 +564,7 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
 
   -- I still don't like reading this chunk, please cleanup
   if sessions_dir then
-    Lib.logger.debug "==== Using session DIR"
+    Lib.logger.debug "Using session DIR"
 
     local session_name = AutoSession.conf.auto_session_enable_last_session and Lib.conf.last_loaded_session
 
@@ -565,10 +572,12 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
     if not session_name then
       session_file_path = get_session_file_name(sessions_dir)
       session_name = vim.fn.fnamemodify(session_file_path, ":t:r")
+
+      Lib.logger.debug("not session_name", { session_file_path = session_file_path, session_name = session_name })
     else
       session_file_path = string.format(sessions_dir .. "%s.vim", session_name)
     end
-    Lib.logger.debug("==== Session Name:", session_name)
+    Lib.logger.debug { session_name = session_name }
 
     local legacy_session_name = Lib.legacy_session_name_from_cwd()
     local legacy_file_path = string.format(sessions_dir .. "%s.vim", legacy_session_name)
@@ -590,7 +599,7 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
       end
     end
   elseif session_file then
-    Lib.logger.debug "==== Using session FILE"
+    Lib.logger.debug "Using session FILE"
     local escaped_file = session_file:gsub("%%", "\\%%")
     if Lib.is_readable(escaped_file) then
       Lib.logger.debug "isReadable, calling restore"

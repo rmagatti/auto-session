@@ -142,9 +142,10 @@ end
 
 function Lib.is_readable(file_path)
   local path, _ = file_path:gsub("\\%%", "%%")
+  path = Lib.expand(path)
   local readable = vim.fn.filereadable(path) == Lib._VIM_TRUE
 
-  Lib.logger.debug("==== is_readable ", readable)
+  Lib.logger.debug { path = path, readable = readable }
 
   return readable
 end
@@ -167,9 +168,9 @@ function Lib.has_open_buffers()
         if vim.fn.bufwinnr(bufnr) ~= -1 then
           if result then
             result = true
-            Lib.logger.debug("There are buffer(s) present: ")
+            Lib.logger.debug "There are buffer(s) present: "
           end
-          Lib.logger.debug("  " .. bufname)
+          Lib.logger.debug { bufname = bufname }
         end
       end
     end
@@ -177,10 +178,9 @@ function Lib.has_open_buffers()
   return result
 end
 
-
 function Lib.logger.debug(...)
   if Lib.conf.log_level == "debug" then
-    vim.notify(vim.fn.join({ "debug: ", tostring(...) }, " "), vim.log.levels.DEBUG)
+    vim.notify(vim.fn.join({ "auto-session-debug:", ... }, " "), vim.log.levels.DEBUG)
   end
 end
 
@@ -188,7 +188,7 @@ function Lib.logger.info(...)
   local valid_values = { "info", "debug" }
 
   if vim.tbl_contains(valid_values, Lib.conf.log_level) then
-    vim.notify(vim.fn.join({ "info: ", tostring(...) }, " "), vim.log.levels.INFO)
+    vim.notify(vim.fn.join({ "auto-session-info:", ... }, " "), vim.log.levels.INFO)
   end
 end
 
@@ -196,12 +196,12 @@ function Lib.logger.warn(...)
   local valid_values = { "info", "debug", "warn" }
 
   if vim.tbl_contains(valid_values, Lib.conf.log_level) then
-    vim.notify(vim.fn.join({ "warn: ", tostring(...) }, " "), vim.log.levels.WARN)
+    vim.notify(vim.fn.join({ "auto-session-warn:", ... }, " "), vim.log.levels.WARN)
   end
 end
 
 function Lib.logger.error(...)
-  vim.notify(vim.fn.join({ "error: ", tostring(...) }, " "), vim.log.levels.ERROR)
+  vim.notify(vim.fn.join({ "auto-session-error:", ... }, " "), vim.log.levels.ERROR)
 end
 
 return Lib
