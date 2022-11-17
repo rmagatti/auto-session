@@ -37,10 +37,10 @@ local AutoSession = {
 ---@field auto_session_root_dir string root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
 ---@field auto_session_enabled boolean enable auto session
 ---@field auto_session_create_enabled boolean|nil Enables/disables auto creating new sessions
----@field auto_save_enabled boolean|nil Enables/disables auto saving session
----@field auto_restore_enabled boolean|nil Enables/disables auto restoring session
----@fied auto_session_suppress_dirs table|nil Suppress auto session for directories
----@field auto_session_allowed_dirs table|nil Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
+---@field auto_save_enabled? boolean Enables/disables auto saving session
+---@field auto_restore_enabled? boolean Enables/disables auto restoring session
+---@field auto_session_suppress_dirs? table Suppress auto session for directories
+---@field auto_session_allowed_dirs? table Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
 ---@field auto_session_use_git_branch boolean|nil Include git branch name in session name to differentiate between sessions for different git branches
 
 ---Default config for auto session
