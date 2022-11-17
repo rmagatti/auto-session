@@ -1,10 +1,32 @@
 defaultConf                                                        *defaultConf*
+    table default config for auto session
+
+    Fields: ~
+        {log_level}                         (string)       debug, info, error
+        {auto_session_enable_last_session}  (boolean)
+        {auto_session_root_dir}             (string)       root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
+        {auto_session_enabled}              (boolean)      enable auto session
+        {auto_session_create_enabled}       (boolean|nil)  Enables/disables auto creating new sessions
+        {auto_save_enabled}                 (boolean|nil)  Enables/disables auto saving session
+        {auto_restore_enabled}              (boolean|nil)  Enables/disables auto restoring session
+        {auto_session_allowed_dirs}         (table|nil)    Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
+                                                           @fied auto_session_suppress_dirs table|nil Suppress auto session for directories
+        {auto_session_use_git_branch}       (boolean|nil)  Include git branch name in session name to differentiate between sessions for different git branches
 
 
 luaOnlyConf                                                        *luaOnlyConf*
+    Lua Only Configs for Auto Session
+
+    Fields: ~
+        {bypass_session_save_file_types}  (string)
 
 
 CwdChangeHandling                                            *CwdChangeHandling*
+    CWD Change Handling Config
+
+    Fields: ~
+        {restore_upcoming_session}  (boolean)  {true} restore session for upcoming cwd on cwd change
+        {pre_cwd_changed_hook}      (boolean)
 
 
 AutoSession.setup({config})                                  *AutoSession.setup*
