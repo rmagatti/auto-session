@@ -61,7 +61,7 @@ local defaultConf = {
 ---Lua Only Configs for Auto Session
 ---@class luaOnlyConf
 ---@field cwd_change_handling CwdChangeHandling
----@field bypass_session_save_file_types string? Bypass auto save when only buffer open is one of these file types
+---@field bypass_session_save_file_types? string Bypass auto save when only buffer open is one of these file types
 local luaOnlyConf = {
   bypass_session_save_file_types = nil, -- Bypass auto save when only buffer open is one of these file types
 
@@ -306,7 +306,7 @@ end
 
 ---AutoSaveSession
 ---Function called by auto_session to trigger auto_saving sessions, for example on VimExit events.
----@param sessions_dir string? the session directory to auto_save a session for. If empty this function will end up using the cwd to infer what session to save for.
+---@param sessions_dir? string the session directory to auto_save a session for. If empty this function will end up using the cwd to infer what session to save for.
 function AutoSession.AutoSaveSession(sessions_dir)
   if auto_save_conditions_met() then
     if not is_auto_create_enabled() then
@@ -428,7 +428,7 @@ end
 vim.api.nvim_create_user_command("Autosession", handle_autosession_command, { nargs = 1 })
 
 --Saves the session, overriding if previously existing.
----@param sessions_dir string?
+---@param sessions_dir? string
 ---@param auto boolean
 function AutoSession.SaveSession(sessions_dir, auto)
   Lib.logger.debug "==== SaveSession"
