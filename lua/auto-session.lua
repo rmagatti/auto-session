@@ -30,7 +30,8 @@ local AutoSession = {
   conf = {},
 }
 
----@class defaultConf table default config for auto session
+---table default config for auto session
+---@class defaultConf
 ---@field log_level string debug, info, error
 ---@field auto_session_enable_last_session boolean
 ---@field auto_session_root_dir string root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
@@ -57,13 +58,15 @@ local defaultConf = {
   auto_session_use_git_branch = vim.g.auto_session_use_git_branch or false,
 }
 
----@class luaOnlyConf Lua Only Configs for Auto Session
+---Lua Only Configs for Auto Session
+---@class luaOnlyConf
 ---@field bypass_session_save_file_types string? Bypass auto save when only buffer open is one of these file types
 ---@field cwd_change_handling CwdChangeHandling
 local luaOnlyConf = {
   bypass_session_save_file_types = nil, -- Bypass auto save when only buffer open is one of these file types
 
-  ---@class CwdChangeHandling CWD Change Handling Config
+  ---CWD Change Handling Config
+  ---@class CwdChangeHandling
   ---@field restore_upcoming_session boolean {true} restore session for upcoming cwd on cwd change
   ---@field pre_cwd_changed_hook boolean? {true} This is called after auto_session code runs for the `DirChangedPre` autocmd
   ---@field post_cwd_changed_hook boolean? {true} This is called after auto_session code runs for the `DirChanged` autocmd
