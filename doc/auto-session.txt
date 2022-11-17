@@ -18,6 +18,7 @@ luaOnlyConf                                                        *luaOnlyConf*
     Lua Only Configs for Auto Session
 
     Fields: ~
+        {cwd_change_handling}             (CwdChangeHandling)
         {bypass_session_save_file_types}  (string)
 
 
