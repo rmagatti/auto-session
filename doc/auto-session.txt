@@ -18,8 +18,8 @@ luaOnlyConf                                                        *luaOnlyConf*
     Lua Only Configs for Auto Session
 
     Fields: ~
-        {cwd_change_handling}             (CwdChangeHandling)
-        {bypass_session_save_file_types}  (string)
+        {cwd_change_handling}              (CwdChangeHandling)
+        {bypass_session_save_file_types?}  (string)             Bypass auto save when only buffer open is one of these file types
 
 
 CwdChangeHandling                                            *CwdChangeHandling*
@@ -44,7 +44,12 @@ AutoSession.get_latest_session()                *AutoSession.get_latest_session*
         {string|nil}
 
 
-AutoSession.AutoSaveSession()                      *AutoSession.AutoSaveSession*
+AutoSession.AutoSaveSession({sessions_dir?})
+    AutoSaveSession
+    Function called by auto_session to trigger auto_saving sessions, for example on VimExit events.
+
+    Parameters: ~
+        {sessions_dir?}  (string)  the session directory to auto_save a session for. If empty this function will end up using the cwd to infer what session to save for.
 
 
 AutoSession.get_root_dir()                            *AutoSession.get_root_dir*
@@ -89,10 +94,11 @@ AutoSession.get_session_files()                  *AutoSession.get_session_files*
         {PickerItem[]}
 
 
-AutoSession.SaveSession({auto})                        *AutoSession.SaveSession*
+AutoSession.SaveSession({sessions_dir?}, {auto})
 
     Parameters: ~
-        {auto}  (boolean)
+        {sessions_dir?}  (string)
+        {auto}           (boolean)
 
 
 AutoSession.AutoRestoreSession({sessions_dir})
