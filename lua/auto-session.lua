@@ -30,16 +30,17 @@ local AutoSession = {
   conf = {},
 }
 
----@class defaultConf table default config for auto session
+---table default config for auto session
+---@class defaultConf
 ---@field log_level string debug, info, error
 ---@field auto_session_enable_last_session boolean
 ---@field auto_session_root_dir string root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
 ---@field auto_session_enabled boolean enable auto session
 ---@field auto_session_create_enabled boolean|nil Enables/disables auto creating new sessions
----@field auto_save_enabled boolean|nil Enables/disables auto saving session
----@field auto_restore_enabled boolean|nil Enables/disables auto restoring session
----@fied auto_session_suppress_dirs table|nil Suppress auto session for directories
----@field auto_session_allowed_dirs table|nil Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
+---@field auto_save_enabled? boolean Enables/disables auto saving session
+---@field auto_restore_enabled? boolean Enables/disables auto restoring session
+---@field auto_session_suppress_dirs? table Suppress auto session for directories
+---@field auto_session_allowed_dirs? table Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
 ---@field auto_session_use_git_branch boolean|nil Include git branch name in session name to differentiate between sessions for different git branches
 
 ---Default config for auto session
@@ -57,16 +58,18 @@ local defaultConf = {
   auto_session_use_git_branch = vim.g.auto_session_use_git_branch or false,
 }
 
----@class luaOnlyConf Lua Only Configs for Auto Session
----@field bypass_session_save_file_types string? Bypass auto save when only buffer open is one of these file types
+---Lua Only Configs for Auto Session
+---@class luaOnlyConf
 ---@field cwd_change_handling CwdChangeHandling
+---@field bypass_session_save_file_types? string Bypass auto save when only buffer open is one of these file types
 local luaOnlyConf = {
   bypass_session_save_file_types = nil, -- Bypass auto save when only buffer open is one of these file types
 
-  ---@class CwdChangeHandling CWD Change Handling Config
+  ---CWD Change Handling Config
+  ---@class CwdChangeHandling
   ---@field restore_upcoming_session boolean {true} restore session for upcoming cwd on cwd change
-  ---@field pre_cwd_changed_hook boolean? {true} This is called after auto_session code runs for the `DirChangedPre` autocmd
-  ---@field post_cwd_changed_hook boolean? {true} This is called after auto_session code runs for the `DirChanged` autocmd
+  ---@field pre_cwd_changed_hook boolean? {true} This is called after auto_session code runs for the DirChangedPre autocmd
+  ---@field post_cwd_changed_hook boolean? {true} This is called after auto_session code runs for the DirChanged autocmd
 
   ---@type CwdChangeHandling this config can also be set to `false` to disable cwd change handling altogether.
   --- Can also be set to a table with any of the following keys:
@@ -303,7 +306,7 @@ end
 
 ---AutoSaveSession
 ---Function called by auto_session to trigger auto_saving sessions, for example on VimExit events.
----@param sessions_dir string? the session directory to auto_save a session for. If empty this function will end up using the cwd to infer what session to save for.
+---@param sessions_dir? string the session directory to auto_save a session for. If empty this function will end up using the cwd to infer what session to save for.
 function AutoSession.AutoSaveSession(sessions_dir)
   if auto_save_conditions_met() then
     if not is_auto_create_enabled() then
@@ -425,7 +428,7 @@ end
 vim.api.nvim_create_user_command("Autosession", handle_autosession_command, { nargs = 1 })
 
 --Saves the session, overriding if previously existing.
----@param sessions_dir string?
+---@param sessions_dir? string
 ---@param auto boolean
 function AutoSession.SaveSession(sessions_dir, auto)
   Lib.logger.debug "==== SaveSession"
