@@ -281,7 +281,7 @@ See installation and usage instructions in the plugin's page.
 
 # Compatibility
 
-Neovim > 0.5
+Neovim > 0.7
 
 Tested with:
 
