@@ -28,6 +28,7 @@ end
 
 ----------- Setup ----------
 local AutoSession = {
+  ---@type luaOnlyConf
   conf = {},
 }
 
@@ -47,7 +48,7 @@ local AutoSession = {
 ---Default config for auto session
 ---@type defaultConf
 local defaultConf = {
-  log_level = vim.g.auto_session_log_level or AutoSession.conf.logLevel or AutoSession.conf.log_level or "info", -- Sets the log level of the plugin (debug, info, error). camelCase logLevel for compatibility.
+  log_level = vim.g.auto_session_log_level or AutoSession.conf.log_level or AutoSession.conf.log_level or "info", -- Sets the log level of the plugin (debug, info, error). camelCase logLevel for compatibility.
   auto_session_enable_last_session = vim.g.auto_session_enable_last_session or false, -- Enables/disables the "last session" feature
   auto_session_root_dir = vim.fn.stdpath "data" .. "/sessions/", -- Root dir where sessions will be stored
   auto_session_enabled = true, -- Enables/disables auto creating, saving and restoring
@@ -81,6 +82,13 @@ local luaOnlyConf = {
   --- }
   ---@diagnostic disable-next-line: assign-type-mismatch
   cwd_change_handling = false,
+
+  ---Session Control Config
+  ---@class session_control 
+  ---@field control_dir string
+  ---@field control_filename string
+
+  ---@type session_control
   session_control = {
     control_dir = vim.fn.stdpath "data" .. "/auto_session/", -- Auto session control dir, for control files, like alternating between two sessions with session-lens
     control_filename = "session_control.txt", -- File name of the session control file
