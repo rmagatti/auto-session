@@ -302,7 +302,5 @@ Neovim > 0.5
 Tested with:
 
 ```
-NVIM v0.5.0-dev+a1ec36f
-Build type: Release
-LuaJIT 2.1.0-beta3
+NVIM v0.7.0
 ```

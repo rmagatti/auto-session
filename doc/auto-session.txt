@@ -1,10 +1,33 @@
 defaultConf                                                        *defaultConf*
+    table default config for auto session
+
+    Fields: ~
+        {log_level}                         (string)       debug, info, error
+        {auto_session_enable_last_session}  (boolean)
+        {auto_session_root_dir}             (string)       root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
+        {auto_session_enabled}              (boolean)      enable auto session
+        {auto_session_create_enabled}       (boolean|nil)  Enables/disables auto creating new sessions
+        {auto_save_enabled?}                (boolean)      Enables/disables auto saving session
+        {auto_restore_enabled?}             (boolean)      Enables/disables auto restoring session
+        {auto_session_suppress_dirs?}       (table)        Suppress auto session for directories
+        {auto_session_allowed_dirs?}        (table)        Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
+        {auto_session_use_git_branch}       (boolean|nil)  Include git branch name in session name to differentiate between sessions for different git branches
 
 
 luaOnlyConf                                                        *luaOnlyConf*
+    Lua Only Configs for Auto Session
+
+    Fields: ~
+        {cwd_change_handling}              (CwdChangeHandling)
+        {bypass_session_save_file_types?}  (string)             Bypass auto save when only buffer open is one of these file types
 
 
 CwdChangeHandling                                            *CwdChangeHandling*
+    CWD Change Handling Config
+
+    Fields: ~
+        {restore_upcoming_session}  (boolean)  {true} restore session for upcoming cwd on cwd change
+        {pre_cwd_changed_hook}      (boolean)
 
 
 AutoSession.setup({config})                                  *AutoSession.setup*
@@ -21,7 +44,12 @@ AutoSession.get_latest_session()                *AutoSession.get_latest_session*
         {string|nil}
 
 
-AutoSession.AutoSaveSession()                      *AutoSession.AutoSaveSession*
+AutoSession.AutoSaveSession({sessions_dir?})
+    AutoSaveSession
+    Function called by auto_session to trigger auto_saving sessions, for example on VimExit events.
+
+    Parameters: ~
+        {sessions_dir?}  (string)  the session directory to auto_save a session for. If empty this function will end up using the cwd to infer what session to save for.
 
 
 AutoSession.get_root_dir()                            *AutoSession.get_root_dir*
@@ -66,10 +94,11 @@ AutoSession.get_session_files()                  *AutoSession.get_session_files*
         {PickerItem[]}
 
 
-AutoSession.SaveSession({auto})                        *AutoSession.SaveSession*
+AutoSession.SaveSession({sessions_dir?}, {auto})
 
     Parameters: ~
-        {auto}  (boolean)
+        {sessions_dir?}  (string)
+        {auto}           (boolean)
 
 
 AutoSession.AutoRestoreSession({sessions_dir})
