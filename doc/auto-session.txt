@@ -30,6 +30,14 @@ CwdChangeHandling                                            *CwdChangeHandling*
         {pre_cwd_changed_hook}      (boolean)
 
 
+session_control                                                *session_control*
+    Session Control Config
+
+    Fields: ~
+        {control_dir}       (string)
+        {control_filename}  (string)
+
+
 AutoSession.setup({config})                                  *AutoSession.setup*
     Setup function for AutoSession
 
