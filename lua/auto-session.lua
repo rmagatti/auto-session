@@ -84,7 +84,7 @@ local luaOnlyConf = {
   cwd_change_handling = false,
 
   ---Session Control Config
-  ---@class session_control 
+  ---@class session_control
   ---@field control_dir string
   ---@field control_filename string
 
@@ -454,7 +454,7 @@ local function write_to_session_control(session_file_name)
     local content = vim.fn.readfile(session_control_file)
     local sessions = { new = session_file_name, alternate = Lib.expand(content[#content - 1]) }
 
-    print(vim.inspect { sessions = sessions, content = content })
+    Lib.logger.debug { sessions = sessions, content = content }
 
     if sessions.new == sessions.alternate then
       -- Do not write to file when the new session would be the same as the one already in the file
@@ -631,13 +631,10 @@ local maybe_disable_autosave = function(session_name)
   local current_session = Lib.escaped_session_name_from_cwd()
 
   if session_name == current_session then
-    Lib.logger.debug(
-      "Auto Save disabled for current session.",
-      vim.inspect {
-        session_name = session_name,
-        current_session = current_session,
-      }
-    )
+    Lib.logger.debug("Auto Save disabled for current session.", {
+      session_name = session_name,
+      current_session = current_session,
+    })
     AutoSession.conf.auto_save_enabled = false
   else
     Lib.logger.debug(

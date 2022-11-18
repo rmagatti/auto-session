@@ -59,7 +59,7 @@ local function get_second_to_latest_session()
 
     local sessions = { this = Lib.expand(vim.v.this_session), alternate = Lib.expand(content[#content]) }
 
-    Lib.logger.debug(vim.inspect({ sessions = sessions, content = content }))
+    Lib.logger.debug { sessions = sessions, content = content }
 
     if sessions.this ~= sessions.alternate then
       return sessions.alternate
@@ -117,7 +117,7 @@ SessionLensActions.alternate_session = function(prompt_bufnr)
   local second_latest = get_second_to_latest_session()
 
   if not second_latest then
-    print "There is no alternate session to navigate to, aborting operation"
+    Lib.logger.info "There is no alternate session to navigate to, aborting operation"
 
     if prompt_bufnr then
       actions.close(prompt_bufnr)

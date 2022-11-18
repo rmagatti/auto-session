@@ -178,9 +178,23 @@ function Lib.has_open_buffers()
   return result
 end
 
+local function to_print(...)
+  if #{ ... } == 1 and type(...) == "table" then
+    return vim.inspect(...)
+  else
+    local to_return = ""
+
+    for _, value in ipairs { ... } do
+      to_return = vim.fn.join({ to_return, vim.inspect(value) }, " ")
+    end
+
+    return to_return
+  end
+end
+
 function Lib.logger.debug(...)
   if Lib.conf.log_level == "debug" then
-    vim.notify(vim.fn.join({ "auto-session-debug:", ... }, " "), vim.log.levels.DEBUG)
+    vim.notify(vim.fn.join({ "auto-session-debug:", to_print(...) }, " "), vim.log.levels.DEBUG)
   end
 end
 
@@ -188,7 +202,7 @@ function Lib.logger.info(...)
   local valid_values = { "info", "debug" }
 
   if vim.tbl_contains(valid_values, Lib.conf.log_level) then
-    vim.notify(vim.fn.join({ "auto-session-info:", ... }, " "), vim.log.levels.INFO)
+    vim.notify(vim.fn.join({ "auto-session-info:", to_print(...) }, " "), vim.log.levels.INFO)
   end
 end
 
@@ -196,12 +210,12 @@ function Lib.logger.warn(...)
   local valid_values = { "info", "debug", "warn" }
 
   if vim.tbl_contains(valid_values, Lib.conf.log_level) then
-    vim.notify(vim.fn.join({ "auto-session-warn:", ... }, " "), vim.log.levels.WARN)
+    vim.notify(vim.fn.join({ "auto-session-warn:", to_print(...) }, " "), vim.log.levels.WARN)
   end
 end
 
 function Lib.logger.error(...)
-  vim.notify(vim.fn.join({ "auto-session-error:", ... }, " "), vim.log.levels.ERROR)
+  vim.notify(vim.fn.join({ "auto-session-error:", to_print(...) }, " "), vim.log.levels.ERROR)
 end
 
 return Lib
