@@ -178,6 +178,7 @@ function Lib.has_open_buffers()
   return result
 end
 
+---Function that handles vararg printing, so logs are consistent.
 local function to_print(...)
   if #{ ... } == 1 and type(...) == "table" then
     return vim.inspect(...)

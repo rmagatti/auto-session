@@ -637,13 +637,10 @@ local maybe_disable_autosave = function(session_name)
     })
     AutoSession.conf.auto_save_enabled = false
   else
-    Lib.logger.debug(
-      "Auto Save is still enabled for current session.",
-      vim.inspect {
-        session_name = session_name,
-        current_session = current_session,
-      }
-    )
+    Lib.logger.debug("Auto Save is still enabled for current session.", {
+      session_name = session_name,
+      current_session = current_session,
+    })
   end
 end
 
