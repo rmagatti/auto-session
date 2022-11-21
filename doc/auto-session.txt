@@ -49,9 +49,10 @@ AutoSession.get_latest_session()                *AutoSession.get_latest_session*
     Get latest session for the "last session" feature
 
     Returns: ~
-        {string|nil}
+        (string|nil)
 
 
+                                                   *AutoSession.AutoSaveSession*
 AutoSession.AutoSaveSession({sessions_dir?})
     AutoSaveSession
     Function called by auto_session to trigger auto_saving sessions, for example on VimExit events.
@@ -65,7 +66,7 @@ AutoSession.get_root_dir()                            *AutoSession.get_root_dir*
     By default this resolves to `vim.fn.stdpath "data" .. "/sessions/"`
 
     Returns: ~
-        {string}
+        (string)
 
 
 AutoSession.get_cmds({typ})                               *AutoSession.get_cmds*
@@ -76,7 +77,7 @@ AutoSession.get_cmds({typ})                               *AutoSession.get_cmds*
         {typ}  (string)
 
     Returns: ~
-        {function[]|string[]}
+        (function[]|string[])
 
 
 PickerItem                                                          *PickerItem*
@@ -93,15 +94,16 @@ AutoSession.format_file_name({path})              *AutoSession.format_file_name*
         {path}  (string)
 
     Returns: ~
-        {string}
+        (string)
 
 
 AutoSession.get_session_files()                  *AutoSession.get_session_files*
 
     Returns: ~
-        {PickerItem[]}
+        (PickerItem[])
 
 
+                                                       *AutoSession.SaveSession*
 AutoSession.SaveSession({sessions_dir?}, {auto})
 
     Parameters: ~
@@ -109,6 +111,7 @@ AutoSession.SaveSession({sessions_dir?}, {auto})
         {auto}           (boolean)
 
 
+                                                *AutoSession.AutoRestoreSession*
 AutoSession.AutoRestoreSession({sessions_dir})
     Function called by AutoSession when automatically restoring a session.
     This function avoids calling RestoreSession automatically when argv is not nil.
@@ -117,9 +120,10 @@ AutoSession.AutoRestoreSession({sessions_dir})
         {sessions_dir}  (any)
 
     Returns: ~
-        {boolean}  returns whether restoring the session was successful or not.
+        (boolean)  returns whether restoring the session was successful or not.
 
 
+                                            *AutoSession.RestoreSessionFromFile*
 AutoSession.RestoreSessionFromFile({session_file})
     RestoreSessionFromFile takes a session_file and calls RestoreSession after parsing the provided parameter.
 
@@ -127,6 +131,7 @@ AutoSession.RestoreSessionFromFile({session_file})
         {session_file}  (string)
 
 
+                                                    *AutoSession.RestoreSession*
 AutoSession.RestoreSession({sessions_dir_or_file})
     Restores the session by sourcing the session file if it exists/is readable.
     This function is intended to be called by the user but it is also called by `AutoRestoreSession`
@@ -135,7 +140,7 @@ AutoSession.RestoreSession({sessions_dir_or_file})
         {sessions_dir_or_file}  (string)  a dir string or a file string
 
     Returns: ~
-        {boolean}  returns whether restoring the session was successful or not.
+        (boolean)  returns whether restoring the session was successful or not.
 
 
 AutoSession.DisableAutoSave()                      *AutoSession.DisableAutoSave*
@@ -147,19 +152,24 @@ AutoSession.CompleteSessions()                    *AutoSession.CompleteSessions*
     CompleteSessions is used by the vimscript command for session name/path completion.
 
     Returns: ~
-        {string}
+        (string)
 
 
-AutoSession.DeleteSessionByName()              *AutoSession.DeleteSessionByName*
+AutoSession.DeleteSessionByName({...})         *AutoSession.DeleteSessionByName*
     DeleteSessionByName deletes sessions given a provided list of paths
-    @param ... string[]
+
+    Parameters: ~
+        {...}  (string[])
 
 
-AutoSession.DeleteSession()                          *AutoSession.DeleteSession*
+AutoSession.DeleteSession({...})                     *AutoSession.DeleteSession*
     DeleteSession delets a single session given a provided path
-    @param ... string[]
+
+    Parameters: ~
+        {...}  (string[])
 
 
+                                                              *M.setup_autocmds*
 M.setup_autocmds({config}, {AutoSession})
     Setup autocmds for DirChangedPre and DirChanged
 
@@ -182,6 +192,7 @@ SessionLens.setup({config})                                  *SessionLens.setup*
         {config}  (DefaultConf)  the optional config for the setup function
 
 
+                                                    *SessionLens.search_session*
 SessionLens.search_session({custom_opts})
     Search session
     Triggers the customized telescope picker for switching sessions
@@ -190,6 +201,7 @@ SessionLens.search_session({custom_opts})
         {custom_opts}  (any)
 
 
+                                             *SessionLensActions.source_session*
 SessionLensActions.source_session({prompt_bufnr})
     Source session action
     Source a selected session after doing proper current session saving and cleanup
@@ -198,6 +210,7 @@ SessionLensActions.source_session({prompt_bufnr})
         {prompt_bufnr}  (number)  the telescope prompt bufnr
 
 
+                                             *SessionLensActions.delete_session*
 SessionLensActions.delete_session({prompt_bufnr})
     Delete session action
     Delete a selected session file
