@@ -1,9 +1,4 @@
-local Logger = require "auto-session.logger"
 local Path = require "plenary.path"
-
-local logger = Logger:new {
-  log_level = vim.log.levels.DEBUG,
-}
 
 local IS_WIN32 = vim.fn.has "win32" == 1
 
@@ -35,7 +30,6 @@ end
 
 function Path:escape()
   if self.escaped then
-    logger.debug "Path is already escaped"
     return self.filename
   end
 
@@ -49,7 +43,6 @@ end
 
 function Path:unescape()
   if not self.escaped then
-    logger.debug "Path is already unescaped"
     return self.filename
   end
 
