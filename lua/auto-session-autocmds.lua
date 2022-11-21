@@ -16,10 +16,12 @@ M.setup_autocmds = function(config, AutoSession)
   vim.api.nvim_create_autocmd("DirChangedPre", {
     callback = function()
       Lib.logger.debug "DirChangedPre"
-      Lib.logger.debug("  cwd: " .. vim.fn.getcwd())
-      Lib.logger.debug("  target: " .. vim.v.event.directory)
-      Lib.logger.debug("  changed window: " .. tostring(vim.v.event.changed_window))
-      Lib.logger.debug("  scope: " .. vim.v.event.scope)
+      Lib.logger.debug {
+        cwd = vim.fn.getcwd(),
+        target = vim.v.event.directory,
+        ["changed window"] = tostring(vim.v.event.changed_window),
+        scope = vim.v.event.scope,
+      }
 
       -- Don't want to save session if dir change was triggered
       -- by a window change. This will corrupt the session data,
@@ -42,37 +44,37 @@ M.setup_autocmds = function(config, AutoSession)
   })
 
   if conf.restore_upcoming_session then
-      vim.api.nvim_create_autocmd("DirChanged", {
-        callback = function()
-          Lib.logger.debug "DirChanged"
-          Lib.logger.debug("  cwd: " .. vim.fn.getcwd() )
-          Lib.logger.debug("  changed window: " .. tostring(vim.v.event.changed_window))
-          Lib.logger.debug("  scope: " .. vim.v.event.scope)
+    vim.api.nvim_create_autocmd("DirChanged", {
+      callback = function()
+        Lib.logger.debug "DirChanged"
+        Lib.logger.debug("  cwd: " .. vim.fn.getcwd())
+        Lib.logger.debug("  changed window: " .. tostring(vim.v.event.changed_window))
+        Lib.logger.debug("  scope: " .. vim.v.event.scope)
 
-          -- see above
-          if vim.v.event.changed_window then
-            return
-          end
+        -- see above
+        if vim.v.event.changed_window then
+          return
+        end
 
-          -- all buffers should've been deleted in `DirChangedPre`, something probably went wrong
-          if Lib.has_open_buffers() then
-            Lib.logger.debug("Cancelling session restore")
-            return
-          end
+        -- all buffers should've been deleted in `DirChangedPre`, something probably went wrong
+        if Lib.has_open_buffers() then
+          Lib.logger.debug "Cancelling session restore"
+          return
+        end
 
-          local success = AutoSession.AutoRestoreSession()
+        local success = AutoSession.AutoRestoreSession()
 
-          if not success then
-            Lib.logger.info("Could not load session. A session file is likely missing for this cwd." .. vim.fn.getcwd())
-            return
-          end
+        if not success then
+          Lib.logger.info("Could not load session. A session file is likely missing for this cwd." .. vim.fn.getcwd())
+          return
+        end
 
-          if type(conf.post_cwd_changed_hook) == "function" then
-            conf.post_cwd_changed_hook()
-          end
-        end,
-        pattern = "global",
-      })
+        if type(conf.post_cwd_changed_hook) == "function" then
+          conf.post_cwd_changed_hook()
+        end
+      end,
+      pattern = "global",
+    })
   end
 end
 

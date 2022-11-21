@@ -1,3 +1,5 @@
+local Logger = require "auto-session.logger"
+
 local Config = {}
 local Lib = {
   logger = {},
@@ -13,6 +15,9 @@ local Lib = {
 
 function Lib.setup(config)
   Lib.conf = vim.tbl_deep_extend("force", Lib.conf, config or {})
+  Lib.logger = Logger:new {
+    log_level = Lib.conf.log_level,
+  }
 end
 
 function Lib.get_file_name(url)
@@ -176,47 +181,6 @@ function Lib.has_open_buffers()
     end
   end
   return result
-end
-
----Function that handles vararg printing, so logs are consistent.
-local function to_print(...)
-  if #{ ... } == 1 and type(...) == "table" then
-    return vim.inspect(...)
-  else
-    local to_return = ""
-
-    for _, value in ipairs { ... } do
-      to_return = vim.fn.join({ to_return, vim.inspect(value) }, " ")
-    end
-
-    return to_return
-  end
-end
-
-function Lib.logger.debug(...)
-  if Lib.conf.log_level == "debug" then
-    vim.notify(vim.fn.join({ "auto-session-debug:", to_print(...) }, " "), vim.log.levels.DEBUG)
-  end
-end
-
-function Lib.logger.info(...)
-  local valid_values = { "info", "debug" }
-
-  if vim.tbl_contains(valid_values, Lib.conf.log_level) then
-    vim.notify(vim.fn.join({ "auto-session-info:", to_print(...) }, " "), vim.log.levels.INFO)
-  end
-end
-
-function Lib.logger.warn(...)
-  local valid_values = { "info", "debug", "warn" }
-
-  if vim.tbl_contains(valid_values, Lib.conf.log_level) then
-    vim.notify(vim.fn.join({ "auto-session-warn:", to_print(...) }, " "), vim.log.levels.WARN)
-  end
-end
-
-function Lib.logger.error(...)
-  vim.notify(vim.fn.join({ "auto-session-error:", to_print(...) }, " "), vim.log.levels.ERROR)
 end
 
 return Lib

@@ -1,6 +1,12 @@
 local Lib = require "auto-session-library"
 local autocmds = require "auto-session-autocmds"
 
+----------- Setup ----------
+local AutoSession = {
+  ---@type luaOnlyConf
+  conf = {},
+}
+
 -- Run comand hooks
 local function run_hook_cmds(cmds, hook_name)
   local results = {}
@@ -26,16 +32,11 @@ local function run_hook_cmds(cmds, hook_name)
   return results
 end
 
------------ Setup ----------
-local AutoSession = {
-  ---@type luaOnlyConf
-  conf = {},
-}
-
 ---table default config for auto session
 ---@class defaultConf
 ---@field log_level string debug, info, error
 ---@field auto_session_enable_last_session boolean
+---@field auto_session_last_session_dir string
 ---@field auto_session_root_dir string root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
 ---@field auto_session_enabled boolean enable auto session
 ---@field auto_session_create_enabled boolean|nil Enables/disables auto creating new sessions
@@ -91,7 +92,7 @@ local luaOnlyConf = {
   ---@type session_control
   session_control = {
     control_dir = vim.fn.stdpath "data" .. "/auto_session/", -- Auto session control dir, for control files, like alternating between two sessions with session-lens
-    control_filename = "session_control.txt", -- File name of the session control file
+    control_filename = "session_control.json", -- File name of the session control file
   },
 }
 
@@ -109,6 +110,7 @@ function AutoSession.setup(config)
   AutoSession.conf = vim.tbl_deep_extend("force", AutoSession.conf, config or {})
   Lib.ROOT_DIR = AutoSession.conf.auto_session_root_dir
   Lib.setup(AutoSession.conf)
+  -- logger = require("auto-session.logger"):new { log_level = AutoSession.conf.log_level }
 
   autocmds.setup_autocmds(AutoSession.conf, AutoSession)
 end
@@ -273,18 +275,43 @@ local function get_session_file_name(sessions_dir)
     sessions_dir = Lib.append_slash(sessions_dir)
   end
 
+  Lib.logger.debug("get_session_file_name", { session = session, sessions_dir = sessions_dir })
+
   if not vim.fn.isdirectory(Lib.expand(session or sessions_dir)) then
-    -- When we get here session and sessions_dir either both point to a file or do not exist
+    Lib.logger.debug(
+      "Session and sessions_dir either both point to a file or do not exist",
+      { session = session, session_dir = sessions_dir }
+    )
     return session
   else
     local session_name = AutoSession.conf.auto_session_enable_last_session and Lib.conf.last_loaded_session
+
     if not session_name then
       session_name = Lib.escaped_session_name_from_cwd()
       local branch_name = get_branch_name()
       branch_name = Lib.escape_branch_name(branch_name ~= "" and "_" .. branch_name or "")
-      session_name = string.format("%s%s", session_name, branch_name)
+
+      Lib.logger.debug("not session_name", { sessions_dir = sessions_dir, session_name = session_name })
+
+      -- Was getting %U issue on path without this, directory was unescaped
+      -- session_name = string.gsub(session_name, "%.", "%%%.")
+
+      -- session_name = string.format("%s%s", session_name, branch_name)
+
+      -- Lib.logger.debug("session name post-format", { session_name = session_name })
     end
-    return string.format(sessions_dir .. "%s.vim", session_name)
+
+    -- -- Was getting %U issue on path without this, directory was unescaped
+    -- session_name = string.gsub(session_name, "%%", "\\%%")
+
+    local final_path = sessions_dir .. session_name .. ".vim"
+    Lib.logger.debug(
+      "get_session_file_name",
+      { sessions_dir = sessions_dir, session_name = session_name, final_path = final_path }
+    )
+
+    return final_path
+    -- return string.format(sessions_dir .. "%s.vim", session_name)
   end
 end
 
@@ -366,7 +393,7 @@ local function message_after_saving(path, auto)
   end
 end
 
---Save extra info to "{session_file}x.vim"
+---Save extra info to "{session_file}x.vim"
 local function save_extra_cmds(session_file_name)
   local extra_cmds = AutoSession.get_cmds "save_extra"
 
@@ -441,7 +468,48 @@ end
 
 vim.api.nvim_create_user_command("Autosession", handle_autosession_command, { nargs = 1 })
 
-local function write_to_session_control(session_file_name)
+-- local function write_to_session_control(session_file_name)
+--   local control_dir = AutoSession.conf.session_control.control_dir
+--   local control_file = AutoSession.conf.session_control.control_filename
+--   session_file_name = Lib.expand(session_file_name)
+
+--   Lib.init_dir(control_dir)
+
+--   local session_control_file = control_dir .. control_file
+
+--   if vim.fn.filereadable(session_control_file) == 1 then
+--     local content = vim.fn.readfile(session_control_file)
+--     local sessions = { current = session_file_name, alternate = Lib.expand(content[#content - 1]) }
+
+--     Lib.logger.debug { sessions = sessions, content = content }
+
+--     if sessions.current == sessions.alternate then
+--       -- Do not write to file when the new session would be the same as the one already in the file
+--       Lib.logger.debug "Not writing to session control file, alternate would be the same as current"
+--       return
+--     end
+
+--     if #content >= 2 then
+--       -- File is too big, keep only latest and second latest
+--       Lib.logger.debug "Session control file is at or over the limit of 2, rewriting to keep size down"
+--       vim.fn.writefile({ content[#content - 1] }, session_control_file)
+--     end
+--   end
+
+--   -- Write latest restored session
+--   vim.fn.writefile({ session_file_name }, session_control_file, "a")
+
+--   local log_ending_state = function()
+--     local content = vim.fn.readfile(session_control_file)
+--     local sessions = { current = session_file_name, alternate = Lib.expand(content[#content - 1]) }
+
+--     Lib.logger.debug("alternate state right before function end", { sessions = sessions, content = content })
+--   end
+
+--   log_ending_state()
+-- end
+
+local function write_to_session_control_json(session_file_name)
   local control_dir = AutoSession.conf.session_control.control_dir
   local control_file = AutoSession.conf.session_control.control_filename
   session_file_name = Lib.expand(session_file_name)
@@ -450,27 +518,44 @@ local function write_to_session_control(session_file_name)
 
   local session_control_file = control_dir .. control_file
 
+  local log_ending_state = function()
+    local content = vim.fn.readfile(session_control_file)
+    local session_control = vim.json.decode(content[1] or "{}")
+    local sessions = { current = session_control.current, alternate = session_control.alternate }
+
+    Lib.logger.debug("session control file contents", { sessions = sessions, content = content })
+  end
+
   if vim.fn.filereadable(session_control_file) == 1 then
     local content = vim.fn.readfile(session_control_file)
-    local sessions = { new = session_file_name, alternate = Lib.expand(content[#content - 1]) }
+    Lib.logger.debug { content = content }
+    local json = vim.json.decode(content[1] or "{}")
+
+    local sessions = {
+      current = session_file_name,
+      alternate = json.current,
+    }
 
     Lib.logger.debug { sessions = sessions, content = content }
 
-    if sessions.new == sessions.alternate then
+    if sessions.current == sessions.alternate then
       -- Do not write to file when the new session would be the same as the one already in the file
       Lib.logger.debug "Not writing to session control file, alternate would be the same as current"
       return
     end
 
-    if #content >= 2 then
-      -- File is too big, keep only latest and second latest
-      Lib.logger.debug " Session control file is at or over the limit of 2, re-writing to keep size down"
-      vim.fn.writefile({ content[#content] }, session_control_file)
-    end
+    local json_to_save = vim.json.encode(sessions)
+
+    vim.fn.writefile({ json_to_save }, session_control_file)
+    log_ending_state()
+    return
   end
 
   -- Write latest restored session
-  vim.fn.writefile({ session_file_name }, session_control_file, "a")
+  local json = vim.json.encode { current = session_file_name }
+  vim.fn.writefile({ json }, session_control_file)
+
+  log_ending_state()
 end
 
 --Saves the session, overriding if previously existing.
@@ -568,7 +653,7 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
     local post_cmds = AutoSession.get_cmds "post_restore"
     run_hook_cmds(post_cmds, "post-restore")
 
-    write_to_session_control(file_path)
+    write_to_session_control_json(file_path)
 
     return file_path
   end
@@ -583,12 +668,11 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
     if not session_name then
       session_file_path = get_session_file_name(sessions_dir)
       session_name = vim.fn.fnamemodify(session_file_path, ":t:r")
-
-      Lib.logger.debug("not session_name", { session_file_path = session_file_path, session_name = session_name })
     else
       session_file_path = string.format(sessions_dir .. "%s.vim", session_name)
     end
-    Lib.logger.debug { session_name = session_name }
+
+    Lib.logger.debug { session_name = session_name, session_file_path = session_file_path }
 
     local legacy_session_name = Lib.legacy_session_name_from_cwd()
     local legacy_file_path = string.format(sessions_dir .. "%s.vim", legacy_session_name)
@@ -621,6 +705,8 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
   else
     Lib.logger.error "Error while trying to parse session dir or file"
   end
+
+  Lib.logger.debug { RESTORED_WITH = RESTORED_WITH }
 
   -- AutoSession.SaveSession(RESTORED_WITH, true)
 

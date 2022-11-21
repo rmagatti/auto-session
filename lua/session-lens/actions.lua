@@ -51,19 +51,45 @@ local SessionLensActions = {}
 --   return latest_and_second_latest.second_latest
 -- end
 
-local function get_second_to_latest_session()
+-- local function get_second_to_latest_session()
+--   local filepath = AutoSession.conf.session_control.control_dir .. AutoSession.conf.session_control.control_filename
+
+--   if vim.fn.filereadable(filepath) == 1 then
+--     local content = vim.fn.readfile(filepath)
+
+--     local sessions = {
+--       this = Lib.expand(vim.v.this_session),
+--       alternate = Lib.expand(content[#content - 1]),
+--     }
+
+--     Lib.logger.debug("get_second_to_latest_session", { sessions = sessions, content = content })
+
+--     if sessions.this ~= sessions.alternate then
+--       return sessions.alternate
+--     end
+--   end
+-- end
+
+local function get_alternate_session()
   local filepath = AutoSession.conf.session_control.control_dir .. AutoSession.conf.session_control.control_filename
 
   if vim.fn.filereadable(filepath) == 1 then
-    local content = vim.fn.readfile(filepath)
+    local content = vim.fn.readfile(filepath)[1] or "{}"
 
-    local sessions = { this = Lib.expand(vim.v.this_session), alternate = Lib.expand(content[#content]) }
+    local json = vim.json.decode(content)
 
-    Lib.logger.debug { sessions = sessions, content = content }
+    local sessions = {
+      current = json.current,
+      alternate = json.alternate,
+    }
 
-    if sessions.this ~= sessions.alternate then
+    Lib.logger.debug("get_alternate_session", { sessions = sessions, content = content })
+
+    if sessions.current ~= sessions.alternate then
       return sessions.alternate
     end
+
+    Lib.logger.info "Current session is the same as alternate!"
   end
 end
 
@@ -92,9 +118,6 @@ local function source_session(selection, prompt_bufnr)
   end, 50)
 end
 
--- TODO: delete this call
--- get_second_to_latest_session()
-
 ---Source session action
 ---Source a selected session after doing proper current session saving and cleanup
 ---@param prompt_bufnr number the telescope prompt bufnr
@@ -114,9 +137,9 @@ SessionLensActions.delete_session = function(prompt_bufnr)
 end
 
 SessionLensActions.alternate_session = function(prompt_bufnr)
-  local second_latest = get_second_to_latest_session()
+  local alternate_session = get_alternate_session()
 
-  if not second_latest then
+  if not alternate_session then
     Lib.logger.info "There is no alternate session to navigate to, aborting operation"
 
     if prompt_bufnr then
@@ -126,7 +149,13 @@ SessionLensActions.alternate_session = function(prompt_bufnr)
     return
   end
 
-  source_session(second_latest, prompt_bufnr)
+  source_session(alternate_session, prompt_bufnr)
 end
+
+--TODO: figure out the whole file placeholder parsing, expanding, escaping issue!!
+---ex:
+---"/Users/ronnieandrewmagatti/.local/share/nvim/sessions//%Users%ronnieandrewmagatti%Projects%dotfiles.vim",
+---"/Users/ronnieandrewmagatti/.local/share/nvim/sessions/%Users%ronnieandrewmagatti%Projects%auto-session.vim"
+---"/Users/ronnieandrewmagatti/.local/share/nvim/sessions/\\%Users\\%ronnieandrewmagatti\\%Projects\\%auto-session.vim"
 
 return SessionLensActions
