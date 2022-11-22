@@ -1,4 +1,4 @@
-local Lib = require "auto-session-library"
+local Lib = require "auto-session.lib"
 
 local M = {}
 

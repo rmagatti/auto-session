@@ -1,5 +1,5 @@
-local Lib = require "auto-session-library"
-local autocmds = require "auto-session-autocmds"
+local Lib = require "auto-session.lib"
+local autocmds = require "auto-session.autocmds"
 
 ----------- Setup ----------
 local AutoSession = {
