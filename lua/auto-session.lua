@@ -496,7 +496,7 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
     local pre_cmds = AutoSession.get_cmds "pre_restore"
     run_hook_cmds(pre_cmds, "pre-restore")
 
-    local cmd = "source " .. file_path
+    local cmd = "silent source " .. file_path
     local success, result = pcall(vim.cmd, cmd)
 
     if not success then
