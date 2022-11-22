@@ -297,7 +297,7 @@ Sometime after `telescope.nvim` has been started, you'll want to call `require("
 
 # Compatibility
 
-Neovim > 0.5
+Neovim > 0.7
 
 Tested with:
 
