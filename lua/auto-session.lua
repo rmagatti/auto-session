@@ -64,7 +64,7 @@ local defaultConf = {
 ---Lua Only Configs for Auto Session
 ---@class luaOnlyConf
 ---@field cwd_change_handling CwdChangeHandling
----@field bypass_session_save_file_types? string Bypass auto save when only buffer open is one of these file types
+---@field bypass_session_save_file_types? table List of file types to bypass auto save when the only buffer open is one of the file types listed
 local luaOnlyConf = {
   bypass_session_save_file_types = nil, -- Bypass auto save when only buffer open is one of these file types
 
