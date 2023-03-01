@@ -113,12 +113,12 @@ AutoSession.SaveSession({sessions_dir?}, {auto})
 
 
                                                 *AutoSession.AutoRestoreSession*
-AutoSession.AutoRestoreSession({sessions_dir})
+AutoSession.AutoRestoreSession({session_dir})
     Function called by AutoSession when automatically restoring a session.
     This function avoids calling RestoreSession automatically when argv is not nil.
 
     Parameters: ~
-        {sessions_dir}  (any)
+        {session_dir}  (any)
 
     Returns: ~
         (boolean)  returns whether restoring the session was successful or not.
