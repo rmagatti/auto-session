@@ -197,20 +197,26 @@ local function bypass_save_by_filetype()
   local file_types_to_bypass = AutoSession.conf.bypass_session_save_file_types or {}
   local windows = vim.api.nvim_list_wins()
 
-  if #windows == 1 then
-    local buf = vim.api.nvim_win_get_buf(windows[1])
+  for _, current_window in ipairs(windows) do
+    local buf = vim.api.nvim_win_get_buf(current_window)
     local buf_ft = vim.api.nvim_buf_get_option(buf, "filetype")
 
+    local local_return = false
     for _, ft_to_bypass in ipairs(file_types_to_bypass) do
       if buf_ft == ft_to_bypass then
-        Lib.logger.debug "bypass_save_by_filetype: true"
-        return true
+        local_return = true
+        break
       end
+    end
+
+    if local_return == false then
+      Lib.logger.debug "bypass_save_by_filetype: false"
+      return false
     end
   end
 
-  Lib.logger.debug "bypass_save_by_filetype: false"
-  return false
+  Lib.logger.debug "bypass_save_by_filetype: true"
+  return true
 end
 
 local function suppress_session()
