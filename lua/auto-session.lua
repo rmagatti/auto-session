@@ -108,7 +108,6 @@ function AutoSession.setup(config)
   AutoSession.conf = vim.tbl_deep_extend("force", AutoSession.conf, config or {})
   Lib.ROOT_DIR = AutoSession.conf.auto_session_root_dir
   Lib.setup(AutoSession.conf)
-  -- logger = require("auto-session.logger"):new { log_level = AutoSession.conf.log_level }
 
   autocmds.setup_autocmds(AutoSession.conf, AutoSession)
 end
@@ -749,7 +748,7 @@ end
 ---CompleteSessions is used by the vimscript command for session name/path completion.
 ---@return string
 function AutoSession.CompleteSessions()
-  local session_files = vim.fn.glob(AutoSession.get_root_dir() .. "/*", true, { true })
+  local session_files = vim.fn.glob(AutoSession.get_root_dir() .. "/*", true, true)
   local session_names = {}
 
   for _, sf in ipairs(session_files) do
