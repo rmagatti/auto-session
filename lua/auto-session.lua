@@ -162,7 +162,7 @@ local in_pager_mode = function()
 end
 
 local in_headless_mode = function()
-  return not next(vim.api.nvim_list_uis())
+  return not vim.tbl_contains(vim.v.argv, '--embed') and not next(vim.api.nvim_list_uis())
 end
 
 local auto_save = function()
