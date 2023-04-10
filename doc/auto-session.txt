@@ -2,17 +2,17 @@ defaultConf                                                        *defaultConf*
     table default config for auto session
 
     Fields: ~
-        {log_level}                         (string)       debug, info, error
+        {log_level}                         (string|integer)  "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
         {auto_session_enable_last_session}  (boolean)
         {auto_session_last_session_dir}     (string)
-        {auto_session_root_dir}             (string)       root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
-        {auto_session_enabled}              (boolean)      enable auto session
-        {auto_session_create_enabled}       (boolean|nil)  Enables/disables auto creating new sessions
-        {auto_save_enabled?}                (boolean)      Enables/disables auto saving session
-        {auto_restore_enabled?}             (boolean)      Enables/disables auto restoring session
-        {auto_session_suppress_dirs?}       (table)        Suppress auto session for directories
-        {auto_session_allowed_dirs?}        (table)        Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
-        {auto_session_use_git_branch}       (boolean|nil)  Include git branch name in session name to differentiate between sessions for different git branches
+        {auto_session_root_dir}             (string)          root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
+        {auto_session_enabled}              (boolean)         enable auto session
+        {auto_session_create_enabled}       (boolean|nil)     Enables/disables auto creating new sessions
+        {auto_save_enabled?}                (boolean)         Enables/disables auto saving session
+        {auto_restore_enabled?}             (boolean)         Enables/disables auto restoring session
+        {auto_session_suppress_dirs?}       (table)           Suppress auto session for directories
+        {auto_session_allowed_dirs?}        (table)           Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
+        {auto_session_use_git_branch}       (boolean|nil)     Include git branch name in session name to differentiate between sessions for different git branches
 
 
 luaOnlyConf                                                        *luaOnlyConf*
@@ -179,18 +179,21 @@ M.setup_autocmds({config}, {AutoSession})
         {AutoSession}  (table)  auto session instance
 
 
-DefaultConf                                                        *DefaultConf*
+session_lens_config                                        *session_lens_config*
+    Session Lens Config
 
     Fields: ~
-        {theme_conf}  (table)          telescope theme configuration
-        {previewer}   (boolean|table)  telescope preview configs
+        {shorten_path}     (boolean)
+        {theme_conf}       (table)
+        {previewer}        (boolean)
+        {session_control}  (session_control)
 
 
 SessionLens.setup({config})                                  *SessionLens.setup*
     Session lens setup function
 
     Parameters: ~
-        {config}  (DefaultConf)  the optional config for the setup function
+        {config}  (luaOnlyConf|defaultConf)  the optional config for the setup function
 
 
                                                     *SessionLens.search_session*
@@ -202,8 +205,10 @@ SessionLens.search_session({custom_opts})
         {custom_opts}  (any)
 
 
-                                             *SessionLensActions.source_session*
-SessionLensActions.source_session({prompt_bufnr})
+M.setup()                                                              *M.setup*
+
+
+M.source_session({prompt_bufnr})                              *M.source_session*
     Source session action
     Source a selected session after doing proper current session saving and cleanup
 
@@ -211,8 +216,7 @@ SessionLensActions.source_session({prompt_bufnr})
         {prompt_bufnr}  (number)  the telescope prompt bufnr
 
 
-                                             *SessionLensActions.delete_session*
-SessionLensActions.delete_session({prompt_bufnr})
+M.delete_session({prompt_bufnr})                              *M.delete_session*
     Delete session action
     Delete a selected session file
 
@@ -220,7 +224,7 @@ SessionLensActions.delete_session({prompt_bufnr})
         {prompt_bufnr}  (number)  the telescope prompt bufnr
 
 
-SessionLensActions.alternate_session()    *SessionLensActions.alternate_session*
+M.alternate_session()                                      *M.alternate_session*
 
 
 vim:tw=78:ts=8:noet:ft=help:norl:
