@@ -1,9 +1,16 @@
-local AutoSession = require "auto-session"
 local action_state = require "telescope.actions.state"
 local actions = require "telescope.actions"
 local Lib = require "auto-session.lib"
 
-local SessionLensActions = {}
+local M = {
+  conf = {},
+  functions = {},
+}
+
+function M.setup(config, functions)
+  M.conf = vim.tbl_deep_extend("force", config, M.conf)
+  M.functions = functions
+end
 
 -- TODO: Either use this or actually store the latest sessions on load time, then just alternate between them here.
 -- local function get_second_to_latest_session_by_last_edited()
@@ -71,12 +78,11 @@ local SessionLensActions = {}
 -- end
 
 local function get_alternate_session()
-  local filepath = AutoSession.conf.session_control.control_dir .. AutoSession.conf.session_control.control_filename
+  local filepath = M.conf.session_control.control_dir .. M.conf.session_control.control_filename
 
   if vim.fn.filereadable(filepath) == 1 then
     local content = vim.fn.readfile(filepath)[1] or "{}"
-
-    local json = vim.json.decode(content)
+    local json = vim.json.decode(content) or {} -- should never hit the or clause since we're defaulting to a string for content
 
     local sessions = {
       current = json.current,
@@ -107,13 +113,13 @@ local function source_session(selection, prompt_bufnr)
     then
       -- Take advatage of cwd_change_handling behaviour for switching sessions
       Lib.logger.debug "Triggering vim.fn.chdir since cwd_change_handling feature is enabled"
-      vim.fn.chdir(AutoSession.format_file_name(type(selection) == "table" and selection.filename or selection))
+      vim.fn.chdir(M.functions.format_file_name(type(selection) == "table" and selection.filename or selection))
     else
       Lib.logger.debug "Triggering session-lens behaviour since cwd_change_handling feature is disabled"
-      AutoSession.AutoSaveSession()
+      M.functions.AutoSaveSession()
       vim.cmd "%bd!"
       vim.cmd "clearjumps"
-      AutoSession.RestoreSession(type(selection) == "table" and selection.path or selection)
+      M.functions.RestoreSession(type(selection) == "table" and selection.path or selection)
     end
   end, 50)
 end
@@ -121,7 +127,7 @@ end
 ---Source session action
 ---Source a selected session after doing proper current session saving and cleanup
 ---@param prompt_bufnr number the telescope prompt bufnr
-SessionLensActions.source_session = function(prompt_bufnr)
+M.source_session = function(prompt_bufnr)
   local selection = action_state.get_selected_entry()
   source_session(selection, prompt_bufnr)
 end
@@ -129,14 +135,14 @@ end
 ---Delete session action
 ---Delete a selected session file
 ---@param prompt_bufnr number the telescope prompt bufnr
-SessionLensActions.delete_session = function(prompt_bufnr)
+M.delete_session = function(prompt_bufnr)
   local current_picker = action_state.get_current_picker(prompt_bufnr)
   current_picker:delete_selection(function(selection)
-    AutoSession.DeleteSession(selection.path)
+    M.functions.DeleteSession(selection.path)
   end)
 end
 
-SessionLensActions.alternate_session = function(prompt_bufnr)
+M.alternate_session = function(prompt_bufnr)
   local alternate_session = get_alternate_session()
 
   if not alternate_session then
@@ -158,4 +164,4 @@ end
 ---"/Users/ronnieandrewmagatti/.local/share/nvim/sessions/%Users%ronnieandrewmagatti%Projects%auto-session.vim"
 ---"/Users/ronnieandrewmagatti/.local/share/nvim/sessions/\\%Users\\%ronnieandrewmagatti\\%Projects\\%auto-session.vim"
 
-return SessionLensActions
+return M

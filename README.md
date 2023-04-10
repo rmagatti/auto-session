@@ -8,12 +8,12 @@ Auto Session takes advantage of Neovim's existing session management capabilitie
 
 1. When starting `nvim` with no arguments, auto-session will try to restore an existing session for the current `cwd` if one exists.
 2. When starting `nvim .` with some argument, auto-session will do nothing.
-3. Even after starting `nvim` with an argument, a session can still be manually restored by running `:RestoreSession`.
+3. Even after starting `nvim` with an argument, a session can still be manually restored by running `:SessionRestore`.
 4. Any session saving and restoration takes into consideration the current working directory `cwd`.
 5. When piping to `nvim`, e.g: `cat myfile | nvim`, auto-session behaves like #2.
 
 :warning: Please note that if there are errors in your config, restoring the session might fail, if that happens, auto session will then disable auto saving for the current session.
-Manually saving a session can still be done by calling `:SaveSession`.
+Manually saving a session can still be done by calling `:SessionSave`.
 
 AutoSession now tracks `cwd` changes!
 By default, handling is as follows:
@@ -164,7 +164,7 @@ set sessionoptions+=winpos,terminal,folds
 ### Last Session
 
 This optional feature enables the keeping track and loading of the last session.
-This loading of a last session happens only when a `RestoreSession` could not find a session for the current dir.
+This loading of a last session happens only when a `SessionRestore` could not find a session for the current dir.
 This feature can come in handy when starting Neovim from a GUI for example.
 :warning: This feature is still experimental and as of right now it interferes with the plugin's ability to auto create new sessions when opening Neovim in a new directory.
 
@@ -181,13 +181,13 @@ require('auto-session').setup {
 Auto Session exposes two commands that can be used or mapped to any keybindings for manually saving and restoring sessions.
 
 ```viml
-:SaveSession " saves or creates a session in the currently set `auto_session_root_dir`.
-:SaveSession ~/my/custom/path " saves or creates a session in the specified directory path.
-:RestoreSession " restores a previously saved session based on the `cwd`.
-:RestoreSession ~/my/custom/path " restores a previously saved session based on the provided path.
-:RestoreSessionFromFile ~/session/path " restores any currently saved session
-:DeleteSession " deletes a session in the currently set `auto_session_root_dir`.
-:DeleteSession ~/my/custom/path " deleetes a session based on the provided path.
+:SessionSave " saves or creates a session in the currently set `auto_session_root_dir`.
+:SessionSave ~/my/custom/path " saves or creates a session in the specified directory path.
+:SessionRestore " restores a previously saved session based on the `cwd`.
+:SessionRestore ~/my/custom/path " restores a previously saved session based on the provided path.
+:SessionRestoreFromFile ~/session/path " restores any currently saved session
+:SessionDelete " deletes a session in the currently set `auto_session_root_dir`.
+:SessionDelete ~/my/custom/path " deleetes a session based on the provided path.
 :Autosession search
 :Autosession delete
 ```
@@ -276,20 +276,30 @@ Session Lens has been merged into Auto Session! This means all the functionality
 You still need to call the session-lens specific setup function for things to work properly since even though these plugins are now merged, they are effectily fully modular and auto-session does not depend on session-lens functionality.
 
 ```lua
-require("session-lens").setup {
-  path_display = { "shorten" },
-  theme_conf = { border = true },
-  previewer = false,
+require("auto-session").setup {
+  log_level = vim.log.levels.ERROR,
+  auto_session_suppress_dirs = { "~/", "~/Projects", "~/Downloads", "/" },
+  auto_session_use_git_branch = false,
+
+  auto_session_enable_last_session = false,
+
+  session_lens = {
+    theme_conf = { border = true },
+    previewer = false,
+  },
 }
 
--- Mapping to search sessions using the session-lens search_session function
-vim.keymap.set("n", "<C-s>", require("session-lens").search_session, {
+-- Set mapping for searching a session.
+vim.keymap.set("n", "<C-s>", require("auto-session.session-lens").search_session, {
   noremap = true,
 })
 ```
-Auto Session provides its own `:Autosession search` and `:Autosession delete` commands, but session-lens is a more complete version of those commands that is specificly built to be used with `telescope.nvim`. These commands make use of `vim.ui.select` which can itself be implemented by other plugins other than telescope.
 
-Sometime after `telescope.nvim` has been started, you'll want to call `require("telescope").load_extension "session-lens"` so that auto completion can happen for the `:Telescope session-lens` commands.
+*Note:* hitting `<C-s>` on an open session-lens picker will automatically try to restore the previous session opened. This can give you a nice flow if you're constantly switching between two projects.
+
+Sometime after `telescope.nvim` has been started, you'll want to call ```lua require("telescope").load_extension "session-lens"```` so that command completion works for `:Telescope session-lens` commands.
+
+Auto Session provides its own `:Autosession search` and `:Autosession delete` commands, but session-lens is a more complete version of those commands that is specificly built to be used with `telescope.nvim`. These commands make use of `vim.ui.select` which can itself be implemented by other plugins other than telescope.
 
 ### Preview
 

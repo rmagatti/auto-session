@@ -1,17 +1,23 @@
-local Lib = require "session-lens.library"
-local AutoSession = require "auto-session"
-local SessionLensActions = require "session-lens.actions"
+local Lib = require "auto-session.session-lens.library"
+local Actions = require "auto-session.session-lens.actions"
+
+local logger = require("auto-session.logger"):new {
+  log_level = vim.log.levels.INFO,
+}
 
 ----------- Setup ----------
 local SessionLens = {
   conf = {},
 }
 
----@class DefaultConf
----@field theme_conf table telescope theme configuration
----@field previewer boolean|table telescope preview configs
+---Session Lens Config
+---@class session_lens_config
+---@field shorten_path boolean
+---@field theme_conf table
+---@field previewer boolean
+---@field session_control session_control
 
----@type DefaultConf
+---@type session_lens_config
 local defaultConf = {
   theme_conf = { winblend = 10, border = true },
   previewer = false,
@@ -21,13 +27,18 @@ local defaultConf = {
 SessionLens.conf = defaultConf
 
 ---Session lens setup function
----@param config DefaultConf the optional config for the setup function
-function SessionLens.setup(config)
-  SessionLens.conf = vim.tbl_deep_extend("force", config, SessionLens.conf)
+---@param config luaOnlyConf|defaultConf the optional config for the setup function
+function SessionLens.setup(config, functions)
+  SessionLens.conf = vim.tbl_deep_extend("force", config.session_lens, SessionLens.conf)
+  SessionLens.conf.functions = functions
+
+  Lib.setup(SessionLens.conf, functions)
+  Actions.setup(SessionLens.conf, functions)
+  logger.log_level = config.log_level
 end
 
 local themes = require "telescope.themes"
-local actions = require "telescope.actions"
+local telescope_actions = require "telescope.actions"
 
 ---Search session
 ---Triggers the customized telescope picker for switching sessions
@@ -36,10 +47,10 @@ SessionLens.search_session = function(custom_opts)
   custom_opts = (vim.tbl_isempty(custom_opts or {}) or custom_opts == nil) and SessionLens.conf or custom_opts
 
   -- Use auto_session_root_dir from the Auto Session plugin
-  local cwd = AutoSession.conf.auto_session_root_dir
+  local cwd = SessionLens.conf.functions.get_root_dir()
 
   if custom_opts.shorten_path ~= nil then
-    Lib.logger.error "`shorten_path` config is deprecated, use the new `path_display` config instead"
+    logger.warn "`shorten_path` config is deprecated, use the new `path_display` config instead"
     if custom_opts.shorten_path then
       custom_opts.path_display = { "shorten" }
     else
@@ -72,9 +83,9 @@ SessionLens.search_session = function(custom_opts)
     cwd = cwd,
     -- TOOD: support custom mappings?
     attach_mappings = function(_, map)
-      actions.select_default:replace(SessionLensActions.source_session)
-      map("i", "<c-d>", SessionLensActions.delete_session)
-      map("i", "<c-s>", SessionLensActions.alternate_session)
+      telescope_actions.select_default:replace(Actions.source_session)
+      map("i", "<c-d>", Actions.delete_session)
+      map("i", "<c-s>", Actions.alternate_session)
       return true
     end,
   }

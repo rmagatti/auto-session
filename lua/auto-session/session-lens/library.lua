@@ -1,5 +1,4 @@
 local path = require "plenary.path"
-local AutoSession = require "auto-session"
 local AutoSessionLib = require "auto-session.lib"
 
 local Config = {}
@@ -12,12 +11,13 @@ local Lib = {
   Config = Config,
   _VIM_FALSE = 0,
   _VIM_TRUE = 1,
-  ROOT_DIR = AutoSession.conf.auto_session_root_dir,
+  ROOT_DIR = nil,
 }
 
--- Setup ======================================================
-function Lib.setup(config)
+function Lib.setup(config, functions)
   Lib.conf = vim.tbl_deep_extend("force", Lib.conf, config)
+  Lib.functions = functions
+  Lib.ROOT_DIR = Lib.functions.get_root_dir()
 end
 
 function Lib.isEmpty(s)
@@ -33,11 +33,8 @@ function Lib.appendSlash(str)
   return str
 end
 
--- ===================================================================================
-
--- ==================== SessionLens ==========================
 function Lib.make_entry.gen_from_file(opts)
-  local root = AutoSession.get_root_dir()
+  local root = Lib.functions.get_root_dir()
   return function(line)
     return {
       ordinal = line,
@@ -58,27 +55,5 @@ function Lib.make_entry.gen_from_file(opts)
     }
   end
 end
-
--- ===================================================================================
-
--- Logger =========================================================
-function Lib.logger.debug(...)
-  if Lib.conf.logLevel == "debug" then
-    print(...)
-  end
-end
-
-function Lib.logger.info(...)
-  local valid_values = { "info", "debug" }
-  if vim.tbl_contains(valid_values, Lib.conf.logLevel) then
-    print(...)
-  end
-end
-
-function Lib.logger.error(...)
-  error(...)
-end
-
--- =========================================================
 
 return Lib

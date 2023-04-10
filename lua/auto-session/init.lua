@@ -1,5 +1,6 @@
 local Lib = require "auto-session.lib"
-local autocmds = require "auto-session.autocmds"
+local AutoCmds = require "auto-session.autocmds"
+local SessionLens = require "auto-session.session-lens"
 
 ----------- Setup ----------
 local AutoSession = {
@@ -34,7 +35,7 @@ end
 
 ---table default config for auto session
 ---@class defaultConf
----@field log_level string debug, info, error
+---@field log_level string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
 ---@field auto_session_enable_last_session boolean
 ---@field auto_session_last_session_dir string
 ---@field auto_session_root_dir string root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
@@ -87,10 +88,12 @@ local luaOnlyConf = {
   ---@field control_dir string
   ---@field control_filename string
 
-  ---@type session_control
-  session_control = {
-    control_dir = vim.fn.stdpath "data" .. "/auto_session/", -- Auto session control dir, for control files, like alternating between two sessions with session-lens
-    control_filename = "session_control.json", -- File name of the session control file
+  ---@type session_lens_config
+  session_lens = {
+    session_control = {
+      control_dir = vim.fn.stdpath "data" .. "/auto_session/", -- Auto session control dir, for control files, like alternating between two sessions with session-lens
+      control_filename = "session_control.json", -- File name of the session control file
+    },
   },
 }
 
@@ -108,8 +111,10 @@ function AutoSession.setup(config)
   AutoSession.conf = vim.tbl_deep_extend("force", AutoSession.conf, config or {})
   Lib.ROOT_DIR = AutoSession.conf.auto_session_root_dir
   Lib.setup(AutoSession.conf)
+  SessionLens.setup(AutoSession.conf, AutoSession)
+  AutoCmds.setup_autocmds(AutoSession.conf, AutoSession)
 
-  autocmds.setup_autocmds(AutoSession.conf, AutoSession)
+  SetupAutocmds()
 end
 
 local function is_enabled()
@@ -502,8 +507,8 @@ vim.api.nvim_create_user_command("Autosession", handle_autosession_command, { na
 -- end
 
 local function write_to_session_control_json(session_file_name)
-  local control_dir = AutoSession.conf.session_control.control_dir
-  local control_file = AutoSession.conf.session_control.control_filename
+  local control_dir = AutoSession.conf.session_lens.session_control.control_dir
+  local control_file = AutoSession.conf.session_lens.session_control.control_filename
   session_file_name = Lib.expand(session_file_name)
 
   Lib.init_dir(control_dir)
@@ -512,7 +517,7 @@ local function write_to_session_control_json(session_file_name)
 
   local log_ending_state = function()
     local content = vim.fn.readfile(session_control_file)
-    local session_control = vim.json.decode(content[1] or "{}")
+    local session_control = vim.json.decode(content[1] or "{}") or {}
     local sessions = { current = session_control.current, alternate = session_control.alternate }
 
     Lib.logger.debug("session control file contents", { sessions = sessions, content = content })
@@ -521,7 +526,7 @@ local function write_to_session_control_json(session_file_name)
   if vim.fn.filereadable(session_control_file) == 1 then
     local content = vim.fn.readfile(session_control_file)
     Lib.logger.debug { content = content }
-    local json = vim.json.decode(content[1] or "{}")
+    local json = vim.json.decode(content[1] or "{}") or {}
 
     local sessions = {
       current = session_file_name,
@@ -807,6 +812,90 @@ function AutoSession.DeleteSession(...)
 
   local post_cmds = AutoSession.get_cmds "post_delete"
   run_hook_cmds(post_cmds, "post-delete")
+end
+
+function SetupAutocmds()
+  Lib.logger.info "Setting up autocmds"
+
+  -- Check if the auto-session plugin has already been loaded to prevent loading it twice
+  if vim.g.loaded_auto_session ~= nil then
+    return
+  end
+
+  -- Initialize variables
+  vim.g.in_pager_mode = false
+
+  local function SaveSession(args)
+    return AutoSession.SaveSession(args.args, false)
+  end
+
+  local function SessionRestore(args)
+    return AutoSession.RestoreSession(args.args)
+  end
+
+  local function SessionDelete(args)
+    return AutoSession.DeleteSession(args.args)
+  end
+
+  local function DisableAutoSave()
+    return AutoSession.DisableAutoSave()
+  end
+
+  vim.api.nvim_create_user_command(
+    "SessionSave",
+    SaveSession,
+    { bang = true, desc = "Save the current session. Based in cwd if no arguments are passed" }
+  )
+
+  vim.api.nvim_create_user_command("SessionRestore", SessionRestore, { bang = true, desc = "Restore Session" })
+
+  vim.api.nvim_create_user_command("DisableAutoSave", DisableAutoSave, { bang = true, desc = "Disable Auto Save" })
+
+  vim.api.nvim_create_user_command(
+    "SessionRestoreFromFile",
+    DisableAutoSave,
+    { complete = AutoSession.CompleteSessions, bang = true, nargs = "*", desc = "Restore Session from file" }
+  )
+
+  vim.api.nvim_create_user_command(
+    "SessionDelete",
+    SessionDelete,
+    { complete = AutoSession.CompleteSessions, bang = true, nargs = "*", desc = "Delete Session" }
+  )
+
+  local group = vim.api.nvim_create_augroup("auto_session_group", {})
+
+  vim.api.nvim_create_autocmd({ "StdinReadPre" }, {
+    group = group,
+    pattern = "*",
+    callback = function()
+      vim.g.in_pager_mode = true
+    end,
+  })
+
+  vim.api.nvim_create_autocmd({ "VimEnter" }, {
+    group = group,
+    pattern = "*",
+    nested = true,
+    callback = function()
+      if not vim.g.in_pager_mode then
+        AutoSession.AutoRestoreSession()
+      end
+    end,
+  })
+
+  vim.api.nvim_create_autocmd({ "VimLeave" }, {
+    group = group,
+    pattern = "*",
+    callback = function()
+      if not vim.g.in_pager_mode then
+        AutoSession.AutoSaveSession()
+      end
+    end,
+  })
+
+  -- Set a flag to indicate that the plugin has been loaded
+  vim.g.loaded_auto_session = true
 end
 
 return AutoSession
