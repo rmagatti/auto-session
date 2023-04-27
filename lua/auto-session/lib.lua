@@ -1,3 +1,5 @@
+local Logger = require "auto-session.logger"
+
 local Config = {}
 local Lib = {
   logger = {},
@@ -13,6 +15,9 @@ local Lib = {
 
 function Lib.setup(config)
   Lib.conf = vim.tbl_deep_extend("force", Lib.conf, config or {})
+  Lib.logger = Logger:new {
+    log_level = Lib.conf.log_level,
+  }
 end
 
 function Lib.get_file_name(url)
@@ -144,9 +149,10 @@ end
 
 function Lib.is_readable(file_path)
   local path, _ = file_path:gsub("\\%%", "%%")
+  path = Lib.expand(path)
   local readable = vim.fn.filereadable(path) == Lib._VIM_TRUE
 
-  Lib.logger.debug("==== is_readable ", readable)
+  Lib.logger.debug { path = path, readable = readable }
 
   return readable
 end
@@ -169,32 +175,14 @@ function Lib.has_open_buffers()
         if vim.fn.bufwinnr(bufnr) ~= -1 then
           if result then
             result = true
-            Lib.logger.debug("There are buffer(s) present: ")
+            Lib.logger.debug "There are buffer(s) present: "
           end
-          Lib.logger.debug("  " .. bufname)
+          Lib.logger.debug { bufname = bufname }
         end
       end
     end
   end
   return result
-end
-
-
-function Lib.logger.debug(...)
-  if Lib.conf.log_level == "debug" then
-    vim.notify(vim.fn.join({ "debug: ", tostring(...) }, " "), vim.log.levels.DEBUG)
-  end
-end
-
-function Lib.logger.info(...)
-  local valid_values = { "info", "debug" }
-  if vim.tbl_contains(valid_values, Lib.conf.log_level) then
-    vim.notify(vim.fn.join({ "info: ", tostring(...) }, " "), vim.log.levels.INFO)
-  end
-end
-
-function Lib.logger.error(...)
-  vim.notify(vim.fn.join({ "error: ", tostring(...) }, " "), vim.log.levels.ERROR)
 end
 
 return Lib
