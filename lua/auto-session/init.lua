@@ -1,6 +1,7 @@
 local Lib = require "auto-session.lib"
 local AutoCmds = require "auto-session.autocmds"
-local SessionLens = require "auto-session.session-lens"
+
+local has_telescope, _ = pcall(require, "telescope")
 
 ----------- Setup ----------
 local AutoSession = {
@@ -111,7 +112,13 @@ function AutoSession.setup(config)
   AutoSession.conf = vim.tbl_deep_extend("force", AutoSession.conf, config or {})
   Lib.ROOT_DIR = AutoSession.conf.auto_session_root_dir
   Lib.setup(AutoSession.conf)
-  SessionLens.setup(AutoSession.conf, AutoSession)
+
+  if not has_telescope then
+    Lib.logger.info "Telescope.nvim is not installed. Bypassing session-lens setup."
+  else
+    require("auto-session.session-lens").setup(AutoSession.conf, AutoSession)
+  end
+
   AutoCmds.setup_autocmds(AutoSession.conf, AutoSession)
 
   SetupAutocmds()

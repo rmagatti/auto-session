@@ -283,6 +283,7 @@ require("auto-session").setup {
 
   auto_session_enable_last_session = false,
 
+  -- ⚠️ This will only work if Telescope.nvim is installed
   session_lens = {
     theme_conf = { border = true },
     previewer = false,
@@ -290,6 +291,7 @@ require("auto-session").setup {
 }
 
 -- Set mapping for searching a session.
+-- ⚠️ This will only work if Telescope.nvim is installed
 vim.keymap.set("n", "<C-s>", require("auto-session.session-lens").search_session, {
   noremap = true,
 })
