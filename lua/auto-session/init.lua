@@ -300,7 +300,7 @@ local function get_session_file_name(upcoming_session_dir)
   else
     local last_loaded_session_name = AutoSession.conf.auto_session_enable_last_session and Lib.conf.last_loaded_session
 
-    local session_name = Lib.escape_dir(upcoming_session_dir)
+    local session_name = Lib.unescape_dir(upcoming_session_dir)
 
     if not last_loaded_session_name then
       local branch_name = get_branch_name()

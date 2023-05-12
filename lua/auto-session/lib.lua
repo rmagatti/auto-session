@@ -98,7 +98,7 @@ end
 local function win32_escaped_dir(dir)
   dir = dir:gsub("++", ":")
   if not vim.o.shellslash then
-    dir = dir:gsub("%%", "\\")
+    dir = dir:gsub("-", "\\")
   end
 
   return dir
@@ -107,9 +107,9 @@ end
 local function win32_unescaped_dir(dir)
   dir = dir:gsub(":", "++")
   if not vim.o.shellslash then
-    dir = dir:gsub("\\", "\\%%")
+    dir = dir:gsub("\\", "-")
     -- need to escape forward slash as well for windows, see issue #202
-    dir = dir:gsub("/", "\\%%")
+    dir = dir:gsub("/", "-")
   end
 
   return dir
