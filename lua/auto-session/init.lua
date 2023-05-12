@@ -367,6 +367,9 @@ function AutoSession.AutoSaveSession(sessions_dir)
       end
     end
 
+	-- Before initiating auto_save close all not supported windows so user does not see an empty window on next session
+	Lib.close_not_supported_windows()
+
     AutoSession.SaveSession(sessions_dir, true)
   end
 end
