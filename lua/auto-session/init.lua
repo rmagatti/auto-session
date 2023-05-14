@@ -113,7 +113,10 @@ function AutoSession.setup(config)
   Lib.setup(AutoSession.conf)
 
   if AutoSession.conf.session_lens.load_on_setup then
+    Lib.logger.debug "Loading session lens on setup"
     AutoSession.setup_session_lens()
+  else
+    Lib.logger.debug "Skipping loading session lens on setup"
   end
 
   AutoCmds.setup_autocmds(AutoSession.conf, AutoSession)
