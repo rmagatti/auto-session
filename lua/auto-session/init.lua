@@ -1,8 +1,6 @@
 local Lib = require "auto-session.lib"
 local AutoCmds = require "auto-session.autocmds"
 
-local has_telescope, _ = pcall(require, "telescope")
-
 ----------- Setup ----------
 local AutoSession = {
   ---@type luaOnlyConf
@@ -91,6 +89,7 @@ local luaOnlyConf = {
 
   ---@type session_lens_config
   session_lens = {
+    load_on_startup = true,
     session_control = {
       control_dir = vim.fn.stdpath "data" .. "/auto_session/", -- Auto session control dir, for control files, like alternating between two sessions with session-lens
       control_filename = "session_control.json", -- File name of the session control file
@@ -113,15 +112,24 @@ function AutoSession.setup(config)
   Lib.ROOT_DIR = AutoSession.conf.auto_session_root_dir
   Lib.setup(AutoSession.conf)
 
-  if not has_telescope then
-    Lib.logger.info "Telescope.nvim is not installed. Bypassing session-lens setup."
-  else
-    require("auto-session.session-lens").setup(AutoSession.conf, AutoSession)
+  if AutoSession.conf.session_lens.load_on_setup then
+    AutoSession.setup_session_lens()
   end
 
   AutoCmds.setup_autocmds(AutoSession.conf, AutoSession)
 
   SetupAutocmds()
+end
+
+function AutoSession.setup_session_lens()
+  local has_telescope, _ = pcall(require, "telescope")
+
+  if not has_telescope then
+    Lib.logger.info "Telescope.nvim is not installed. Session Lens cannot be setup!"
+    return
+  end
+
+  require("auto-session.session-lens").setup(AutoSession)
 end
 
 local function is_enabled()

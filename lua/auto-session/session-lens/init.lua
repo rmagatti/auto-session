@@ -16,6 +16,7 @@ local SessionLens = {
 ---@field theme_conf table
 ---@field previewer boolean
 ---@field session_control session_control
+---@field load_on_setup boolean
 
 ---@type session_lens_config
 local defaultConf = {
@@ -26,15 +27,13 @@ local defaultConf = {
 -- Set default config on plugin load
 SessionLens.conf = defaultConf
 
----Session lens setup function
----@param config luaOnlyConf|defaultConf the optional config for the setup function
-function SessionLens.setup(config, functions)
-  SessionLens.conf = vim.tbl_deep_extend("force", config.session_lens, SessionLens.conf)
-  SessionLens.conf.functions = functions
+function SessionLens.setup(auto_session)
+  SessionLens.conf = vim.tbl_deep_extend("force", auto_session.conf.session_lens, SessionLens.conf)
+  SessionLens.conf.functions = auto_session
 
-  Lib.setup(SessionLens.conf, functions)
-  Actions.setup(SessionLens.conf, functions)
-  logger.log_level = config.log_level
+  Lib.setup(SessionLens.conf, auto_session)
+  Actions.setup(SessionLens.conf, auto_session)
+  logger.log_level = auto_session.conf.log_level
 end
 
 local themes = require "telescope.themes"
