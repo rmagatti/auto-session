@@ -89,7 +89,7 @@ local luaOnlyConf = {
 
   ---@type session_lens_config
   session_lens = {
-    load_on_startup = true,
+    load_on_setup = true,
     session_control = {
       control_dir = vim.fn.stdpath "data" .. "/auto_session/", -- Auto session control dir, for control files, like alternating between two sessions with session-lens
       control_filename = "session_control.json", -- File name of the session control file
@@ -113,10 +113,10 @@ function AutoSession.setup(config)
   Lib.setup(AutoSession.conf)
 
   if AutoSession.conf.session_lens.load_on_setup then
-    Lib.logger.debug "Loading session lens on setup"
+    Lib.logger.debug("Loading session lens on setup", { conf = AutoSession.conf })
     AutoSession.setup_session_lens()
   else
-    Lib.logger.debug "Skipping loading session lens on setup"
+    Lib.logger.debug("Skipping loading session lens on setup", { conf = AutoSession.conf })
   end
 
   AutoCmds.setup_autocmds(AutoSession.conf, AutoSession)
