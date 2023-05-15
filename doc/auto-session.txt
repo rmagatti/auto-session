@@ -46,6 +46,9 @@ AutoSession.setup({config})                                  *AutoSession.setup*
         {config}  (defaultConf)  config for auto session
 
 
+AutoSession.setup_session_lens()                *AutoSession.setup_session_lens*
+
+
 AutoSession.get_latest_session()                *AutoSession.get_latest_session*
     Get latest session for the "last session" feature
 
@@ -187,13 +190,10 @@ session_lens_config                                        *session_lens_config*
         {theme_conf}       (table)
         {previewer}        (boolean)
         {session_control}  (session_control)
+        {load_on_setup}    (boolean)
 
 
-SessionLens.setup({config})                                  *SessionLens.setup*
-    Session lens setup function
-
-    Parameters: ~
-        {config}  (luaOnlyConf|defaultConf)  the optional config for the setup function
+SessionLens.setup()                                          *SessionLens.setup*
 
 
                                                     *SessionLens.search_session*
