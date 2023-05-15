@@ -36,13 +36,13 @@ function SessionLens.setup(auto_session)
   logger.log_level = auto_session.conf.log_level
 end
 
-local themes = require "telescope.themes"
-local telescope_actions = require "telescope.actions"
-
 ---Search session
 ---Triggers the customized telescope picker for switching sessions
 ---@param custom_opts any
 SessionLens.search_session = function(custom_opts)
+  local themes = require "telescope.themes"
+  local telescope_actions = require "telescope.actions"
+
   custom_opts = (vim.tbl_isempty(custom_opts or {}) or custom_opts == nil) and SessionLens.conf or custom_opts
 
   -- Use auto_session_root_dir from the Auto Session plugin
