@@ -166,15 +166,25 @@ set sessionoptions+=winpos,terminal,folds
 This optional feature enables the keeping track and loading of the last session.
 This loading of a last session happens only when a `SessionRestore` could not find a session for the current dir.
 This feature can come in handy when starting Neovim from a GUI for example.
+
+:warning: If the directory does not exist, default directory will be used and an error message will be printed.  
 :warning: This feature is still experimental and as of right now it interferes with the plugin's ability to auto create new sessions when opening Neovim in a new directory.
 
 ```lua
 require('auto-session').setup {
-    auto_session_enable_last_session=true,
+    auto_session_enable_last_session = true,
 }
 ```
 
-:warning: WARNING :warning: If the directory does not exist, default directory will be used and an error message will be printed.
+A quick workaround for inability to auto create new sessions is to conditionally enable last session.
+
+```lua
+require('auto-session').setup {
+    auto_session_enable_last_session = vim.loop.cwd() == vim.loop.os_homedir(),
+}
+```
+
+Now last session will be restored only when Neovim is launched in the home directory, which is usually right after launching the terminal or Neovim GUI clients.
 
 # 📢 Commands
 
