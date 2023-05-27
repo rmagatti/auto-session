@@ -321,7 +321,7 @@ local function get_session_file_name(upcoming_session_dir)
 
       -- Was getting %U issue on path without this, directory was unescaped
       -- session_name = string.gsub(session_name, "%.", "%%%.")
-      -- session_name = string.format("%s%s", session_name, branch_name)
+      session_name = string.format("%s%s", session_name, branch_name)
 
       Lib.logger.debug("session name post-format", { session_name = session_name })
     end
