@@ -28,7 +28,7 @@ local defaultConf = {
 SessionLens.conf = defaultConf
 
 function SessionLens.setup(auto_session)
-  SessionLens.conf = vim.tbl_deep_extend("force", auto_session.conf.session_lens, SessionLens.conf)
+  SessionLens.conf = vim.tbl_deep_extend("force", SessionLens.conf, auto_session.conf.session_lens)
   SessionLens.conf.functions = auto_session
 
   Lib.setup(SessionLens.conf, auto_session)
