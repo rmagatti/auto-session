@@ -259,7 +259,9 @@ local function suppress_session()
 
   local cwd = vim.fn.getcwd()
   for _, s in pairs(dirs) do
-    s = string.gsub(vim.fn.simplify(Lib.expand(s)), "/+$", "")
+    if s ~= "/" then
+      s = string.gsub(vim.fn.simplify(Lib.expand(s)), "/+$", "")
+    end
     for path in string.gmatch(s, "[^\r\n]+") do
       if cwd == path then
         return true
