@@ -51,7 +51,14 @@ local function source_session(selection, prompt_bufnr)
     else
       Lib.logger.debug "Triggering session-lens behaviour since cwd_change_handling feature is disabled"
       M.functions.AutoSaveSession()
-      vim.cmd "%bd!"
+
+      local buffers = vim.api.nvim_list_bufs()
+      for _, bufn in pairs(buffers) do
+        if not vim.tbl_contains(M.conf.buftypes_to_ignore, vim.api.nvim_buf_get_option(bufn, "buftype")) then
+          vim.cmd("silent bwipeout!" .. bufn)
+        end
+      end
+
       vim.cmd "clearjumps"
       M.functions.RestoreSession(type(selection) == "table" and selection.path or selection)
     end
