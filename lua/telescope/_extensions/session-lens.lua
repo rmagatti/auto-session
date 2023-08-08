@@ -7,5 +7,6 @@ return telescope.register_extension {
   end,
   exports = {
     search_session = SessionLens.search_session,
+    ["session-lens"] = SessionLens.search_session,
   },
 }
