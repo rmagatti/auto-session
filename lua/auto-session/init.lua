@@ -753,7 +753,7 @@ Disabling auto save. Please check for errors in your config. Error:
 end
 
 local maybe_disable_autosave = function(session_name)
-  local current_session = Lib.escaped_session_name_from_cwd()
+  local current_session = get_session_file_name()
 
   if session_name == current_session then
     Lib.logger.debug("Auto Save disabled for current session.", {
@@ -811,9 +811,6 @@ function AutoSession.DeleteSession(...)
   local pre_cmds = AutoSession.get_cmds "pre_delete"
   run_hook_cmds(pre_cmds, "pre-delete")
 
-  -- TODO: make the delete command customizable
-  local is_win32 = vim.fn.has "win32" == Lib._VIM_TRUE
-
   if not Lib.is_empty(...) then
     for _, file_path in ipairs { ... } do
       Lib.logger.debug("session_file_path", file_path)
@@ -823,16 +820,11 @@ function AutoSession.DeleteSession(...)
       Lib.logger.info("Deleted session " .. file_path)
     end
   else
-    local session_name = Lib.escaped_session_name_from_cwd()
-    Lib.logger.debug("session_name", session_name)
-    if is_win32 then
-      session_name = session_name:gsub("\\", "")
-    end
+    local session_file_path = get_session_file_name()
 
-    local session_file_path = string.format(AutoSession.get_root_dir() .. "%s.vim", session_name)
     vim.fn.delete(Lib.expand(session_file_path))
 
-    maybe_disable_autosave(session_name)
+    maybe_disable_autosave(session_file_path)
     Lib.logger.info("Deleted session " .. session_file_path)
   end
 
