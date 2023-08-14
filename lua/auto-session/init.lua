@@ -89,6 +89,7 @@ local luaOnlyConf = {
 
   ---@type session_lens_config
   session_lens = {
+    buftypes_to_ignore = {}, -- list of bufftypes to ignore when switching between sessions
     load_on_setup = true,
     session_control = {
       control_dir = vim.fn.stdpath "data" .. "/auto_session/", -- Auto session control dir, for control files, like alternating between two sessions with session-lens

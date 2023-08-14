@@ -14,6 +14,7 @@ local SessionLens = {
 ---@class session_lens_config
 ---@field shorten_path boolean
 ---@field theme_conf table
+---@field buftypes_to_ignore table
 ---@field previewer boolean
 ---@field session_control session_control
 ---@field load_on_setup boolean
@@ -22,6 +23,7 @@ local SessionLens = {
 local defaultConf = {
   theme_conf = { winblend = 10, border = true },
   previewer = false,
+  buftypes_to_ignore = {},
 }
 
 -- Set default config on plugin load
