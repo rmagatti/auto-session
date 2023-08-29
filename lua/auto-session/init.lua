@@ -872,7 +872,7 @@ function SetupAutocmds()
 
   vim.api.nvim_create_user_command(
     "SessionRestoreFromFile",
-    DisableAutoSave,
+    SessionRestore,
     { complete = AutoSession.CompleteSessions, bang = true, nargs = "*", desc = "Restore Session from file" }
   )
 
