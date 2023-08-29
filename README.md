@@ -21,7 +21,7 @@ By default, handling is as follows:
     - Save the current session
     - Clear all buffers `%bd!`. This guarantees buffers don't bleed to the
       next session.
-    - Clear jumps. Also done so there is no bleading between sessions.
+    - Clear jumps. Also done so there is no bleeding between sessions.
     - Run the `pre_cwd_changed_hook`
   DirChanged (after the cwd has changed):
     - Restore session using new cwd
@@ -44,7 +44,6 @@ require("auto-session").setup {
 }
 
 ```
-
 
 # 📦 Installation
 
@@ -75,7 +74,7 @@ One can set the auto_session root dir that will be used for auto session saving 
 ```viml
 let g:auto_session_root_dir = path/to/my/custom/dir
 
-" or use lua
+" or use Lua
 lua << EOF
 local opts = {
   log_level = 'info',
@@ -223,7 +222,7 @@ Hooks are configured by setting
 ```viml
 let g:auto_session_{hook_name}_cmds = ["{hook_command1}", "{hook_command2}"]
 
-" or use lua
+" or use Lua
 lua << EOF
 require('auto-session').setup {
     {hook_name}_cmds = {"{hook_command1}", "{hook_command2}"}
@@ -260,8 +259,8 @@ require('auto-session').setup {
 
 ## Disabling the plugin
 
-One might run into issues with Firenvim or another plugin and want to disable auto_session altogether based on some condition.
-For this example, as to not try and save sessions for Firenvim, we disable the plugin if the started_by_firenvim variable is set.
+One might run into issues with Firenvim or another plugin and want to disable `auto_session` altogether based on some condition.
+For this example, as to not try and save sessions for Firenvim, we disable the plugin if the `started_by_firenvim` variable is set.
 
 ```viml
 if exists('g:started_by_firenvim')
@@ -277,13 +276,13 @@ nvim "+let g:auto_session_enabled = v:false"
 
 ## 🚧 Troubleshooting
 
-For troubleshooting refer to the [wiki page](https://github.com/rmagatti/auto-session/wiki/Troubleshooting)
+For troubleshooting refer to the [wiki page](https://github.com/rmagatti/auto-session/wiki/Troubleshooting).
 
 ## 🔭 Session Lens
 
 Session Lens has been merged into Auto Session! This means all the functionality of Session Lens is now available in Auto Session.
 
-You still need to call the session-lens specific setup function for things to work properly since even though these plugins are now merged, they are effectily fully modular and auto-session does not depend on session-lens functionality.
+You still need to call the session-lens specific setup function for things to work properly since even though these plugins are now merged, they are effectively fully modular and auto-session does not depend on session-lens functionality.
 
 ```lua
 require("auto-session").setup {
@@ -313,9 +312,9 @@ vim.keymap.set("n", "<C-s>", require("auto-session.session-lens").search_session
 
 *Note:* hitting `<C-s>` on an open session-lens picker will automatically try to restore the previous session opened. This can give you a nice flow if you're constantly switching between two projects.
 
-Sometime after `telescope.nvim` has been started, you'll want to call ```lua require("telescope").load_extension "session-lens"```` so that command completion works for `:Telescope session-lens` commands.
+Sometime after `telescope.nvim` has been started, you'll want to call `lua require("telescope").load_extension "session-lens"` so that command completion works for `:Telescope session-lens` commands.
 
-Auto Session provides its own `:Autosession search` and `:Autosession delete` commands, but session-lens is a more complete version of those commands that is specificly built to be used with `telescope.nvim`. These commands make use of `vim.ui.select` which can itself be implemented by other plugins other than telescope.
+Auto Session provides its own `:Autosession search` and `:Autosession delete` commands, but session-lens is a more complete version of those commands that is specifically built to be used with `telescope.nvim`. These commands make use of `vim.ui.select` which can itself be implemented by other plugins other than telescope.
 
 ### Preview
 
