@@ -833,6 +833,28 @@ function AutoSession.DeleteSession(...)
   run_hook_cmds(post_cmds, "post-delete")
 end
 
+---PurgeOrphanedSessions deletes sessions with no working directory exist
+function AutoSession.PurgeOrphanedSessions()
+  local orphaned_sessions = {}
+
+  for _, session in ipairs(AutoSession.get_session_files()) do
+    if session.display_name:find('^/.*') and vim.fn.isdirectory(session.display_name) == Lib._VIM_FALSE then
+      table.insert(orphaned_sessions, session.display_name)
+    end
+  end
+
+  if not Lib.is_empty_table(orphaned_sessions) then
+    for _, name in ipairs(orphaned_sessions) do
+      Lib.logger.info(string.format("Purging session: %s", name))
+      local escaped_session = Lib.escape_dir(name)
+      local session_path = string.format("%s/%s.vim", AutoSession.get_root_dir(), escaped_session)
+      vim.fn.delete(Lib.expand(session_path))
+    end
+  else
+    Lib.logger.info "Nothing to purge"
+  end
+end
+
 function SetupAutocmds()
   Lib.logger.info "Setting up autocmds"
 
@@ -854,6 +876,10 @@ function SetupAutocmds()
 
   local function SessionDelete(args)
     return AutoSession.DeleteSession(args.args)
+  end
+
+  local function SessionPurgeOrphaned()
+    return AutoSession.PurgeOrphanedSessions()
   end
 
   local function DisableAutoSave()
@@ -880,6 +906,12 @@ function SetupAutocmds()
     "SessionDelete",
     SessionDelete,
     { complete = AutoSession.CompleteSessions, bang = true, nargs = "*", desc = "Delete Session" }
+  )
+
+  vim.api.nvim_create_user_command(
+    "SessionPurgeOrphaned",
+    SessionPurgeOrphaned,
+    { desc = "Remove all orphaned sessions with no directory left" }
   )
 
   local group = vim.api.nvim_create_augroup("auto_session_group", {})

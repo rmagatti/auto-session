@@ -173,6 +173,10 @@ AutoSession.DeleteSession({...})                     *AutoSession.DeleteSession*
         {...}  (string[])
 
 
+AutoSession.PurgeOrphanedSessions()          *AutoSession.PurgeOrphanedSessions*
+    PurgeOrphanedSessions deletes sessions with no working directory exist
+
+
                                                               *M.setup_autocmds*
 M.setup_autocmds({config}, {AutoSession})
     Setup autocmds for DirChangedPre and DirChanged
