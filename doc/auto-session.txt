@@ -190,11 +190,12 @@ session_lens_config                                        *session_lens_config*
     Session Lens Config
 
     Fields: ~
-        {shorten_path}     (boolean)
-        {theme_conf}       (table)
-        {previewer}        (boolean)
-        {session_control}  (session_control)
-        {load_on_setup}    (boolean)
+        {shorten_path}        (boolean)
+        {theme_conf}          (table)
+        {buftypes_to_ignore}  (table)
+        {previewer}           (boolean)
+        {session_control}     (session_control)
+        {load_on_setup}       (boolean)
 
 
 SessionLens.setup()                                          *SessionLens.setup*
