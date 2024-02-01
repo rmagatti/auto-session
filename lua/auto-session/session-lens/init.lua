@@ -90,9 +90,34 @@ SessionLens.search_session = function(custom_opts)
       return true
     end,
   }
+  opts = vim.tbl_deep_extend("force", opts, theme_opts, custom_opts or {})
 
-  local find_files_conf = vim.tbl_deep_extend("force", opts, theme_opts, custom_opts or {})
-  require("telescope.builtin").find_files(find_files_conf)
+  local find_command = (function()
+    if opts.find_command then
+      if type(opts.find_command) == "function" then
+        return opts.find_command(opts)
+      end
+      return opts.find_command
+    elseif 1 == vim.fn.executable "rg" then
+      return { "rg", "--files", "--color", "never" }
+    elseif 1 == vim.fn.executable "fd" then
+      return { "fd", "--type", "f", "--color", "never" }
+    elseif 1 == vim.fn.executable "fdfind" then
+      return { "fdfind", "--type", "f", "--color", "never" }
+    elseif 1 == vim.fn.executable "find" and vim.fn.has "win32" == 0 then
+      return { "find", ".", "-type", "f" }
+    elseif 1 == vim.fn.executable "where" then
+      return { "where", "/r", ".", "*" }
+    end
+  end)()
+
+  local finders = require "telescope.finders"
+  local conf = require("telescope.config").values
+  require("telescope.pickers").new(opts, {
+    finder = finders.new_oneshot_job(find_command, opts),
+    previewer = conf.grep_previewer(opts),
+    sorter = conf.file_sorter(opts),
+  }):find()
 end
 
 return SessionLens
