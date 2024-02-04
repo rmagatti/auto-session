@@ -185,4 +185,29 @@ function Lib.has_open_buffers()
   return result
 end
 
+function Lib.file_exists(name)
+  local f = io.open(name, "r")
+  if f ~= nil then
+    io.close(f)
+    return true
+  else
+    return false
+  end
+end
+
+function Lib.close_not_supported_windows()
+  local tabpages = vim.api.nvim_list_tabpages()
+  for _, tabpage in ipairs(tabpages) do
+    local windows = vim.api.nvim_tabpage_list_wins(tabpage)
+    for _, window in ipairs(windows) do
+      local buffer = vim.api.nvim_win_get_buf(window)
+      local file_name = vim.api.nvim_buf_get_name(buffer)
+      local isReadable = Lib.file_exists(file_name)
+      if not isReadable then
+        vim.api.nvim_win_close(window, true)
+      end
+    end
+  end
+end
+
 return Lib
