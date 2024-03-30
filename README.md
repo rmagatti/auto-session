@@ -311,7 +311,9 @@ vim.keymap.set("n", "<C-s>", require("auto-session.session-lens").search_session
 })
 ```
 
-*Note:* hitting `<C-s>` on an open session-lens picker will automatically try to restore the previous session opened. This can give you a nice flow if you're constantly switching between two projects. Additionally, `<C-d>` will delete the currently highlighted session.
+The following shortcuts are available when the session-lens picker is open
+* `<c-s>` restores the previously opened session. This can give you a nice flow if you're constantly switching between two projects.
+* `<c-d>` will delete the currently highlighted session. This makes it easy to keep the session list clean.
 
 Sometime after `telescope.nvim` has been started, you'll want to call `lua require("telescope").load_extension "session-lens"` so that command completion works for `:Telescope session-lens` commands.
 
