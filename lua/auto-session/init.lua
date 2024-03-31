@@ -35,9 +35,9 @@ end
 ---table default config for auto session
 ---@class defaultConf
 ---@field log_level string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
----@field auto_session_enable_last_session boolean
----@field auto_session_root_dir string root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
----@field auto_session_enabled boolean enable auto session
+---@field auto_session_enable_last_session? boolean
+---@field auto_session_root_dir? string root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
+---@field auto_session_enabled? boolean enable auto session
 ---@field auto_session_create_enabled boolean|nil Enables/disables auto creating new sessions
 ---@field auto_save_enabled? boolean Enables/disables auto saving session
 ---@field auto_restore_enabled? boolean Enables/disables auto restoring session
