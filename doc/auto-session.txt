@@ -4,7 +4,6 @@ defaultConf                                                        *defaultConf*
     Fields: ~
         {log_level}                         (string|integer)  "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
         {auto_session_enable_last_session}  (boolean)
-        {auto_session_last_session_dir}     (string)
         {auto_session_root_dir}             (string)          root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
         {auto_session_enabled}              (boolean)         enable auto session
         {auto_session_create_enabled}       (boolean|nil)     Enables/disables auto creating new sessions
@@ -21,6 +20,7 @@ luaOnlyConf                                                        *luaOnlyConf*
     Fields: ~
         {cwd_change_handling}              (CwdChangeHandling)
         {bypass_session_save_file_types?}  (table)              List of file types to bypass auto save when the only buffer open is one of the file types listed
+        {silent_restore}                   (boolean)            Whether to restore sessions silently or not
 
 
 CwdChangeHandling                                            *CwdChangeHandling*
