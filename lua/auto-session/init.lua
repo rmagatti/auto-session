@@ -36,7 +36,6 @@ end
 ---@class defaultConf
 ---@field log_level string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
 ---@field auto_session_enable_last_session boolean
----@field auto_session_last_session_dir string
 ---@field auto_session_root_dir string root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
 ---@field auto_session_enabled boolean enable auto session
 ---@field auto_session_create_enabled boolean|nil Enables/disables auto creating new sessions
@@ -58,13 +57,14 @@ local defaultConf = {
   auto_restore_enabled = nil, -- Enables/disables auto restore feature
   auto_session_suppress_dirs = nil, -- Suppress session restore/create in certain directories
   auto_session_allowed_dirs = nil, -- Allow session restore/create in certain directories
-  auto_session_use_git_branch = vim.g.auto_session_use_git_branch or false,
+  auto_session_use_git_branch = vim.g.auto_session_use_git_branch or false, -- Include git branch name in session name
 }
 
 ---Lua Only Configs for Auto Session
 ---@class luaOnlyConf
 ---@field cwd_change_handling CwdChangeHandling
 ---@field bypass_session_save_file_types? table List of file types to bypass auto save when the only buffer open is one of the file types listed
+---@field silent_restore boolean Whether to restore sessions silently or not
 local luaOnlyConf = {
   bypass_session_save_file_types = nil, -- Bypass auto save when only buffer open is one of these file types
   ---CWD Change Handling Config
@@ -96,6 +96,7 @@ local luaOnlyConf = {
       control_filename = "session_control.json", -- File name of the session control file
     },
   },
+  silent_restore = true
 }
 
 -- Set default config on plugin load
@@ -655,7 +656,7 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
     local pre_cmds = AutoSession.get_cmds "pre_restore"
     run_hook_cmds(pre_cmds, "pre-restore")
 
-    local cmd = "silent source " .. file_path
+    local cmd = AutoSession.conf.silent_restore and "silent source " or "source " .. file_path
     local success, result = pcall(vim.cmd, cmd)
 
     if not success then
