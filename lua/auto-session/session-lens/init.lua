@@ -21,7 +21,7 @@ local SessionLens = {
 
 ---@type session_lens_config
 local defaultConf = {
-  theme_conf = { winblend = 10, border = true },
+  theme_conf = {},
   previewer = false,
   buftypes_to_ignore = {},
 }
