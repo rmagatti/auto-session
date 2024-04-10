@@ -370,6 +370,14 @@ local function auto_save_conditions_met()
   return is_enabled() and auto_save() and not suppress_session() and is_allowed_dir() and not bypass_save_by_filetype()
 end
 
+-- Quickly checks if a session file exists for the current working directory.
+-- This is useful for starter plugins which don't want to display 'restore session'
+-- unless a session for the current working directory exists.
+function AutoSession.session_exists_for_cwd()
+  session_file = get_session_file_name(vim.fn.getcwd())
+  return Lib.is_readable(session_file)
+end
+
 ---AutoSaveSession
 ---Function called by auto_session to trigger auto_saving sessions, for example on VimExit events.
 ---@param sessions_dir? string the session directory to auto_save a session for. If empty this function will end up using the cwd to infer what session to save for.
