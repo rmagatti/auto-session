@@ -2,7 +2,7 @@ defaultConf                                                        *defaultConf*
     table default config for auto session
 
     Fields: ~
-        {log_level}                          (string|integer)  "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
+        {log_level?}                         (string|integer)  "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
         {auto_session_enable_last_session?}  (boolean)
         {auto_session_root_dir?}             (string)          root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
         {auto_session_enabled?}              (boolean)         enable auto session
@@ -11,7 +11,7 @@ defaultConf                                                        *defaultConf*
         {auto_restore_enabled?}              (boolean)         Enables/disables auto restoring session
         {auto_session_suppress_dirs?}        (table)           Suppress auto session for directories
         {auto_session_allowed_dirs?}         (table)           Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
-        {auto_session_use_git_branch}        (boolean|nil)     Include git branch name in session name to differentiate between sessions for different git branches
+        {auto_session_use_git_branch?}       (boolean)         Include git branch name in session name to differentiate between sessions for different git branches
 
 
 luaOnlyConf                                                        *luaOnlyConf*
@@ -21,6 +21,7 @@ luaOnlyConf                                                        *luaOnlyConf*
         {cwd_change_handling}              (CwdChangeHandling)
         {bypass_session_save_file_types?}  (table)              List of file types to bypass auto save when the only buffer open is one of the file types listed
         {silent_restore}                   (boolean)            Whether to restore sessions silently or not
+        {log_level?}                       (string|integer)     "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
 
 
 CwdChangeHandling                                            *CwdChangeHandling*
