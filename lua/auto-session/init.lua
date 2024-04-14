@@ -937,7 +937,7 @@ function SetupAutocmds()
     end,
   })
 
-  vim.api.nvim_create_autocmd({ "VimLeave" }, {
+  vim.api.nvim_create_autocmd({ "VimLeavePre" }, {
     group = group,
     pattern = "*",
     callback = function()
