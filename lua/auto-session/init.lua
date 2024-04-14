@@ -34,7 +34,7 @@ end
 
 ---table default config for auto session
 ---@class defaultConf
----@field log_level string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
+---@field log_level? string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
 ---@field auto_session_enable_last_session? boolean
 ---@field auto_session_root_dir? string root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
 ---@field auto_session_enabled? boolean enable auto session
@@ -43,7 +43,7 @@ end
 ---@field auto_restore_enabled? boolean Enables/disables auto restoring session
 ---@field auto_session_suppress_dirs? table Suppress auto session for directories
 ---@field auto_session_allowed_dirs? table Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
----@field auto_session_use_git_branch boolean|nil Include git branch name in session name to differentiate between sessions for different git branches
+---@field auto_session_use_git_branch? boolean Include git branch name in session name to differentiate between sessions for different git branches
 
 ---Default config for auto session
 ---@type defaultConf
@@ -65,6 +65,7 @@ local defaultConf = {
 ---@field cwd_change_handling CwdChangeHandling
 ---@field bypass_session_save_file_types? table List of file types to bypass auto save when the only buffer open is one of the file types listed
 ---@field silent_restore boolean Whether to restore sessions silently or not
+---@field log_level? string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
 local luaOnlyConf = {
   bypass_session_save_file_types = nil, -- Bypass auto save when only buffer open is one of these file types
   ---CWD Change Handling Config
