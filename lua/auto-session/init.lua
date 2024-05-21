@@ -899,7 +899,7 @@ function SetupAutocmds()
   vim.api.nvim_create_user_command(
     "SessionSave",
     SaveSession,
-    { bang = true, desc = "Save the current session. Based in cwd if no arguments are passed" }
+    { bang = true, nargs = '?', desc = "Save the current session. Based in cwd if no arguments are passed" }
   )
 
   vim.api.nvim_create_user_command("SessionRestore", SessionRestore, { bang = true, desc = "Restore Session" })
