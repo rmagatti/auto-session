@@ -940,7 +940,13 @@ function SetupAutocmds()
     nested = true,
     callback = function()
       if not vim.g.in_pager_mode then
-        AutoSession.AutoRestoreSession()
+        local ok, _ = pcall(require, "lazy")
+        if ok then
+          Lib.logger.debug "Lazy is present, delay restoring session until VeryLazy event and no Lazy window"
+        else
+          -- No Lazy, load as usual
+          AutoSession.AutoRestoreSession()
+        end
       end
     end,
   })
@@ -957,6 +963,58 @@ function SetupAutocmds()
 
   -- Set a flag to indicate that the plugin has been loaded
   vim.g.loaded_auto_session = true
+
+  -- Helpers to delay loading the session if the Lazy.nvim window is open
+  local lazy_view_win = nil
+  vim.api.nvim_create_autocmd("User", {
+    pattern = "VeryLazy",
+    callback = function()
+      if vim.g.in_pager_mode then
+        return
+      end
+
+      local lazy_view = require "lazy.view"
+
+      if lazy_view.visible() then
+        Lib.logger.debug "VeryLazy event fired but lazy window is up, wait for it to close"
+
+        -- If the Lazy window is visibile, hold onto it for later
+        lazy_view_win = lazy_view.view.win
+      else
+        Lib.logger.debug "VeryLazy event fired and no Lazy window, restore the session!"
+        -- Schedule restoration for the next pass of the event loop. May not be necessary in this case
+        -- but no harm and may avoid some timing issues
+        vim.schedule(function()
+          AutoSession.AutoRestoreSession()
+        end)
+      end
+    end,
+  })
+
+  vim.api.nvim_create_autocmd("WinClosed", {
+    callback = function(event)
+      -- If we we're in pager mode or we have no Lazy window, bail out
+      if vim.g.in_pager_mode or not lazy_view_win then
+        return
+      end
+
+      if event.match ~= tostring(lazy_view_win) then
+        -- A window was closed, but it wasn't Lazy's window so keep waiting
+        Lib.logger.debug "A window was closed but it was not Lazy, keep waiting"
+        return
+      end
+
+      Lib.logger.debug "Lazy window was closed, restore the session!"
+
+      -- Clear lazy_view_win so we stop processing future WinClosed events
+      lazy_view_win = nil
+      -- Schedule restoration for the next pass in the event loop to time for the window to close
+      -- Not doing this could create a blank buffer in the restored session
+      vim.schedule(function()
+        AutoSession.AutoRestoreSession()
+      end)
+    end,
+  })
 end
 
 return AutoSession
