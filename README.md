@@ -121,6 +121,7 @@ require('lualine').setup{
 | auto_session_create_enabled      | false, true              | true                                 | Enables/disables the plugin's session auto creation             |
 | auto_save_enabled                | false, true, nil         | nil                                  | Enables/disables auto saving                                    |
 | auto_restore_enabled             | false, true, nil         | nil                                  | Enables/disables auto restoring                                 |
+| auto_restore_lazy_delay_enabled  | false, true, nil         | true                                 | Enables/disables delaying auto-restore if Lazy.nvim is used     |
 | auto_session_suppress_dirs       | ["list", "of paths"]     | nil                                  | Suppress session create/restore if in one of the list of dirs   |
 | auto_session_allowed_dirs        | ["list", "of paths"]     | nil                                  | Allow session create/restore if in one of the list of dirs      |
 | auto_session_use_git_branch      | false, true, nil         | nil                                  | Use the git branch to differentiate the session name            |
