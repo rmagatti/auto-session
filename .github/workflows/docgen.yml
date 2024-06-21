@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     name: emmylua to vimdoc
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Generating help
         run: |
@@ -18,7 +18,7 @@ jobs:
           ./lemmy-help ./lua/auto-session/init.lua ./lua/auto-session/autocmds.lua ./lua/auto-session/session-lens/init.lua ./lua/auto-session/session-lens/actions.lua > doc/${{env.PLUGIN_NAME}}.txt
 
       - name: Commit
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
           branch: ${{ github.head_ref }}
           commit_message: "chore(docs): auto-generate vimdoc"
