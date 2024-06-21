@@ -9,6 +9,7 @@ defaultConf                                                        *defaultConf*
         {auto_session_create_enabled}        (boolean|nil)     Enables/disables auto creating new sessions
         {auto_save_enabled?}                 (boolean)         Enables/disables auto saving session
         {auto_restore_enabled?}              (boolean)         Enables/disables auto restoring session
+        {auto_restore_lazy_delay_enabled?}   (boolean)         Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used. Can be disabled if a problem is suspected or for debugging
         {auto_session_suppress_dirs?}        (table)           Suppress auto session for directories
         {auto_session_allowed_dirs?}         (table)           Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
         {auto_session_use_git_branch?}       (boolean)         Include git branch name in session name to differentiate between sessions for different git branches
@@ -20,6 +21,7 @@ luaOnlyConf                                                        *luaOnlyConf*
     Fields: ~
         {cwd_change_handling}              (CwdChangeHandling)
         {bypass_session_save_file_types?}  (table)              List of file types to bypass auto save when the only buffer open is one of the file types listed
+        {close_unsupported_windows?}       (boolean)            Whether to close windows that aren't backed by a real file
         {silent_restore}                   (boolean)            Whether to restore sessions silently or not
         {log_level?}                       (string|integer)     "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
 
@@ -55,6 +57,9 @@ AutoSession.get_latest_session()                *AutoSession.get_latest_session*
 
     Returns: ~
         (string|nil)
+
+
+AutoSession.session_exists_for_cwd()        *AutoSession.session_exists_for_cwd*
 
 
                                                    *AutoSession.AutoSaveSession*
