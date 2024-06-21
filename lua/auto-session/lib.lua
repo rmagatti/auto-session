@@ -185,4 +185,19 @@ function Lib.has_open_buffers()
   return result
 end
 
+function Lib.close_unsupported_windows()
+  local tabpages = vim.api.nvim_list_tabpages()
+  for _, tabpage in ipairs(tabpages) do
+    local windows = vim.api.nvim_tabpage_list_wins(tabpage)
+    for _, window in ipairs(windows) do
+      local buffer = vim.api.nvim_win_get_buf(window)
+      local file_name = vim.api.nvim_buf_get_name(buffer)
+      if not Lib.is_readable(file_name) then
+        vim.api.nvim_win_close(window, true)
+        break;
+      end
+    end
+  end
+end
+
 return Lib

@@ -64,10 +64,12 @@ local defaultConf = {
 ---@class luaOnlyConf
 ---@field cwd_change_handling CwdChangeHandling
 ---@field bypass_session_save_file_types? table List of file types to bypass auto save when the only buffer open is one of the file types listed
+---@field close_unsupported_windows? boolean Whether to close windows that aren't backed by a real file
 ---@field silent_restore boolean Whether to restore sessions silently or not
 ---@field log_level? string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
 local luaOnlyConf = {
   bypass_session_save_file_types = nil, -- Bypass auto save when only buffer open is one of these file types
+  close_unsupported_windows = true, -- Close windows that aren't backed by normal file
   ---CWD Change Handling Config
   ---@class CwdChangeHandling
   ---@field restore_upcoming_session boolean {true} restore session for upcoming cwd on cwd change
@@ -389,6 +391,10 @@ function AutoSession.AutoSaveSession(sessions_dir)
       if not Lib.is_readable(session_file_name) then
         return
       end
+    end
+
+    if AutoSession.conf.close_unsupported_windows then
+      Lib.close_unsupported_windows()
     end
 
     AutoSession.SaveSession(sessions_dir, true)
