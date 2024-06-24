@@ -194,7 +194,7 @@ function Lib.close_unsupported_windows()
       local file_name = vim.api.nvim_buf_get_name(buffer)
       if not Lib.is_readable(file_name) then
         vim.api.nvim_win_close(window, true)
-        break;
+        break
       end
     end
   end

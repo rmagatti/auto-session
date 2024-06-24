@@ -379,7 +379,7 @@ end
 -- This is useful for starter plugins which don't want to display 'restore session'
 -- unless a session for the current working directory exists.
 function AutoSession.session_exists_for_cwd()
-  session_file = get_session_file_name(vim.fn.getcwd())
+  local session_file = get_session_file_name(vim.fn.getcwd())
   return Lib.is_readable(session_file)
 end
 
@@ -396,7 +396,8 @@ function AutoSession.AutoSaveSession(sessions_dir)
     end
 
     if AutoSession.conf.close_unsupported_windows then
-      Lib.close_unsupported_windows()
+      -- Swallow errors as we may end up trying to close the last window
+      pcall(Lib.close_unsupported_windows)
     end
 
     AutoSession.SaveSession(sessions_dir, true)
@@ -907,7 +908,7 @@ function SetupAutocmds()
   vim.api.nvim_create_user_command(
     "SessionSave",
     SaveSession,
-    { bang = true, nargs = '?', desc = "Save the current session. Based in cwd if no arguments are passed" }
+    { bang = true, nargs = "?", desc = "Save the current session. Based in cwd if no arguments are passed" }
   )
 
   vim.api.nvim_create_user_command("SessionRestore", SessionRestore, { bang = true, desc = "Restore Session" })
