@@ -284,26 +284,33 @@ For troubleshooting refer to the [wiki page](https://github.com/rmagatti/auto-se
 
 ## 🔭 Session Lens
 
-Session Lens has been merged into Auto Session! This means all the functionality of Session Lens is now available in Auto Session.
-
-You still need to call the session-lens specific setup function for things to work properly since even though these plugins are now merged, they are effectively fully modular and auto-session does not depend on session-lens functionality.
+Session Lens has been merged into Auto Session! This means all the functionality of Session Lens is now available in Auto Session. It's enabled by
+default if you have Telescope, but here's the Lazy config that shows the configuration options:  
 
 ```lua
-require("auto-session").setup {
-  log_level = vim.log.levels.ERROR,
-  auto_session_suppress_dirs = { "~/", "~/Projects", "~/Downloads", "/" },
-  auto_session_use_git_branch = false,
 
-  auto_session_enable_last_session = false,
+return {
+  {
+    'rmagatti/auto-session',
+    dependencies = {
+      'nvim-telescope/telescope.nvim',
+    },
+    config = function()
+      require('auto-session').setup({
+        log_level = 'error',
+        auto_session_suppress_dirs = { '~/', '~/Projects', '~/Downloads', '/' },
 
-  -- ⚠️ This will only work if Telescope.nvim is installed
-  -- The following are already the default values, no need to provide them if these are already the settings you want.
-  session_lens = {
-    -- If load_on_setup is set to false, one needs to eventually call `require("auto-session").setup_session_lens()` if they want to use session-lens.
-    buftypes_to_ignore = {}, -- list of buffer types what should not be deleted from current session
-    load_on_setup = true,
-    theme_conf = { border = true },
-    previewer = false,
+        -- ⚠️ This will only work if Telescope.nvim is installed
+        -- The following are already the default values, no need to provide them if these are already the settings you want.
+        session_lens = {
+          -- If load_on_setup is set to false, one needs to eventually call `require("auto-session").setup_session_lens()` if they want to use session-lens.
+          load_on_setup = true,
+          theme_conf = { border = true },
+          previewer = false,
+          buftypes_to_ignore = {}, -- list of buffer types that should not be deleted from current session when a new one is loaded
+        },
+      })
+    end,
   },
 }
 
@@ -314,11 +321,13 @@ vim.keymap.set("n", "<C-s>", require("auto-session.session-lens").search_session
 })
 ```
 
+You can also use `:Telescope session-lens` to launch the session picker.
+
 The following shortcuts are available when the session-lens picker is open
 * `<c-s>` restores the previously opened session. This can give you a nice flow if you're constantly switching between two projects.
 * `<c-d>` will delete the currently highlighted session. This makes it easy to keep the session list clean.
 
-Sometime after `telescope.nvim` has been started, you'll want to call `lua require("telescope").load_extension "session-lens"` so that command completion works for `:Telescope session-lens` commands.
+NOTE: If you previously installed `rmagatti/session-lens`, you should remove it from your config as it is no longer necessary.
 
 Auto Session provides its own `:Autosession search` and `:Autosession delete` commands, but session-lens is a more complete version of those commands that is specifically built to be used with `telescope.nvim`. These commands make use of `vim.ui.select` which can itself be implemented by other plugins other than telescope.
 

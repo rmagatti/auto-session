@@ -39,16 +39,18 @@ local function source_session(selection, prompt_bufnr)
   end
 
   vim.defer_fn(function()
-    if -- type(AutoSession.conf.cwd_change_handling) == "table"
-      -- and not vim.tbl_isempty(AutoSession.conf.cwd_change_handling or {})
-      -- and AutoSession.conf.cwd_change_handling.restore_upcoming_session
-      -- FIXME: Trying to check if cwd_change_handling properties are set, but something is wrong here.
-      false
-    then
+    local cwd_change_handling_conf = M.functions.conf.cwd_change_handling
+
+    -- If cwd_change_handling is true, the current session will be saved in the DirChangedPre AutoCmd
+    -- and the new session will be restored in DirChanged
+    if type(cwd_change_handling_conf) == "table" and cwd_change_handling_conf.restore_upcoming_session then
       -- Take advatage of cwd_change_handling behaviour for switching sessions
       Lib.logger.debug "Triggering vim.fn.chdir since cwd_change_handling feature is enabled"
       vim.fn.chdir(M.functions.format_file_name(type(selection) == "table" and selection.filename or selection))
     else
+      -- TODO: Since cwd_change_handling is disabled, we save and restore here. This would probably be better
+      -- handled in AutoSession itself since the same case comes up if the built in picker is used
+      -- (e.g. :Autosession search).
       Lib.logger.debug "Triggering session-lens behaviour since cwd_change_handling feature is disabled"
       M.functions.AutoSaveSession()
 
