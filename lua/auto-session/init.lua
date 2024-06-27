@@ -101,7 +101,7 @@ local luaOnlyConf = {
       control_filename = "session_control.json", -- File name of the session control file
     },
   },
-  silent_restore = true
+  silent_restore = true,
 }
 
 -- Set default config on plugin load
@@ -379,7 +379,7 @@ end
 -- This is useful for starter plugins which don't want to display 'restore session'
 -- unless a session for the current working directory exists.
 function AutoSession.session_exists_for_cwd()
-  session_file = get_session_file_name(vim.fn.getcwd())
+  local session_file = get_session_file_name(vim.fn.getcwd())
   return Lib.is_readable(session_file)
 end
 
@@ -396,7 +396,11 @@ function AutoSession.AutoSaveSession(sessions_dir)
     end
 
     if AutoSession.conf.close_unsupported_windows then
-      Lib.close_unsupported_windows()
+      -- Wrap in pcall in case there's an error while trying to close windows
+      local success, result = pcall(Lib.close_unsupported_windows)
+      if not success then
+        Lib.logger.debug("Error closing unsupported windows: " .. result)
+      end
     end
 
     AutoSession.SaveSession(sessions_dir, true)
@@ -856,7 +860,7 @@ function AutoSession.PurgeOrphanedSessions()
   local orphaned_sessions = {}
 
   for _, session in ipairs(AutoSession.get_session_files()) do
-    if session.display_name:find('^/.*') and vim.fn.isdirectory(session.display_name) == Lib._VIM_FALSE then
+    if session.display_name:find "^/.*" and vim.fn.isdirectory(session.display_name) == Lib._VIM_FALSE then
       table.insert(orphaned_sessions, session.display_name)
     end
   end
@@ -907,7 +911,7 @@ function SetupAutocmds()
   vim.api.nvim_create_user_command(
     "SessionSave",
     SaveSession,
-    { bang = true, nargs = '?', desc = "Save the current session. Based in cwd if no arguments are passed" }
+    { bang = true, nargs = "?", desc = "Save the current session. Based in cwd if no arguments are passed" }
   )
 
   vim.api.nvim_create_user_command("SessionRestore", SessionRestore, { bang = true, desc = "Restore Session" })
