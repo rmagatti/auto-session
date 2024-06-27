@@ -132,7 +132,7 @@ function AutoSession.setup(config)
 end
 
 function AutoSession.setup_session_lens()
-  local has_telescope, _ = pcall(require, "telescope")
+  local has_telescope, telescope = pcall(require, "telescope")
 
   if not has_telescope then
     Lib.logger.info "Telescope.nvim is not installed. Session Lens cannot be setup!"
@@ -140,6 +140,8 @@ function AutoSession.setup_session_lens()
   end
 
   require("auto-session.session-lens").setup(AutoSession)
+  -- Register session-lens as an extension so :Telescope will complete on session-lens
+  telescope.load_extension "session-lens"
 end
 
 local function is_enabled()
@@ -508,6 +510,8 @@ local function handle_autosession_command(data)
   if data.args:match "search" then
     open_picker(files, "Select a session:", function(choice)
       -- Change dir to selected session path, the DirChangePre and DirChange events will take care of the rest
+      -- BUG: The above is only true if cwd_change_handling is true which means sessions
+      -- won't be restored if cwd_change_handling is false
       vim.fn.chdir(choice.display_name)
     end)
   elseif data.args:match "delete" then

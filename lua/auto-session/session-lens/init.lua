@@ -12,7 +12,8 @@ local SessionLens = {
 
 ---Session Lens Config
 ---@class session_lens_config
----@field shorten_path boolean
+---@field shorten_path boolean Deprecated, pass { 'shorten' } to path_display
+---@field path_display table An array that specifies how to handle paths. Read :h telescope.defaults.path_display
 ---@field theme_conf table
 ---@field buftypes_to_ignore table
 ---@field previewer boolean
