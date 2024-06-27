@@ -47,14 +47,32 @@ require("auto-session").setup {
 
 # 📦 Installation
 
-Any plugin manager should do, I use [Packer.nvim](https://github.com/wbthomason/packer.nvim)
+[Lazy.nvim](https://github.com/folke/lazy.nvim):
+
+```lua
+return {
+  {
+    'rmagatti/auto-session',
+    dependencies = {
+      'nvim-telescope/telescope.nvim', -- Only needed if you want to use sesssion lens
+    },
+    config = function()
+      require('auto-session').setup({
+        auto_session_suppress_dirs = { '~/', '~/Projects', '~/Downloads', '/' },
+        },
+      })
+    end,
+  },
+}
+```
+
+[Packer.nvim](https://github.com/wbthomason/packer.nvim):
 
 ```lua
 use {
   'rmagatti/auto-session',
   config = function()
     require("auto-session").setup {
-      log_level = "error",
       auto_session_suppress_dirs = { "~/", "~/Projects", "~/Downloads", "/"},
     }
   end
@@ -92,23 +110,6 @@ local opts = {
 require('auto-session').setup(opts)
 EOF
 ```
-
-### Statusline
-
-One can show the current session name in the statusline by using an auto-session helper function.
-
-Lualine example config and how it looks
-
-```lua
-require('lualine').setup{
-  options = {
-    theme = 'tokyonight',
-  },
-  sections = {lualine_c = {require('auto-session.lib').current_session_name}}
-}
-```
-
-<img width="1904" alt="Screen Shot 2021-10-30 at 3 58 57 PM" src="https://user-images.githubusercontent.com/2881382/139559478-8edefdb8-8254-42e7-a0f3-babd3dfd6ff2.png">
 
 ### Options
 
@@ -205,6 +206,7 @@ Auto Session exposes two commands that can be used or mapped to any keybindings 
 ```
 
 You can use the `Autosession {delete|search}` command to open a picker using `vim.ui.select` this will allow you to either delete or search for a session to restore.
+There's also Telescope support, see the [Session Lens](#-session-lens) section below.
 
 ## 🪝 Command Hooks
 
@@ -284,7 +286,7 @@ For troubleshooting refer to the [wiki page](https://github.com/rmagatti/auto-se
 
 ## 🔭 Session Lens
 
-Session Lens has been merged into Auto Session! This means all the functionality of Session Lens is now available in Auto Session. It's enabled by
+Session Lens has been merged into Auto Session so now you can see, load, and delete your sessions using Telescope! It's enabled by
 default if you have Telescope, but here's the Lazy config that shows the configuration options:  
 
 ```lua
@@ -334,6 +336,23 @@ Auto Session provides its own `:Autosession search` and `:Autosession delete` co
 ### Preview
 
 <img src="https://github.com/rmagatti/readme-assets/blob/main/session-lens.gif" width=800 />
+
+### Statusline
+
+One can show the current session name in the statusline by using an auto-session helper function.
+
+Lualine example config and how it looks
+
+```lua
+require('lualine').setup{
+  options = {
+    theme = 'tokyonight',
+  },
+  sections = {lualine_c = {require('auto-session.lib').current_session_name}}
+}
+```
+
+<img width="1904" alt="Screen Shot 2021-10-30 at 3 58 57 PM" src="https://user-images.githubusercontent.com/2881382/139559478-8edefdb8-8254-42e7-a0f3-babd3dfd6ff2.png">
 
 # Compatibility
 
