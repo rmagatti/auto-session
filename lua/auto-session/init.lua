@@ -50,16 +50,16 @@ end
 ---@type defaultConf
 local defaultConf = {
   log_level = vim.g.auto_session_log_level or AutoSession.conf.log_level or AutoSession.conf.log_level or "error", -- Sets the log level of the plugin (debug, info, error). camelCase logLevel for compatibility.
-  auto_session_enable_last_session = vim.g.auto_session_enable_last_session or false, -- Enables/disables the "last session" feature
-  auto_session_root_dir = vim.fn.stdpath "data" .. "/sessions/", -- Root dir where sessions will be stored
-  auto_session_enabled = true, -- Enables/disables auto creating, saving and restoring
-  auto_session_create_enabled = nil, -- Enables/disables auto creating new sessions
-  auto_save_enabled = nil, -- Enables/disables auto save feature
-  auto_restore_enabled = nil, -- Enables/disables auto restore feature
-  auto_restore_lazy_delay_enabled = true, -- Enables/disables Lazy delay feature
-  auto_session_suppress_dirs = nil, -- Suppress session restore/create in certain directories
-  auto_session_allowed_dirs = nil, -- Allow session restore/create in certain directories
-  auto_session_use_git_branch = vim.g.auto_session_use_git_branch or false, -- Include git branch name in session name
+  auto_session_enable_last_session = vim.g.auto_session_enable_last_session or false,                              -- Enables/disables the "last session" feature
+  auto_session_root_dir = vim.fn.stdpath "data" .. "/sessions/",                                                   -- Root dir where sessions will be stored
+  auto_session_enabled = true,                                                                                     -- Enables/disables auto creating, saving and restoring
+  auto_session_create_enabled = nil,                                                                               -- Enables/disables auto creating new sessions
+  auto_save_enabled = nil,                                                                                         -- Enables/disables auto save feature
+  auto_restore_enabled = nil,                                                                                      -- Enables/disables auto restore feature
+  auto_restore_lazy_delay_enabled = true,                                                                          -- Enables/disables Lazy delay feature
+  auto_session_suppress_dirs = nil,                                                                                -- Suppress session restore/create in certain directories
+  auto_session_allowed_dirs = nil,                                                                                 -- Allow session restore/create in certain directories
+  auto_session_use_git_branch = vim.g.auto_session_use_git_branch or false,                                        -- Include git branch name in session name
 }
 
 ---Lua Only Configs for Auto Session
@@ -71,7 +71,7 @@ local defaultConf = {
 ---@field log_level? string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
 local luaOnlyConf = {
   bypass_session_save_file_types = nil, -- Bypass auto save when only buffer open is one of these file types
-  close_unsupported_windows = true, -- Close windows that aren't backed by normal file
+  close_unsupported_windows = true,     -- Close windows that aren't backed by normal file
   ---CWD Change Handling Config
   ---@class CwdChangeHandling
   ---@field restore_upcoming_session boolean {true} restore session for upcoming cwd on cwd change
@@ -98,7 +98,7 @@ local luaOnlyConf = {
     load_on_setup = true,
     session_control = {
       control_dir = vim.fn.stdpath "data" .. "/auto_session/", -- Auto session control dir, for control files, like alternating between two sessions with session-lens
-      control_filename = "session_control.json", -- File name of the session control file
+      control_filename = "session_control.json",               -- File name of the session control file
     },
   },
   silent_restore = true,
@@ -193,13 +193,18 @@ local pager_mode = nil
 local in_pager_mode = function()
   if pager_mode ~= nil then
     return pager_mode
-  end -- Only evaluate this once
+  end                                                             -- Only evaluate this once
 
-  local opened_with_args = next(vim.fn.argv()) ~= nil -- Neovim was opened with args
+  local opened_with_args = next(vim.fn.argv()) ~= nil             -- Neovim was opened with args
   local reading_from_stdin = vim.g.in_pager_mode == Lib._VIM_TRUE -- Set from StdinReadPre
 
   pager_mode = opened_with_args or reading_from_stdin
   Lib.logger.debug("in pager mode", pager_mode)
+  if pager_mode then
+    local no_restore_cmds = AutoSession.get_cmds "no_restore"
+    Lib.logger.debug("In pager mode, skipping auto restore and unning no-restore hook cmds", no_restore_cmds)
+    run_hook_cmds(no_restore_cmds, "no-restore")
+  end
   return pager_mode
 end
 
@@ -955,6 +960,9 @@ function SetupAutocmds()
     callback = function()
       if vim.g.in_pager_mode then
         -- Don't auto restore session in pager mode
+        local no_restore_cmds = AutoSession.get_cmds "no_restore"
+        Lib.logger.debug("In pager mode, skipping auto restore", no_restore_cmds)
+        run_hook_cmds(no_restore_cmds, "no-restore")
         return
       end
 

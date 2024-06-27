@@ -219,6 +219,7 @@ Command hooks exist in the format: {hook_name}
 - {post_restore}: executes _after_ a session is restored
 - {pre_delete}: executes _before_ a session is deleted
 - {post_delete}: executes _after_ a session is deleted
+- {no_restore}: executes _at_ `VimEnter` _when_ no session is restored
 
 Hooks are configured by setting
 
