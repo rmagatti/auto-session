@@ -15,14 +15,14 @@ Auto Session takes advantage of Neovim's existing session management capabilitie
 :warning: Please note that if there are errors in your config, restoring the session might fail, if that happens, auto session will then disable auto saving for the current session.
 Manually saving a session can still be done by calling `:SessionSave`.
 
-AutoSession now tracks `cwd` changes!
-By default, handling is as follows:
+AutoSession can now track `cwd` changes!
+By default, `cwd` handling is disabled but when enabled, it works as follows:
   DirChangedPre (before the cwd actually changes):
     - Save the current session
     - Clear all buffers `%bd!`. This guarantees buffers don't bleed to the
       next session.
     - Clear jumps. Also done so there is no bleeding between sessions.
-    - Run the `pre_cwd_changed_hook`
+    - Run the `pre_cwd_changed_hook`/
   DirChanged (after the cwd has changed):
     - Restore session using new cwd
     - Run the `post_cwd_changed_hook`
@@ -35,7 +35,7 @@ require("auto-session").setup {
   log_level = "error",
 
   cwd_change_handling = {
-    restore_upcoming_session = true, -- already the default, no need to specify like this, only here as an example
+    restore_upcoming_session = true, -- Disabled by default, set to true to enable
     pre_cwd_changed_hook = nil, -- already the default, no need to specify like this, only here as an example
     post_cwd_changed_hook = function() -- example refreshing the lualine status line _after_ the cwd changes
       require("lualine").refresh() -- refresh lualine so the new session name is displayed in the status bar
@@ -47,14 +47,32 @@ require("auto-session").setup {
 
 # 📦 Installation
 
-Any plugin manager should do, I use [Packer.nvim](https://github.com/wbthomason/packer.nvim)
+[Lazy.nvim](https://github.com/folke/lazy.nvim):
+
+```lua
+return {
+  {
+    'rmagatti/auto-session',
+    dependencies = {
+      'nvim-telescope/telescope.nvim', -- Only needed if you want to use sesssion lens
+    },
+    config = function()
+      require('auto-session').setup({
+        auto_session_suppress_dirs = { '~/', '~/Projects', '~/Downloads', '/' },
+        },
+      })
+    end,
+  },
+}
+```
+
+[Packer.nvim](https://github.com/wbthomason/packer.nvim):
 
 ```lua
 use {
   'rmagatti/auto-session',
   config = function()
     require("auto-session").setup {
-      log_level = "error",
       auto_session_suppress_dirs = { "~/", "~/Projects", "~/Downloads", "/"},
     }
   end
@@ -93,23 +111,6 @@ require('auto-session').setup(opts)
 EOF
 ```
 
-### Statusline
-
-One can show the current session name in the statusline by using an auto-session helper function.
-
-Lualine example config and how it looks
-
-```lua
-require('lualine').setup{
-  options = {
-    theme = 'tokyonight',
-  },
-  sections = {lualine_c = {require('auto-session.lib').current_session_name}}
-}
-```
-
-<img width="1904" alt="Screen Shot 2021-10-30 at 3 58 57 PM" src="https://user-images.githubusercontent.com/2881382/139559478-8edefdb8-8254-42e7-a0f3-babd3dfd6ff2.png">
-
 ### Options
 
 | Config                           | Options                  | Default                              | Description                                                     |
@@ -137,7 +138,7 @@ require("auto-session").setup {
   bypass_session_save_file_types = nil, -- table: Bypass auto save when only buffer open is one of these file types
   close_unsupported_windows = true, -- boolean: Close windows that aren't backed by normal file
   cwd_change_handling = { -- table: Config for handling the DirChangePre and DirChanged autocmds, can be set to nil to disable altogether
-    restore_upcoming_session = true, -- boolean: restore session for upcoming cwd on cwd change
+    restore_upcoming_session = false, -- boolean: restore session for upcoming cwd on cwd change
     pre_cwd_changed_hook = nil, -- function: This is called after auto_session code runs for the `DirChangedPre` autocmd
     post_cwd_changed_hook = nil, -- function: This is called after auto_session code runs for the `DirChanged` autocmd
   },
@@ -205,6 +206,7 @@ Auto Session exposes two commands that can be used or mapped to any keybindings 
 ```
 
 You can use the `Autosession {delete|search}` command to open a picker using `vim.ui.select` this will allow you to either delete or search for a session to restore.
+There's also Telescope support, see the [Session Lens](#-session-lens) section below.
 
 ## 🪝 Command Hooks
 
@@ -284,7 +286,7 @@ For troubleshooting refer to the [wiki page](https://github.com/rmagatti/auto-se
 
 ## 🔭 Session Lens
 
-Session Lens has been merged into Auto Session! This means all the functionality of Session Lens is now available in Auto Session. It's enabled by
+Session Lens has been merged into Auto Session so now you can see, load, and delete your sessions using Telescope! It's enabled by
 default if you have Telescope, but here's the Lazy config that shows the configuration options:  
 
 ```lua
@@ -334,6 +336,23 @@ Auto Session provides its own `:Autosession search` and `:Autosession delete` co
 ### Preview
 
 <img src="https://github.com/rmagatti/readme-assets/blob/main/session-lens.gif" width=800 />
+
+### Statusline
+
+One can show the current session name in the statusline by using an auto-session helper function.
+
+Lualine example config and how it looks
+
+```lua
+require('lualine').setup{
+  options = {
+    theme = 'tokyonight',
+  },
+  sections = {lualine_c = {require('auto-session.lib').current_session_name}}
+}
+```
+
+<img width="1904" alt="Screen Shot 2021-10-30 at 3 58 57 PM" src="https://user-images.githubusercontent.com/2881382/139559478-8edefdb8-8254-42e7-a0f3-babd3dfd6ff2.png">
 
 # Compatibility
 
