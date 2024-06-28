@@ -15,14 +15,14 @@ Auto Session takes advantage of Neovim's existing session management capabilitie
 :warning: Please note that if there are errors in your config, restoring the session might fail, if that happens, auto session will then disable auto saving for the current session.
 Manually saving a session can still be done by calling `:SessionSave`.
 
-AutoSession now tracks `cwd` changes!
-By default, handling is as follows:
+AutoSession can now track `cwd` changes!
+By default, `cwd` handling is disabled but when enabled, it works as follows:
   DirChangedPre (before the cwd actually changes):
     - Save the current session
     - Clear all buffers `%bd!`. This guarantees buffers don't bleed to the
       next session.
     - Clear jumps. Also done so there is no bleeding between sessions.
-    - Run the `pre_cwd_changed_hook`
+    - Run the `pre_cwd_changed_hook`/
   DirChanged (after the cwd has changed):
     - Restore session using new cwd
     - Run the `post_cwd_changed_hook`
@@ -35,7 +35,7 @@ require("auto-session").setup {
   log_level = "error",
 
   cwd_change_handling = {
-    restore_upcoming_session = true, -- already the default, no need to specify like this, only here as an example
+    restore_upcoming_session = true, -- Disabled by default, set to true to enable
     pre_cwd_changed_hook = nil, -- already the default, no need to specify like this, only here as an example
     post_cwd_changed_hook = function() -- example refreshing the lualine status line _after_ the cwd changes
       require("lualine").refresh() -- refresh lualine so the new session name is displayed in the status bar
@@ -138,7 +138,7 @@ require("auto-session").setup {
   bypass_session_save_file_types = nil, -- table: Bypass auto save when only buffer open is one of these file types
   close_unsupported_windows = true, -- boolean: Close windows that aren't backed by normal file
   cwd_change_handling = { -- table: Config for handling the DirChangePre and DirChanged autocmds, can be set to nil to disable altogether
-    restore_upcoming_session = true, -- boolean: restore session for upcoming cwd on cwd change
+    restore_upcoming_session = false, -- boolean: restore session for upcoming cwd on cwd change
     pre_cwd_changed_hook = nil, -- function: This is called after auto_session code runs for the `DirChangedPre` autocmd
     post_cwd_changed_hook = nil, -- function: This is called after auto_session code runs for the `DirChanged` autocmd
   },
