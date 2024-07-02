@@ -15,7 +15,7 @@ local SessionLens = {
 ---@field shorten_path boolean Deprecated, pass { 'shorten' } to path_display
 ---@field path_display table An array that specifies how to handle paths. Read :h telescope.defaults.path_display
 ---@field theme_conf table
----@field buftypes_to_ignore table
+---@field buftypes_to_ignore table Deprecated, if you're using this please report your usage on github
 ---@field previewer boolean
 ---@field session_control session_control
 ---@field load_on_setup boolean
@@ -37,6 +37,10 @@ function SessionLens.setup(auto_session)
   Lib.setup(SessionLens.conf, auto_session)
   Actions.setup(SessionLens.conf, auto_session)
   logger.log_level = auto_session.conf.log_level
+
+  if SessionLens.conf.buftypes_to_ignore ~= nil and not vim.tbl_isempty(SessionLens.conf.buftypes_to_ignore) then
+    logger.warn('buftypes_to_ignore is deprecated. If you think you need this option, please file a bug on GitHub. If not, please remove it from your config')
+  end
 end
 
 ---Search session

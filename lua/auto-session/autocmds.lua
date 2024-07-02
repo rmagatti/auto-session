@@ -6,7 +6,7 @@ local M = {}
 ---@param config table auto session config
 ---@param AutoSession table auto session instance
 M.setup_autocmds = function(config, AutoSession)
-  if not config.cwd_change_handling or vim.tbl_isempty(config.cwd_change_handling or {}) then
+  if not config.cwd_change_handling or not config.cwd_change_handling.restore_upcoming_session then
     Lib.logger.debug "cwd_change_handling is disabled, skipping setting DirChangedPre and DirChanged autocmd handling"
     return
   end
@@ -30,10 +30,18 @@ M.setup_autocmds = function(config, AutoSession)
         return
       end
 
+      if AutoSession.restore_in_progress then
+        Lib.logger.debug "DirChangedPre: restore_in_progress is true, ignoring this event"
+        return
+      end
+
       AutoSession.AutoSaveSession()
 
       -- Clear all buffers and jumps after session save so session doesn't blead over to next session.
+      -- NOTE: If the code in restore_selected_session that tries to keep matching buftypes open across
+      -- sessions actually works, we should also have that logic here.
       vim.cmd "%bd!"
+
       vim.cmd "clearjumps"
 
       if type(conf.pre_cwd_changed_hook) == "function" then
@@ -53,6 +61,11 @@ M.setup_autocmds = function(config, AutoSession)
 
         -- see above
         if vim.v.event.changed_window then
+          return
+        end
+
+        if AutoSession.restore_in_progress then
+          Lib.logger.debug "DirChanged: restore_in_progress is true, ignoring this event"
           return
         end
 

@@ -36,6 +36,12 @@ end
 function Lib.make_entry.gen_from_file(opts)
   local root = Lib.functions.get_root_dir()
   return function(line)
+    -- Don't include <session>x.vim files that nvim makes for custom user
+    -- commands
+    if not AutoSessionLib.is_session_file(root, line) then
+      return nil
+    end
+
     return {
       ordinal = line,
       value = line,
