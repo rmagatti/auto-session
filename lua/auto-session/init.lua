@@ -480,7 +480,7 @@ function AutoSession.get_session_files()
   end
 
   local entries = vim.fn.readdir(sessions_dir, function(item)
-    return vim.fn.isdirectory(item) == 0 and not string.find(item, "x.vim$")
+    return Lib.is_session_file(sessions_dir, item)
   end)
 
   return vim.tbl_map(function(entry)
