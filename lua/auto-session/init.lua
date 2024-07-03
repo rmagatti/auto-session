@@ -69,6 +69,13 @@ local defaultConf = {
 ---@field close_unsupported_windows? boolean Whether to close windows that aren't backed by a real file
 ---@field silent_restore boolean Whether to restore sessions silently or not
 ---@field log_level? string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
+---Argv Handling
+---@field args_allow_dot? boolean Follow normal sesion save/load logic if launched as 'nvim .'
+---@field args_handling? string How to handle sessions when nvim is launched with arguments. Must be one of
+---'replace_session': don't load existing session but save on exit
+---'replace_session_only_if_multiple_buffers': don't load existing session and save session on exit if there's more than one buffer that would be saved
+---'new_session_named_with_args': add arguments to session name for loading/saving (not implemented)
+
 local luaOnlyConf = {
   bypass_session_save_file_types = nil, -- Bypass auto save when only buffer open is one of these file types
   close_unsupported_windows = true,     -- Close windows that aren't backed by normal file
@@ -192,23 +199,70 @@ local function get_branch_name()
   return ""
 end
 
-local pager_mode = nil
 local in_pager_mode = function()
-  if pager_mode ~= nil then
-    return pager_mode
-  end                                                             -- Only evaluate this once
+  return vim.g.in_pager_mode == Lib._VIM_TRUE
+end
 
-  local opened_with_args = next(vim.fn.argv()) ~= nil             -- Neovim was opened with args
-  local reading_from_stdin = vim.g.in_pager_mode == Lib._VIM_TRUE -- Set from StdinReadPre
+-- Returns whether Auto restoring / saving is enabled for the args nvim was launched with
+local launch_argv = nil
+local enabled_for_command_line_argv = function(is_save)
+  is_save = is_save or false
 
-  pager_mode = opened_with_args or reading_from_stdin
-  Lib.logger.debug("in pager mode", pager_mode)
-  if pager_mode then
-    local no_restore_cmds = AutoSession.get_cmds "no_restore"
-    Lib.logger.debug("In pager mode, skipping auto restore and unning no-restore hook cmds", no_restore_cmds)
-    run_hook_cmds(no_restore_cmds, "no-restore")
+  -- When a session is loaded, it will also load the global argument list so
+  -- save the argv we were actually launched with so we can always access it
+  if not launch_argv then
+    launch_argv = vim.fn.argv()
   end
-  return pager_mode
+  local argc = #launch_argv
+
+  if argc == 0 then
+    -- Launched with no args, saving is enabled
+    Lib.logger.debug "No arguments, restoring/saving enabled"
+    return true
+  end
+
+  -- if conf.args_allow_dot is true, support session loading/saving with nvim .
+  if argc == 1 and launch_argv[1] == "." and AutoSession.conf.args_allow_dot then
+    Lib.logger.debug "Allowing restore when launched with . argument"
+    return true
+  end
+
+  local args_handling = AutoSession.conf.args_handling
+
+  if not args_handling then
+    return false
+  end
+
+  if args_handling == "replace_session" then
+    -- Don't load, but do save
+    if not is_save then
+      Lib.logger.debug "[replace_session] Not allowing restore when launched with argument"
+    else
+      Lib.logger.debug "[replace_session] Allowing save when launched with argument argument"
+    end
+
+    return is_save
+  elseif args_handling == "replace_session_only_if_multiple_buffers" then
+    -- Don't restore
+    if not is_save then
+      Lib.logger.debug "[replace_session_only_if_multiple] Not allowing restore when launched with argument"
+      return false
+    end
+    -- Check close_unsupported_windows
+    if Lib.count_supported_buffers() > 1 then
+      Lib.logger.debug "[replace_session_only_if_multiple_buffers] multiple buffers, allow save"
+      return true
+    end
+    Lib.logger.debug "[replace_session_only_if_multiple_buffers] single buffer, disallow save"
+    return false
+  elseif args_handling == "new_session_named_with_args" then
+    -- TODO: implement me
+    return false
+  else
+    Lib.logger.warn("Invalid value for args_handling: " .. args_handling)
+  end
+
+  return false
 end
 
 local in_headless_mode = function()
@@ -216,7 +270,7 @@ local in_headless_mode = function()
 end
 
 local auto_save = function()
-  if in_pager_mode() or in_headless_mode() then
+  if in_pager_mode() or in_headless_mode() or not enabled_for_command_line_argv(true) then
     return false
   end
 
@@ -230,7 +284,7 @@ local auto_save = function()
 end
 
 local auto_restore = function()
-  if in_pager_mode() or in_headless_mode() then
+  if in_pager_mode() or in_headless_mode() or not enabled_for_command_line_argv(false) then
     return false
   end
 
@@ -665,6 +719,12 @@ end
 ---@param auto boolean
 function AutoSession.SaveSession(sessions_dir, auto)
   Lib.logger.debug { sessions_dir = sessions_dir, auto = auto }
+
+  -- Delete global arguments since the buffers are what we want to 
+  -- save the state of. i.e. we don't want to reopen the arguments
+  -- that were passed to nvim at launch time
+  vim.cmd "%argdel"
+
   local session_file_name = get_session_file_name(sessions_dir)
 
   Lib.logger.debug { session_file_name = session_file_name }
@@ -691,6 +751,22 @@ function AutoSession.AutoRestoreSession(session_dir)
   if is_enabled() and auto_restore() and not suppress_session() then
     return AutoSession.RestoreSession(session_dir)
   end
+
+  return false
+end
+
+---Function called by AutoSession at VimEnter when automatically restoring a session.
+---This function exists just to make sure we dispatch the no_restore hook
+local function auto_restore_session_at_vim_enter()
+  -- If it succeeded, we're done
+  if AutoSession.AutoRestoreSession() then
+    return true
+  end
+
+  -- Dispatch the no_restore hooks
+  local no_restore_cmds = AutoSession.get_cmds "no_restore"
+  Lib.logger.debug("No session restored, call no_restore hooks", no_restore_cmds)
+  run_hook_cmds(no_restore_cmds, "no-restore")
 
   return false
 end
@@ -1020,7 +1096,7 @@ function SetupAutocmds()
 
       if not AutoSession.conf.auto_restore_lazy_delay_enabled then
         -- If auto_restore_lazy_delay_enabled is false, just restore the session as normal
-        AutoSession.AutoRestoreSession()
+        auto_restore_session_at_vim_enter()
         return
       end
 
@@ -1028,14 +1104,14 @@ function SetupAutocmds()
       local ok, lazy_view = pcall(require, "lazy.view")
       if not ok then
         -- No Lazy, load as usual
-        AutoSession.AutoRestoreSession()
+        auto_restore_session_at_vim_enter()
         return
       end
 
       if not lazy_view.visible() then
         -- Lazy isn't visible, load as usual
         Lib.logger.debug "Lazy is loaded, but not visible, restore session!"
-        AutoSession.AutoRestoreSession()
+        auto_restore_session_at_vim_enter()
         return
       end
 
@@ -1080,7 +1156,7 @@ function SetupAutocmds()
         -- Schedule restoration for the next pass in the event loop to time for the window to close
         -- Not doing this could create a blank buffer in the restored session
         vim.schedule(function()
-          AutoSession.AutoRestoreSession()
+          auto_restore_session_at_vim_enter()
         end)
       end,
     })

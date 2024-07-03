@@ -185,6 +185,8 @@ function Lib.has_open_buffers()
   return result
 end
 
+-- Iterate over the tabpages and then the windows and close any window that has a buffer that isn't backed by
+-- a real file
 function Lib.close_unsupported_windows()
   local tabpages = vim.api.nvim_list_tabpages()
   for _, tabpage in ipairs(tabpages) do
@@ -201,6 +203,26 @@ function Lib.close_unsupported_windows()
       end
     end
   end
+end
+
+-- Count the number of supported buffers
+function Lib.count_supported_buffers()
+  local supported = 0
+
+  local buffers = vim.api.nvim_list_bufs()
+
+  for _, buf in ipairs(buffers) do
+    -- Check if the buffer is valid and loaded
+    if vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_is_loaded(buf) then
+      local file_name = vim.api.nvim_buf_get_name(buf)
+      if Lib.is_readable(file_name) then
+        supported = supported + 1
+        Lib.logger.debug("is supported: " .. file_name .. " count: " .. vim.inspect(supported))
+      end
+    end
+  end
+
+  return supported
 end
 
 function Lib.get_path_separator()
