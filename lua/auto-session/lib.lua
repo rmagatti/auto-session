@@ -229,8 +229,6 @@ function Lib.is_session_file(session_dir, file_path)
   local first_line = file:read "*line"
   file:close()
 
-  Lib.logger.debug("file_path" .. file_path .. " first line: " .. first_line)
-
   return first_line and string.find(first_line, "SessionLoad") ~= nil
 end
 
