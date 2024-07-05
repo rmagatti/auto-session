@@ -483,8 +483,11 @@ function AutoSession.get_session_files()
     return Lib.is_session_file(sessions_dir, item)
   end)
 
+  -- Get cross platform path separator
+  local path_separator = Lib.get_path_separator()
+
   return vim.tbl_map(function(entry)
-    return { display_name = AutoSession.format_file_name(entry), path = sessions_dir .. "/" .. entry }
+    return { display_name = AutoSession.format_file_name(entry), path = sessions_dir .. path_separator .. entry }
   end, entries)
 end
 

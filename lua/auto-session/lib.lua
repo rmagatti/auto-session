@@ -203,8 +203,10 @@ function Lib.close_unsupported_windows()
   end
 end
 
--- Get cross platform path separator
-local path_separator = package.config:sub(1, 1)
+function Lib.get_path_separator()
+  -- Get cross platform path separator
+  return package.config:sub(1, 1)
+end
 
 -- When Neovim makes a session file, it may save an additional <filename>x.vim file
 -- with custom user commands. This function returns false if it's one of those files
@@ -218,6 +220,8 @@ function Lib.is_session_file(session_dir, file_path)
   if not string.find(file_path, "x.vim$") then
     return true
   end
+
+  local path_separator = Lib.get_path_separator()
 
   -- the file ends in x.vim, make sure it has SessionLoad on the first line
   local file = io.open(session_dir .. path_separator .. file_path, "r")
