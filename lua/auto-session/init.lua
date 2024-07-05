@@ -70,7 +70,7 @@ local defaultConf = {
 ---@field silent_restore boolean Whether to restore sessions silently or not
 ---@field log_level? string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
 ---Argv Handling
----@field args_allow_dot? boolean Follow normal sesion save/load logic if launched as 'nvim .'
+---@field args_allow_single_directory? boolean Follow normal sesion save/load logic if launched with a single directory as the only argument
 ---@field args_handling? string How to handle sessions when nvim is launched with arguments. Must be one of
 ---'replace_session': don't load existing session but save on exit
 ---'replace_session_only_if_multiple_buffers': don't load existing session and save session on exit if there's more than one buffer that would be saved
@@ -221,9 +221,10 @@ local enabled_for_command_line_argv = function(is_save)
     return true
   end
 
-  -- if conf.args_allow_dot is true, support session loading/saving with nvim .
-  if argc == 1 and launch_argv[1] == "." and AutoSession.conf.args_allow_dot then
-    Lib.logger.debug "Allowing restore when launched with . argument"
+  -- if conf.args_allow_single_directory = true, then enable session handling if only param is a directory
+
+  if argc == 1 and vim.fn.isdirectory(launch_argv[1]) and AutoSession.conf.args_allow_single_directory then
+    Lib.logger.debug "Allowing restore when launched with a single directory argument"
     return true
   end
 
@@ -323,10 +324,13 @@ local function bypass_save_by_filetype()
   return true
 end
 
-local function suppress_session()
+local function suppress_session(session_dir)
   local dirs = vim.g.auto_session_suppress_dirs or AutoSession.conf.auto_session_suppress_dirs or {}
 
-  local cwd = vim.fn.getcwd()
+  -- If session_dir is set, use that otherwise use cwd
+  -- session_dir will be set when loading a session from a directory at lauch (i.e. from argv)
+  local cwd = session_dir or vim.fn.getcwd()
+
   for _, s in pairs(dirs) do
     if s ~= "/" then
       s = string.gsub(vim.fn.simplify(Lib.expand(s)), "/+$", "")
@@ -720,7 +724,7 @@ end
 function AutoSession.SaveSession(sessions_dir, auto)
   Lib.logger.debug { sessions_dir = sessions_dir, auto = auto }
 
-  -- Delete global arguments since the buffers are what we want to 
+  -- Delete global arguments since the buffers are what we want to
   -- save the state of. i.e. we don't want to reopen the arguments
   -- that were passed to nvim at launch time
   vim.cmd "%argdel"
@@ -744,26 +748,45 @@ function AutoSession.SaveSession(sessions_dir, auto)
 end
 
 ---Function called by AutoSession when automatically restoring a session.
----This function avoids calling RestoreSession automatically when argv is not nil.
 ---@param session_dir any
 ---@return boolean boolean returns whether restoring the session was successful or not.
 function AutoSession.AutoRestoreSession(session_dir)
-  if is_enabled() and auto_restore() and not suppress_session() then
+  -- WARN: should this be checking is_allowed_dir as well?
+  if is_enabled() and auto_restore() and not suppress_session(session_dir) then
     return AutoSession.RestoreSession(session_dir)
   end
 
   return false
 end
 
----Function called by AutoSession at VimEnter when automatically restoring a session.
----This function exists just to make sure we dispatch the no_restore hook
+---Function called by AutoSession at VimEnter to automatically restore a session.
+---If launched with a single directory parameter and conf.args_allow_single_directory is true, pass
+---that in as the session_dir. Handles both 'nvim .' and 'nvim some/dir'
+---
+---Also make sure to call no_restore if no session was restored
 local function auto_restore_session_at_vim_enter()
-  -- If it succeeded, we're done
-  if AutoSession.AutoRestoreSession() then
+  local session_dir = nil
+
+  local argv = vim.fn.argv()
+
+  -- Is there exactly one argument and is it a directory?
+  if AutoSession.conf.args_allow_single_directory and #argv == 1 and vim.fn.isdirectory(argv[1]) then
+    -- Get the full path of the directory and make sure it doesn't have a trailing path_separator
+    -- to make sure we find the session
+    session_dir = vim.fn.fnamemodify(argv[1], ":p"):gsub("[" .. Lib.get_path_separator() .. "]$", "")
+    Lib.logger.debug("Launched with single directory, using as session_dir: " .. session_dir)
+  end
+
+  -- Restoring here may change the cwd so disable cwd processing while restoring
+  AutoSession.restore_in_progress = true
+  local success, result = pcall(AutoSession.AutoRestoreSession, session_dir)
+  AutoSession.restore_in_progress = false
+
+  if success and result then
     return true
   end
 
-  -- Dispatch the no_restore hooks
+  -- No session was restored, dispatch no-restore hook
   local no_restore_cmds = AutoSession.get_cmds "no_restore"
   Lib.logger.debug("No session restored, call no_restore hooks", no_restore_cmds)
   run_hook_cmds(no_restore_cmds, "no-restore")
