@@ -38,7 +38,7 @@ end
 ---@field auto_session_enable_last_session? boolean
 ---@field auto_session_root_dir? string root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
 ---@field auto_session_enabled? boolean enable auto session
----@field auto_session_create_enabled boolean|nil Enables/disables auto creating new sessions
+---@field auto_session_create_enabled boolean|function|nil Enables/disables auto creating new sessions. Can take a function that should return true/false if a session should be created or not
 ---@field auto_save_enabled? boolean Enables/disables auto saving session
 ---@field auto_restore_enabled? boolean Enables/disables auto restoring session
 ---@field auto_restore_lazy_delay_enabled? boolean Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used. Can be disabled if a problem is suspected or for debugging
@@ -53,7 +53,7 @@ local defaultConf = {
   auto_session_enable_last_session = vim.g.auto_session_enable_last_session or false,                              -- Enables/disables the "last session" feature
   auto_session_root_dir = vim.fn.stdpath "data" .. "/sessions/",                                                   -- Root dir where sessions will be stored
   auto_session_enabled = true,                                                                                     -- Enables/disables auto creating, saving and restoring
-  auto_session_create_enabled = nil,                                                                               -- Enables/disables auto creating new sessions
+  auto_session_create_enabled = nil,                                                                               -- Enables/disables auto creating new sessions. Can take a function that should return true/false if a session should be created or not
   auto_save_enabled = nil,                                                                                         -- Enables/disables auto save feature
   auto_restore_enabled = nil,                                                                                      -- Enables/disables auto restore feature
   auto_restore_lazy_delay_enabled = true,                                                                          -- Enables/disables Lazy delay feature
@@ -169,9 +169,31 @@ end
 
 local function is_auto_create_enabled()
   if vim.g.auto_session_create_enabled ~= nil then
-    return vim.g.auto_session_create_enabled == Lib._VIM_TRUE
-  elseif AutoSession.conf.auto_session_create_enabled ~= nil then
-    return AutoSession.conf.auto_session_create_enabled
+    if type(vim.g.auto_session_create_enabled) == 'function' then
+      if (vim.g.auto_session_create_enabled()) then
+        Lib.logger.debug('vim.g.auto_session_create_enabled returned true, allowing creation')
+        return true
+      else
+        Lib.logger.debug('vim.g.auto_session_create_enabled returned false, not allowing creation')
+        return false
+      end
+    else
+      return vim.g.auto_session_create_enabled == Lib._VIM_TRUE
+    end
+  end
+
+  if AutoSession.conf.auto_session_create_enabled ~= nil then
+    if type(AutoSession.conf.auto_session_create_enabled) == 'function' then
+      if AutoSession.conf.auto_session_create_enabled() then
+        Lib.logger.debug('AutoSession.conf.auto_session_create_enabled returned true, allowing creation')
+        return true
+      else
+        Lib.logger.debug('AutoSession.conf.auto_session_create_enabled returned false, not allowing creation')
+        return false
+      end
+    else
+      return AutoSession.conf.auto_session_create_enabled
+    end
   end
 
   return true
@@ -398,6 +420,7 @@ function AutoSession.AutoSaveSession(sessions_dir)
     if not is_auto_create_enabled() then
       local session_file_name = get_session_file_name(sessions_dir)
       if not Lib.is_readable(session_file_name) then
+        Lib.logger.debug('Create not enabled and no existing session, not creating session')
         return
       end
     end
