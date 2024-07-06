@@ -222,9 +222,13 @@ local enabled_for_command_line_argv = function(is_save)
   end
 
   -- if conf.args_allow_single_directory = true, then enable session handling if only param is a directory
-
-  if argc == 1 and vim.fn.isdirectory(launch_argv[1]) and AutoSession.conf.args_allow_single_directory then
-    Lib.logger.debug "Allowing restore when launched with a single directory argument"
+  if
+    argc == 1
+    and vim.fn.isdirectory(launch_argv[1]) == Lib._VIM_TRUE
+    and AutoSession.conf.args_allow_single_directory
+  then
+    -- Actual session will be loaded in auto_restore_session_at_vim_enter
+    Lib.logger.debug("Allowing restore when launched with a single directory argument: " .. launch_argv[1])
     return true
   end
 
@@ -257,7 +261,7 @@ local enabled_for_command_line_argv = function(is_save)
     Lib.logger.debug "[replace_session_only_if_multiple_buffers] single buffer, disallow save"
     return false
   elseif args_handling == "new_session_named_with_args" then
-    -- TODO: implement me
+    -- TODO: implement me or maybe not worth it
     return false
   else
     Lib.logger.warn("Invalid value for args_handling: " .. args_handling)
@@ -377,6 +381,10 @@ local function get_session_file_name(upcoming_session_dir)
 
   Lib.logger.debug("get_session_file_name", { session = session, upcoming_session_dir = upcoming_session_dir })
 
+  -- BUG: The then case below will never be entered becuase vim.fn.isdirectory will return 0 or 1, both of which
+  -- are true in Lua. However, changing it to compare against Lib._VIM_FALSE (and removing the not) generates
+  -- an error on autosave that would need to be traced down. Since I don't understand the purpose of this code
+  -- right now, I'm leaving as is.
   if not vim.fn.isdirectory(Lib.expand(session or upcoming_session_dir)) then
     Lib.logger.debug(
       "Session and sessions_dir either both point to a file or do not exist",
@@ -533,7 +541,7 @@ function AutoSession.get_session_files()
   local files = {}
   local sessions_dir = AutoSession.get_root_dir()
 
-  if not vim.fn.isdirectory(sessions_dir) then
+  if vim.fn.isdirectory(sessions_dir) == Lib._VIM_FALSE then
     return files
   end
 
@@ -770,7 +778,7 @@ local function auto_restore_session_at_vim_enter()
   local argv = vim.fn.argv()
 
   -- Is there exactly one argument and is it a directory?
-  if AutoSession.conf.args_allow_single_directory and #argv == 1 and vim.fn.isdirectory(argv[1]) then
+  if AutoSession.conf.args_allow_single_directory and #argv == 1 and vim.fn.isdirectory(argv[1]) == Lib._VIM_TRUE then
     -- Get the full path of the directory and make sure it doesn't have a trailing path_separator
     -- to make sure we find the session
     session_dir = vim.fn.fnamemodify(argv[1], ":p"):gsub("[" .. Lib.get_path_separator() .. "]$", "")
