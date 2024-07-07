@@ -180,6 +180,7 @@ end
 -- get the current git branch name, if any, and only if configured to do so
 local function get_branch_name()
   if AutoSession.conf.auto_session_use_git_branch then
+    -- WARN: this assumes you want the branch of the cwd
     local out = vim.fn.systemlist "git rev-parse --abbrev-ref HEAD"
     if vim.v.shell_error ~= 0 then
       Lib.logger.debug(string.format("git failed with: %s", table.concat(out, "\n")))
@@ -479,11 +480,14 @@ function AutoSession.get_session_files()
   end
 
   local entries = vim.fn.readdir(sessions_dir, function(item)
-    return vim.fn.isdirectory(item) == 0 and not string.find(item, "x.vim$")
+    return Lib.is_session_file(sessions_dir, item)
   end)
 
+  -- Get cross platform path separator
+  local path_separator = Lib.get_path_separator()
+
   return vim.tbl_map(function(entry)
-    return { display_name = AutoSession.format_file_name(entry), path = entry }
+    return { display_name = AutoSession.format_file_name(entry), path = sessions_dir .. path_separator .. entry }
   end, entries)
 end
 
@@ -509,15 +513,58 @@ local function handle_autosession_command(data)
   local files = AutoSession.get_session_files()
   if data.args:match "search" then
     open_picker(files, "Select a session:", function(choice)
-      -- Change dir to selected session path, the DirChangePre and DirChange events will take care of the rest
-      -- BUG: The above is only true if cwd_change_handling is true which means sessions
-      -- won't be restored if cwd_change_handling is false
-      vim.fn.chdir(choice.display_name)
+      AutoSession.restore_selected_session(choice.path)
     end)
   elseif data.args:match "delete" then
     open_picker(files, "Delete a session:", function(choice)
       AutoSession.DeleteSessionByName(choice.display_name)
     end)
+  end
+end
+
+-- Handler for when a session is picked from the UI, either via Telescope or via AutoSession.select_session
+-- We'll load the selected session file, setting restore_in_progress so DirChangedPre/DirChanged won't
+-- also try to load the session when the directory is changed
+function AutoSession.restore_selected_session(session_filename)
+  Lib.logger.debug("[restore_selected_session]: filename: " .. session_filename)
+
+  AutoSession.AutoSaveSession()
+
+  -- NOTE:
+  -- In theory, this is supposed to keep open buffers that are in buftypes_to_ignore. However, even if
+  -- we keep them open here, they'll be cleared when we source the session file sp I don't think
+  -- this code does anything. It also interrupts session loading if the buffer replaced is loaded
+  -- by another process. So, I've replaced it with %bd! which is what cwd_change_handling does.
+  -- This code and block should be removed when it's confirmed that no users are using it effectively
+  --
+  -- local buffers = vim.api.nvim_list_bufs()
+  -- for _, bufn in pairs(buffers) do
+  --   if
+  --     not vim.tbl_contains(
+  --       AutoSession.conf.session_lens.buftypes_to_ignore,
+  --       vim.api.nvim_get_option_value("buftype", { buf = bufn })
+  --     )
+  --   then
+  --     vim.cmd("silent bwipeout!" .. bufn)
+  --   else
+  --     Lib.logger.debug "[restore_selected_session] Not closing buffer because it matches buftypes_to_ignore"
+  --   end
+  -- end
+
+  vim.cmd "%bd!"
+
+  -- Would it be better to always clear jumps in RestoreSession?
+  vim.cmd "clearjumps"
+
+  -- Set restore_in_progress so cwd_change_handling won't also try to load the session when the directory is changed
+  -- And use a pcall to make sure we unset the flag whether loading was successful or not
+  AutoSession.restore_in_progress = true
+  local success, result = pcall(AutoSession.RestoreSession, session_filename)
+  AutoSession.restore_in_progress = false
+
+  if not success or not result then
+    Lib.logger.info("Could not load session for filename: " .. session_filename)
+    return
   end
 end
 
@@ -767,6 +814,7 @@ Disabling auto save. Please check for errors in your config. Error:
   elseif session_file then
     Lib.logger.debug "Using session FILE"
     local escaped_file = session_file:gsub("%%", "\\%%")
+    Lib.logger.debug("Using session FILE: " .. escaped_file)
     if Lib.is_readable(escaped_file) then
       Lib.logger.debug "isReadable, calling restore"
       RESTORED_WITH = restore(escaped_file)
