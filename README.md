@@ -7,10 +7,11 @@ Auto Session takes advantage of Neovim's existing session management capabilitie
 # 💡 Behaviour
 
 1. When starting `nvim` with no arguments, auto-session will try to restore an existing session for the current `cwd` if one exists.
-2. When starting `nvim .` with some argument, auto-session will do nothing.
-3. Even after starting `nvim` with an argument, a session can still be manually restored by running `:SessionRestore`.
-4. Any session saving and restoration takes into consideration the current working directory `cwd`.
-5. When piping to `nvim`, e.g: `cat myfile | nvim`, auto-session behaves like #2.
+2. When starting `nvim .` (or another directory), auto-session will try to restore the session for that directory.
+3. When starting `nvim some_file.txt` (or multiple files), by default, auto-session won't do anything. See [argument handling](#argument-handling) for more details.
+4. Even after starting `nvim` with a file argument, a session can still be manually restored by running `:SessionRestore`.
+5. Any session saving and restoration takes into consideration the current working directory `cwd`.
+6. When piping to `nvim`, e.g: `cat myfile | nvim`, auto-session won't do anything.
 
 :warning: Please note that if there are errors in your config, restoring the session might fail, if that happens, auto session will then disable auto saving for the current session.
 Manually saving a session can still be done by calling `:SessionSave`.
@@ -30,6 +31,7 @@ By default, `cwd` handling is disabled but when enabled, it works as follows:
 Now when the user changes the cwd with `:cd some/new/dir` auto-session handles it gracefully, saving the current session so there aren't losses and loading the session for the upcoming cwd if it exists.
 
 Hooks are available for custom actions _before_ and _after_ the `cwd` is changed. These hooks can be configured through the `cwd_change_handling` key as follows:
+
 ```lua
 require("auto-session").setup {
   log_level = "error",
@@ -141,6 +143,8 @@ require("auto-session").setup {
     pre_cwd_changed_hook = nil, -- function: This is called after auto_session code runs for the `DirChangedPre` autocmd
     post_cwd_changed_hook = nil, -- function: This is called after auto_session code runs for the `DirChanged` autocmd
   },
+  args_allow_single_directory = true, -- boolean Follow normal sesion save/load logic if launched with a single directory as the only argument
+  args_allow_files_auto_save = false, -- boolean|function Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. While you can just set this to true, you probably want to set it to a function that decides when to save a session when launched with file args. See documentation for more detail
 }
 ```
 
@@ -283,6 +287,74 @@ use this to only create sessions for git projects:
 
 ```
 
+## Argument Handling
+
+By default, when `nvim` is run with a single directory argument, auto-session will try to restore the session for that directory. If `nvim` is run with multiple directories or any file arguments, auto-session won't try to restore a session and won't auto-save a session on exit (if enabled). Those behaviors can be changed with these config parameters:
+
+```lua
+  args_allow_single_directory = true, -- boolean Follow normal sesion save/load logic if launched with a single directory as the only argument
+  args_allow_files_auto_save = false, -- boolean|function Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. While you can just set this to true, you probably want to set it to a function that decides when to save a session when launched with file args. See documentation for more detail
+```
+
+For `args_allow_single_directory`, if you frequently use `netrw` to look at directories, you might want to add it to `bypass_session_save_file_types` if you don't want to create a session for each directory you look at:
+
+```lua
+      bypass_session_save_file_types = { 'netrw' }
+```
+
+If `args_allow_files_auto_save` is true, auto-session won't load any session when `nvim` is launched with file argument(s) but it will save on exit. What's probably more useful is to set `args_allow_files_auto_save` to a function that returns true if a session should be saved and false otherwise. auto-session will call that function on auto save when run with arguments. Here's one example config where it will save the session if at least two buffers are open after being launched with arguments:
+
+```lua
+return {
+  'rmagatti/auto-session',
+  config = function()
+    require('auto-session').setup({
+      auto_restore_enabled = true,
+      auto_save_enabled = true,
+
+      args_allow_files_auto_save = function()
+        local supported = 0
+
+        local buffers = vim.api.nvim_list_bufs()
+        for _, buf in ipairs(buffers) do
+          -- Check if the buffer is valid and loaded
+          if vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_is_loaded(buf) then
+            local path = vim.api.nvim_buf_get_name(buf)
+            if vim.fn.filereadable(path) == 1 then supported = supported + 1 end
+          end
+        end
+
+        -- If we have more 2 or more supported buffers, save the session
+        return supported >= 2
+      end,
+    })
+  end,
+}
+
+```
+
+Another possibility is to only save the session if there are at least two windows with buffers backed by normal files:
+
+```lua
+      args_allow_files_auto_save = function()
+        local supported = 0
+
+        local tabpages = vim.api.nvim_list_tabpages()
+        for _, tabpage in ipairs(tabpages) do
+          local windows = vim.api.nvim_tabpage_list_wins(tabpage)
+          for _, window in ipairs(windows) do
+            local buffer = vim.api.nvim_win_get_buf(window)
+            local file_name = vim.api.nvim_buf_get_name(buffer)
+            if vim.fn.filereadable(file_name) then supported = supported + 1 end
+          end
+        end
+
+        -- If we have 2 or more windows with supported buffers, save the session
+        return supported >= 2
+      end,
+
+```
+
 ## Disabling the plugin
 
 One might run into issues with Firenvim or another plugin and want to disable `auto_session` altogether based on some condition.
@@ -307,7 +379,7 @@ For troubleshooting refer to the [wiki page](https://github.com/rmagatti/auto-se
 ## 🔭 Session Lens
 
 Session Lens has been merged into Auto Session so now you can see, load, and delete your sessions using Telescope! It's enabled by
-default if you have Telescope, but here's the Lazy config that shows the configuration options:  
+default if you have Telescope, but here's the Lazy config that shows the configuration options:
 
 ```lua
 
