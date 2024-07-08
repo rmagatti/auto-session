@@ -7,7 +7,7 @@ local AutoSession = {
   conf = {},
 }
 
--- Run comand hooks
+-- Run command hooks
 local function run_hook_cmds(cmds, hook_name)
   local results = {}
   if not Lib.is_empty_table(cmds) then
@@ -69,9 +69,15 @@ local defaultConf = {
 ---@field close_unsupported_windows? boolean Whether to close windows that aren't backed by a real file
 ---@field silent_restore boolean Whether to restore sessions silently or not
 ---@field log_level? string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
+---Argv Handling
+---@field args_allow_single_directory? boolean Follow normal sesion save/load logic if launched with a single directory as the only argument
+---@field args_allow_files_auto_save? boolean|function Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. While you can just set this to true, you probably want to set it to a function that decides when to save a session when launched with file args. See documentation for more detail
+
 local luaOnlyConf = {
   bypass_session_save_file_types = nil, -- Bypass auto save when only buffer open is one of these file types
-  close_unsupported_windows = true,     -- Close windows that aren't backed by normal file
+  close_unsupported_windows = true, -- Close windows that aren't backed by normal file
+  args_allow_single_directory = true, -- Allow single directory arguments by default
+  args_allow_files_auto_save = false, -- Don't save session for file args by default
   ---CWD Change Handling Config
   ---@class CwdChangeHandling
   ---@field restore_upcoming_session boolean {true} restore session for upcoming cwd on cwd change
@@ -192,23 +198,59 @@ local function get_branch_name()
   return ""
 end
 
-local pager_mode = nil
 local in_pager_mode = function()
-  if pager_mode ~= nil then
-    return pager_mode
-  end                                                             -- Only evaluate this once
+  return vim.g.in_pager_mode == Lib._VIM_TRUE
+end
 
-  local opened_with_args = next(vim.fn.argv()) ~= nil             -- Neovim was opened with args
-  local reading_from_stdin = vim.g.in_pager_mode == Lib._VIM_TRUE -- Set from StdinReadPre
+-- Returns whether Auto restoring / saving is enabled for the args nvim was launched with
+local launch_argv = nil
+local function enabled_for_command_line_argv(is_save)
+  is_save = is_save or false
 
-  pager_mode = opened_with_args or reading_from_stdin
-  Lib.logger.debug("in pager mode", pager_mode)
-  if pager_mode then
-    local no_restore_cmds = AutoSession.get_cmds "no_restore"
-    Lib.logger.debug("In pager mode, skipping auto restore and unning no-restore hook cmds", no_restore_cmds)
-    run_hook_cmds(no_restore_cmds, "no-restore")
+  -- If no args (or launch_argv has been unset, allow restoring/saving)
+  if not launch_argv then
+    Lib.logger.debug "No arguments, restoring/saving enabled"
+    return true
   end
-  return pager_mode
+
+  local argc = #launch_argv
+
+  Lib.logger.debug("enabled_for_command_line_argv, launch_argv: " .. vim.inspect(launch_argv))
+
+  if argc == 0 then
+    -- Launched with no args, saving is enabled
+    Lib.logger.debug "No arguments, restoring/saving enabled"
+    return true
+  end
+
+  -- if conf.args_allow_single_directory = true, then enable session handling if only param is a directory
+  if
+    argc == 1
+    and vim.fn.isdirectory(launch_argv[1]) == Lib._VIM_TRUE
+    and AutoSession.conf.args_allow_single_directory
+  then
+    -- Actual session will be loaded in auto_restore_session_at_vim_enter
+    Lib.logger.debug("Allowing restore when launched with a single directory argument: " .. launch_argv[1])
+    return true
+  end
+
+  if not AutoSession.conf.args_allow_files_auto_save then
+    return false
+  end
+
+  if not is_save then
+    Lib.logger.debug "Not allowing restore when launched with argument"
+    return false
+  end
+
+  if type(AutoSession.conf.args_allow_files_auto_save) == "function" then
+    local ret = AutoSession.conf.args_allow_files_auto_save()
+    Lib.logger.debug("conf.args_allow_files_auto_save() returned: " .. vim.inspect(ret))
+    return ret
+  end
+
+  Lib.logger.debug "Allowing possible save when launched with argument"
+  return true
 end
 
 local in_headless_mode = function()
@@ -216,7 +258,8 @@ local in_headless_mode = function()
 end
 
 local auto_save = function()
-  if in_pager_mode() or in_headless_mode() then
+  if in_pager_mode() or in_headless_mode() or not enabled_for_command_line_argv(true) then
+    Lib.logger.debug "auto_save, pager, headless, or enabled_for_command_line_argv returned false"
     return false
   end
 
@@ -230,7 +273,7 @@ local auto_save = function()
 end
 
 local auto_restore = function()
-  if in_pager_mode() or in_headless_mode() then
+  if in_pager_mode() or in_headless_mode() or not enabled_for_command_line_argv(false) then
     return false
   end
 
@@ -269,10 +312,13 @@ local function bypass_save_by_filetype()
   return true
 end
 
-local function suppress_session()
+local function suppress_session(session_dir)
   local dirs = vim.g.auto_session_suppress_dirs or AutoSession.conf.auto_session_suppress_dirs or {}
 
-  local cwd = vim.fn.getcwd()
+  -- If session_dir is set, use that otherwise use cwd
+  -- session_dir will be set when loading a session from a directory at lauch (i.e. from argv)
+  local cwd = session_dir or vim.fn.getcwd()
+
   for _, s in pairs(dirs) do
     if s ~= "/" then
       s = string.gsub(vim.fn.simplify(Lib.expand(s)), "/+$", "")
@@ -319,6 +365,10 @@ local function get_session_file_name(upcoming_session_dir)
 
   Lib.logger.debug("get_session_file_name", { session = session, upcoming_session_dir = upcoming_session_dir })
 
+  -- BUG: The then case below will never be entered becuase vim.fn.isdirectory will return 0 or 1, both of which
+  -- are true in Lua. However, changing it to compare against Lib._VIM_FALSE (and removing the not) generates
+  -- an error on autosave that would need to be traced down. Since I don't understand the purpose of this code
+  -- right now, I'm leaving as is.
   if not vim.fn.isdirectory(Lib.expand(session or upcoming_session_dir)) then
     Lib.logger.debug(
       "Session and sessions_dir either both point to a file or do not exist",
@@ -475,7 +525,7 @@ function AutoSession.get_session_files()
   local files = {}
   local sessions_dir = AutoSession.get_root_dir()
 
-  if not vim.fn.isdirectory(sessions_dir) then
+  if vim.fn.isdirectory(sessions_dir) == Lib._VIM_FALSE then
     return files
   end
 
@@ -665,6 +715,7 @@ end
 ---@param auto boolean
 function AutoSession.SaveSession(sessions_dir, auto)
   Lib.logger.debug { sessions_dir = sessions_dir, auto = auto }
+
   local session_file_name = get_session_file_name(sessions_dir)
 
   Lib.logger.debug { session_file_name = session_file_name }
@@ -684,13 +735,55 @@ function AutoSession.SaveSession(sessions_dir, auto)
 end
 
 ---Function called by AutoSession when automatically restoring a session.
----This function avoids calling RestoreSession automatically when argv is not nil.
 ---@param session_dir any
 ---@return boolean boolean returns whether restoring the session was successful or not.
 function AutoSession.AutoRestoreSession(session_dir)
-  if is_enabled() and auto_restore() and not suppress_session() then
+  -- WARN: should this be checking is_allowed_dir as well?
+  if is_enabled() and auto_restore() and not suppress_session(session_dir) then
     return AutoSession.RestoreSession(session_dir)
   end
+
+  return false
+end
+
+---Function called by AutoSession at VimEnter to automatically restore a session.
+---If launched with a single directory parameter and conf.args_allow_single_directory is true, pass
+---that in as the session_dir. Handles both 'nvim .' and 'nvim some/dir'
+---
+---Also make sure to call no_restore if no session was restored
+local function auto_restore_session_at_vim_enter()
+  local session_dir = nil
+
+  -- Save the launch args here as restoring a session will replace vim.fn.argv. We clear
+  -- launch_argv in restore session so it's only used for the session launched from the command
+  -- line
+  launch_argv = vim.fn.argv()
+
+  -- Is there exactly one argument and is it a directory?
+  if
+    AutoSession.conf.args_allow_single_directory
+    and #launch_argv == 1
+    and vim.fn.isdirectory(launch_argv[1]) == Lib._VIM_TRUE
+  then
+    -- Get the full path of the directory and make sure it doesn't have a trailing path_separator
+    -- to make sure we find the session
+    session_dir = vim.fn.fnamemodify(launch_argv[1], ":p"):gsub("[" .. Lib.get_path_separator() .. "]$", "")
+    Lib.logger.debug("Launched with single directory, using as session_dir: " .. session_dir)
+  end
+
+  -- Restoring here may change the cwd so disable cwd processing while restoring
+  AutoSession.restore_in_progress = true
+  local success, result = pcall(AutoSession.AutoRestoreSession, session_dir)
+  AutoSession.restore_in_progress = false
+
+  if success and result then
+    return true
+  end
+
+  -- No session was restored, dispatch no-restore hook
+  local no_restore_cmds = AutoSession.get_cmds "no_restore"
+  Lib.logger.debug("No session restored, call no_restore hooks", no_restore_cmds)
+  run_hook_cmds(no_restore_cmds, "no-restore")
 
   return false
 end
@@ -735,6 +828,9 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
 
     local cmd = AutoSession.conf.silent_restore and "silent source " .. file_path or "source " .. file_path
     local success, result = pcall(vim.cmd, cmd)
+
+    -- Clear any saved command line args since we don't need them anymore
+    launch_argv = nil
 
     if not success then
       Lib.logger.error([[
@@ -1020,7 +1116,7 @@ function SetupAutocmds()
 
       if not AutoSession.conf.auto_restore_lazy_delay_enabled then
         -- If auto_restore_lazy_delay_enabled is false, just restore the session as normal
-        AutoSession.AutoRestoreSession()
+        auto_restore_session_at_vim_enter()
         return
       end
 
@@ -1028,14 +1124,14 @@ function SetupAutocmds()
       local ok, lazy_view = pcall(require, "lazy.view")
       if not ok then
         -- No Lazy, load as usual
-        AutoSession.AutoRestoreSession()
+        auto_restore_session_at_vim_enter()
         return
       end
 
       if not lazy_view.visible() then
         -- Lazy isn't visible, load as usual
         Lib.logger.debug "Lazy is loaded, but not visible, restore session!"
-        AutoSession.AutoRestoreSession()
+        auto_restore_session_at_vim_enter()
         return
       end
 
@@ -1080,7 +1176,7 @@ function SetupAutocmds()
         -- Schedule restoration for the next pass in the event loop to time for the window to close
         -- Not doing this could create a blank buffer in the restored session
         vim.schedule(function()
-          AutoSession.AutoRestoreSession()
+          auto_restore_session_at_vim_enter()
         end)
       end,
     })
