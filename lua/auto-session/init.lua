@@ -7,7 +7,7 @@ local AutoSession = {
   conf = {},
 }
 
--- Run comand hooks
+-- Run command hooks
 local function run_hook_cmds(cmds, hook_name)
   local results = {}
   if not Lib.is_empty_table(cmds) then
@@ -71,14 +71,13 @@ local defaultConf = {
 ---@field log_level? string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
 ---Argv Handling
 ---@field args_allow_single_directory? boolean Follow normal sesion save/load logic if launched with a single directory as the only argument
----@field args_handling? string How to handle sessions when nvim is launched with arguments. Must be one of
----'replace_session': don't load existing session but save on exit
----'replace_session_only_if_multiple_buffers': don't load existing session and save session on exit if there's more than one buffer that would be saved
----'new_session_named_with_args': add arguments to session name for loading/saving (not implemented)
+---@field args_allow_files_auto_save? boolean|function Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. While you can just set this to true, you probably want to set it to a function that decides when to save a session when launched with file args. See documentation for more detail
 
 local luaOnlyConf = {
   bypass_session_save_file_types = nil, -- Bypass auto save when only buffer open is one of these file types
-  close_unsupported_windows = true,     -- Close windows that aren't backed by normal file
+  close_unsupported_windows = true, -- Close windows that aren't backed by normal file
+  args_allow_single_directory = true, -- Allow single directory arguments by default
+  args_allow_files_auto_save = false, -- Don't save session for file args by default
   ---CWD Change Handling Config
   ---@class CwdChangeHandling
   ---@field restore_upcoming_session boolean {true} restore session for upcoming cwd on cwd change
@@ -205,15 +204,18 @@ end
 
 -- Returns whether Auto restoring / saving is enabled for the args nvim was launched with
 local launch_argv = nil
-local enabled_for_command_line_argv = function(is_save)
+local function enabled_for_command_line_argv(is_save)
   is_save = is_save or false
 
-  -- When a session is loaded, it will also load the global argument list so
-  -- save the argv we were actually launched with so we can always access it
+  -- If no args (or launch_argv has been unset, allow restoring/saving)
   if not launch_argv then
-    launch_argv = vim.fn.argv()
+    Lib.logger.debug "No arguments, restoring/saving enabled"
+    return true
   end
+
   local argc = #launch_argv
+
+  Lib.logger.debug("enabled_for_command_line_argv, launch_argv: " .. vim.inspect(launch_argv))
 
   if argc == 0 then
     -- Launched with no args, saving is enabled
@@ -232,42 +234,23 @@ local enabled_for_command_line_argv = function(is_save)
     return true
   end
 
-  local args_handling = AutoSession.conf.args_handling
-
-  if not args_handling then
+  if not AutoSession.conf.args_allow_files_auto_save then
     return false
   end
 
-  if args_handling == "replace_session" then
-    -- Don't load, but do save
-    if not is_save then
-      Lib.logger.debug "[replace_session] Not allowing restore when launched with argument"
-    else
-      Lib.logger.debug "[replace_session] Allowing save when launched with argument argument"
-    end
-
-    return is_save
-  elseif args_handling == "replace_session_only_if_multiple_buffers" then
-    -- Don't restore
-    if not is_save then
-      Lib.logger.debug "[replace_session_only_if_multiple] Not allowing restore when launched with argument"
-      return false
-    end
-    -- Check close_unsupported_windows
-    if Lib.count_supported_buffers() > 1 then
-      Lib.logger.debug "[replace_session_only_if_multiple_buffers] multiple buffers, allow save"
-      return true
-    end
-    Lib.logger.debug "[replace_session_only_if_multiple_buffers] single buffer, disallow save"
+  if not is_save then
+    Lib.logger.debug "Not allowing restore when launched with argument"
     return false
-  elseif args_handling == "new_session_named_with_args" then
-    -- TODO: implement me or maybe not worth it
-    return false
-  else
-    Lib.logger.warn("Invalid value for args_handling: " .. args_handling)
   end
 
-  return false
+  if type(AutoSession.conf.args_allow_files_auto_save) == "function" then
+    local ret = AutoSession.conf.args_allow_files_auto_save()
+    Lib.logger.debug("conf.args_allow_files_auto_save() returned: " .. vim.inspect(ret))
+    return ret
+  end
+
+  Lib.logger.debug "Allowing possible save when launched with argument"
+  return true
 end
 
 local in_headless_mode = function()
@@ -276,6 +259,7 @@ end
 
 local auto_save = function()
   if in_pager_mode() or in_headless_mode() or not enabled_for_command_line_argv(true) then
+    Lib.logger.debug "auto_save, pager, headless, or enabled_for_command_line_argv returned false"
     return false
   end
 
@@ -732,11 +716,6 @@ end
 function AutoSession.SaveSession(sessions_dir, auto)
   Lib.logger.debug { sessions_dir = sessions_dir, auto = auto }
 
-  -- Delete global arguments since the buffers are what we want to
-  -- save the state of. i.e. we don't want to reopen the arguments
-  -- that were passed to nvim at launch time
-  vim.cmd "%argdel"
-
   local session_file_name = get_session_file_name(sessions_dir)
 
   Lib.logger.debug { session_file_name = session_file_name }
@@ -775,13 +754,20 @@ end
 local function auto_restore_session_at_vim_enter()
   local session_dir = nil
 
-  local argv = vim.fn.argv()
+  -- Save the launch args here as restoring a session will replace vim.fn.argv. We clear
+  -- launch_argv in restore session so it's only used for the session launched from the command
+  -- line
+  launch_argv = vim.fn.argv()
 
   -- Is there exactly one argument and is it a directory?
-  if AutoSession.conf.args_allow_single_directory and #argv == 1 and vim.fn.isdirectory(argv[1]) == Lib._VIM_TRUE then
+  if
+    AutoSession.conf.args_allow_single_directory
+    and #launch_argv == 1
+    and vim.fn.isdirectory(launch_argv[1]) == Lib._VIM_TRUE
+  then
     -- Get the full path of the directory and make sure it doesn't have a trailing path_separator
     -- to make sure we find the session
-    session_dir = vim.fn.fnamemodify(argv[1], ":p"):gsub("[" .. Lib.get_path_separator() .. "]$", "")
+    session_dir = vim.fn.fnamemodify(launch_argv[1], ":p"):gsub("[" .. Lib.get_path_separator() .. "]$", "")
     Lib.logger.debug("Launched with single directory, using as session_dir: " .. session_dir)
   end
 
@@ -842,6 +828,9 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
 
     local cmd = AutoSession.conf.silent_restore and "silent source " .. file_path or "source " .. file_path
     local success, result = pcall(vim.cmd, cmd)
+
+    -- Clear any saved command line args since we don't need them anymore
+    launch_argv = nil
 
     if not success then
       Lib.logger.error([[
