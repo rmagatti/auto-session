@@ -671,7 +671,8 @@ local function write_to_session_control_json(session_file_name)
   local session_control_file = control_dir .. control_file
 
   local log_ending_state = function()
-    local content = vim.fn.readfile(session_control_file)
+    local file_lines = vim.fn.readfile(session_control_file)
+    local content = table.concat(file_lines, " ")
     local session_control = vim.json.decode(content[1] or "{}") or {}
     local sessions = { current = session_control.current, alternate = session_control.alternate }
 
@@ -679,7 +680,8 @@ local function write_to_session_control_json(session_file_name)
   end
 
   if vim.fn.filereadable(session_control_file) == 1 then
-    local content = vim.fn.readfile(session_control_file)
+    local file_lines = vim.fn.readfile(session_control_file)
+    local content = table.concat(file_lines, " ")
     Lib.logger.debug { content = content }
     local json = vim.json.decode(content[1] or "{}") or {}
 
