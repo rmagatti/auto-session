@@ -276,6 +276,13 @@ local function enabled_for_command_line_argv(is_save)
 end
 
 local in_headless_mode = function()
+  -- Allow testing in headless mode
+  -- In theory, we could mock out vim.api.nvim_list_uis but that was causing
+  -- downstream issues with nvim_list_wins
+  if vim.env.AUTOSESSION_ALLOW_HEADLESS_TESTING then
+    return false
+  end
+
   return not vim.tbl_contains(vim.v.argv, "--embed") and not next(vim.api.nvim_list_uis())
 end
 
@@ -311,6 +318,11 @@ end
 local function bypass_save_by_filetype()
   local file_types_to_bypass = AutoSession.conf.bypass_session_save_file_types or {}
   local windows = vim.api.nvim_list_wins()
+
+  if not windows then
+    return false
+  end
+
 
   for _, current_window in ipairs(windows) do
     local buf = vim.api.nvim_win_get_buf(current_window)
