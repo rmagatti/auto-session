@@ -319,11 +319,6 @@ local function bypass_save_by_filetype()
   local file_types_to_bypass = AutoSession.conf.bypass_session_save_file_types or {}
   local windows = vim.api.nvim_list_wins()
 
-  if not windows then
-    return false
-  end
-
-
   for _, current_window in ipairs(windows) do
     local buf = vim.api.nvim_win_get_buf(current_window)
     local buf_ft = vim.api.nvim_buf_get_option(buf, "filetype")
@@ -1104,10 +1099,15 @@ function SetupAutocmds()
     { bang = true, nargs = "?", desc = "Save the current session. Based in cwd if no arguments are passed" }
   )
 
-  vim.api.nvim_create_user_command("SessionRestore", SessionRestore, { bang = true, desc = "Restore Session" })
+  vim.api.nvim_create_user_command(
+    "SessionRestore",
+    SessionRestore,
+    { bang = true, nargs = "?", desc = "Restore Session" }
+  )
 
   vim.api.nvim_create_user_command("DisableAutoSave", DisableAutoSave, { bang = true, desc = "Disable Auto Save" })
 
+  -- TODO: How are SessionRestore and SessionRestoreFromFile different?
   vim.api.nvim_create_user_command(
     "SessionRestoreFromFile",
     SessionRestore,
