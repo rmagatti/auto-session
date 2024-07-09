@@ -320,7 +320,7 @@ return {
           -- Check if the buffer is valid and loaded
           if vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_is_loaded(buf) then
             local path = vim.api.nvim_buf_get_name(buf)
-            if vim.fn.filereadable(path) == 1 then supported = supported + 1 end
+            if vim.fn.filereadable(path) ~= 0 then supported = supported + 1 end
           end
         end
 
@@ -345,7 +345,7 @@ Another possibility is to only save the session if there are at least two window
           for _, window in ipairs(windows) do
             local buffer = vim.api.nvim_win_get_buf(window)
             local file_name = vim.api.nvim_buf_get_name(buffer)
-            if vim.fn.filereadable(file_name) then supported = supported + 1 end
+            if vim.fn.filereadable(file_name) ~= 0 then supported = supported + 1 end
           end
         end
 
