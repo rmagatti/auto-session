@@ -50,13 +50,13 @@ describe("The default config", function()
     vim.cmd(":e " .. TL.test_file)
 
     ---@diagnostic disable-next-line: missing-parameter
-    require("auto-session").SaveSession(TL.session_name)
+    require("auto-session").SaveSession(TL.named_session_name)
 
     -- Make sure the session was created
-    assert.equals(1, vim.fn.filereadable(TL.session_path))
+    assert.equals(1, vim.fn.filereadable(TL.named_session_path))
 
     -- Make sure the session has our buffer
-    TL.assertSessionHasFile(TL.session_path, TL.test_file)
+    TL.assertSessionHasFile(TL.named_session_path, TL.test_file)
   end)
 
   it("can restore a session from a file path", function()
@@ -67,18 +67,18 @@ describe("The default config", function()
     -- Make sure the buffer is gone
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 
-    vim.cmd(":SessionRestore " .. TL.session_path)
+    vim.cmd(":SessionRestore " .. TL.named_session_path)
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
   end)
 
   it("can delete a session with a file path", function()
     -- Make sure the session was created
-    assert.equals(1, vim.fn.filereadable(TL.session_path))
+    assert.equals(1, vim.fn.filereadable(TL.named_session_path))
 
     ---@diagnostic disable-next-line: param-type-mismatch
-    vim.cmd(":SessionDelete " .. TL.session_path)
+    vim.cmd(":SessionDelete " .. TL.named_session_path)
 
-    assert.equals(0, vim.fn.filereadable(TL.session_path))
+    assert.equals(0, vim.fn.filereadable(TL.named_session_path))
   end)
 end)

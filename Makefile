@@ -9,6 +9,7 @@ test: $(PLENARY_DIR)
 	nvim --clean --headless --embed -u tests/minimal.vim +"PlenaryBustedFile tests/allowed_dirs_spec.lua"
 	nvim --clean --headless --embed -u tests/minimal.vim +"PlenaryBustedFile tests/suppress_dirs_spec.lua"
 	nvim --clean --headless --embed -u tests/minimal.vim +"PlenaryBustedFile tests/cwd_change_handling_spec.lua"
+	nvim --clean --headless --embed -u tests/minimal.vim +"PlenaryBustedFile tests/git_spec.lua"
 
 
 $(PLENARY_DIR):

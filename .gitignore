@@ -5,3 +5,5 @@ doc/tags
 
 tests/test_files
 tests/test_sessions
+tests/test_git
+

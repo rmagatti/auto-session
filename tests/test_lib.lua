@@ -5,8 +5,10 @@ M = {}
 -- without creating more problems
 vim.fn.setenv("AUTOSESSION_ALLOW_HEADLESS_TESTING", 1)
 
-M.test_file = "tests/test_files/test.txt"
-M.other_file = "tests/test_files/other.txt"
+M.tests_base_dir = "tests"
+
+M.test_file = M.tests_base_dir .. "/test_files/test.txt"
+M.other_file = M.tests_base_dir .. "/test_files/other.txt"
 
 -- Use absolute path here for cwd_change_handling
 M.session_dir = vim.fn.getcwd() .. "/tests/test_sessions/"
@@ -14,8 +16,8 @@ M.session_dir = vim.fn.getcwd() .. "/tests/test_sessions/"
 -- Construct the session name for the current directory
 M.default_session_path = M.session_dir .. vim.fn.getcwd():gsub("/", "%%") .. ".vim"
 
-M.session_name = "auto-test"
-M.session_path = M.session_dir .. M.session_name .. ".vim"
+M.named_session_name = "auto-test"
+M.named_session_path = M.session_dir .. M.named_session_name .. ".vim"
 
 function M.assertSessionHasFile(session_path, file)
   ---@diagnostic disable-next-line: undefined-field
