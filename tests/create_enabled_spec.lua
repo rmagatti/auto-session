@@ -102,7 +102,7 @@ describe("The create_enabled=function config", function()
 
     assert.equals(true, callback_called)
 
-    -- Make sure the session was not created
+    -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
   end)
 end)

@@ -6,6 +6,8 @@ test: $(PLENARY_DIR)
 	nvim --clean --headless --embed -u tests/minimal.vim +"PlenaryBustedFile tests/setup_spec.lua"
 	nvim --clean --headless --embed -u tests/minimal.vim +"PlenaryBustedFile tests/auto_save_spec.lua"
 	nvim --clean --headless --embed -u tests/minimal.vim +"PlenaryBustedFile tests/create_enabled_spec.lua"
+	nvim --clean --headless --embed -u tests/minimal.vim +"PlenaryBustedFile tests/allowed_dirs_spec.lua"
+	nvim --clean --headless --embed -u tests/minimal.vim +"PlenaryBustedFile tests/suppress_dirs_spec.lua"
 
 
 $(PLENARY_DIR):
