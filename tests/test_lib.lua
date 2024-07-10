@@ -6,6 +6,7 @@ M = {}
 vim.fn.setenv("AUTOSESSION_ALLOW_HEADLESS_TESTING", 1)
 
 M.test_file = "tests/test_files/test.txt"
+M.other_file = "tests/test_files/other.txt"
 
 M.session_dir = "./tests/test_sessions/"
 
@@ -14,5 +15,18 @@ M.default_session_path = M.session_dir .. vim.fn.getcwd():gsub("/", "%%") .. ".v
 
 M.session_name = "auto-test"
 M.session_path = M.session_dir .. M.session_name .. ".vim"
+
+function M.assertSessionHasFile(session_path, file)
+  ---@diagnostic disable-next-line: undefined-field
+  assert.equals(
+    "1",
+    vim.fn.system('grep badd "' .. session_path .. '" | grep "' .. file .. '" | wc -l'):gsub("%s+", "")
+  )
+end
+
+function M.clearSessionFilesAndBuffers()
+  pcall(vim.fn.system, "rm -rf " .. M.session_dir .. "/*.vim")
+  vim.cmd "silent %bw"
+end
 
 return M

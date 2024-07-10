@@ -1,5 +1,4 @@
 ---@diagnostic disable: undefined-field
-
 local TL = require "tests/test_lib"
 
 describe("The default config", function()
@@ -7,11 +6,10 @@ describe("The default config", function()
     auto_session_root_dir = TL.session_dir,
   }
 
-  pcall(vim.fn.system, "rm -rf " .. TL.session_dir)
+  TL.clearSessionFilesAndBuffers()
 
-  it("can create a session", function()
+  it("can save a session", function()
     vim.cmd(":e " .. TL.test_file)
-    vim.cmd ":w"
 
     ---@diagnostic disable-next-line: missing-parameter
     require("auto-session").AutoSaveSession()
@@ -20,16 +18,13 @@ describe("The default config", function()
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
 
     -- Make sure the session has our buffer
-    assert.equals(
-      "1",
-      vim.fn.system("grep 'badd' " .. TL.default_session_path .. " | grep 'test.txt' | wc -l"):gsub("%s+", "")
-    )
+    TL.assertSessionHasFile(TL.default_session_path, TL.test_file)
   end)
-  --
+
   it("can restore a session", function()
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 
-    vim.cmd "%bw"
+    vim.cmd "silent %bw"
 
     -- Make sure the buffer is gone
     assert.equals(0, vim.fn.bufexists(TL.test_file))
@@ -51,24 +46,23 @@ describe("The default config", function()
 
   -- pcall(vim.fn.system, "rm -rf tests/test_sessions")
 
-  it("can create a session with a file path", function()
+  it("can save a session with a file path", function()
     vim.cmd(":e " .. TL.test_file)
-    vim.cmd ":w"
 
     ---@diagnostic disable-next-line: missing-parameter
-    require("auto-session").SaveSession "auto-test"
+    require("auto-session").SaveSession(TL.session_name)
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.session_path))
 
     -- Make sure the session has our buffer
-    assert.equals("1", vim.fn.system("grep 'badd' " .. TL.session_path .. " | grep 'test.txt' | wc -l"):gsub("%s+", ""))
+    TL.assertSessionHasFile(TL.session_path, TL.test_file)
   end)
 
   it("can restore a session from a file path", function()
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 
-    vim.cmd "%bw"
+    vim.cmd "silent %bw"
 
     -- Make sure the buffer is gone
     assert.equals(0, vim.fn.bufexists(TL.test_file))

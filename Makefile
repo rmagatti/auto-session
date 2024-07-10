@@ -4,6 +4,8 @@ PLENARY_URL = https://github.com/nvim-lua/plenary.nvim
 
 test: $(PLENARY_DIR)
 	nvim --clean --headless --embed -u tests/minimal.vim +"PlenaryBustedFile tests/setup_spec.lua"
+	nvim --clean --headless --embed -u tests/minimal.vim +"PlenaryBustedFile tests/auto_save_spec.lua"
+	nvim --clean --headless --embed -u tests/minimal.vim +"PlenaryBustedFile tests/create_enabled_spec.lua"
 
 
 $(PLENARY_DIR):
