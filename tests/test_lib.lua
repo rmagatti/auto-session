@@ -8,7 +8,8 @@ vim.fn.setenv("AUTOSESSION_ALLOW_HEADLESS_TESTING", 1)
 M.test_file = "tests/test_files/test.txt"
 M.other_file = "tests/test_files/other.txt"
 
-M.session_dir = "./tests/test_sessions/"
+-- Use absolute path here for cwd_change_handling
+M.session_dir = vim.fn.getcwd() .. "/tests/test_sessions/"
 
 -- Construct the session name for the current directory
 M.default_session_path = M.session_dir .. vim.fn.getcwd():gsub("/", "%%") .. ".vim"
