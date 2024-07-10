@@ -79,7 +79,7 @@ M.setup_autocmds = function(config, AutoSession)
 
         if not success then
           Lib.logger.info("Could not load session. A session file is likely missing for this cwd." .. vim.fn.getcwd())
-          return
+          -- Don't return, still dispatch the hook below
         end
 
         if type(conf.post_cwd_changed_hook) == "function" then
