@@ -1081,6 +1081,10 @@ function SetupAutocmds()
     return AutoSession.RestoreSession(args.args)
   end
 
+  local function SessionRestoreFromFile(args)
+    return AutoSession.RestoreSessionFromFile(args.args)
+  end
+
   local function SessionDelete(args)
     return AutoSession.DeleteSession(args.args)
   end
@@ -1107,10 +1111,9 @@ function SetupAutocmds()
 
   vim.api.nvim_create_user_command("DisableAutoSave", DisableAutoSave, { bang = true, desc = "Disable Auto Save" })
 
-  -- TODO: How are SessionRestore and SessionRestoreFromFile different?
   vim.api.nvim_create_user_command(
     "SessionRestoreFromFile",
-    SessionRestore,
+    SessionRestoreFromFile,
     { complete = AutoSession.CompleteSessions, bang = true, nargs = "*", desc = "Restore Session from file" }
   )
 
