@@ -72,6 +72,19 @@ describe("The default config", function()
     assert.equals(1, vim.fn.bufexists(TL.test_file))
   end)
 
+  it("can restore a session using SessionRestoreFromFile", function()
+    assert.equals(1, vim.fn.bufexists(TL.test_file))
+
+    vim.cmd "silent %bw"
+
+    -- Make sure the buffer is gone
+    assert.equals(0, vim.fn.bufexists(TL.test_file))
+
+    vim.cmd(":SessionRestoreFromFile " .. TL.named_session_name)
+
+    assert.equals(1, vim.fn.bufexists(TL.test_file))
+  end)
+
   it("can delete a session with a file path", function()
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.named_session_path))
