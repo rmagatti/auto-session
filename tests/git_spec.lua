@@ -19,7 +19,7 @@ describe("The git config", function()
   vim.fn.system "git add ."
   vim.fn.system "git commit -m 'init'"
 
-  vim.cmd ":e test.txt "
+  vim.cmd ":e test.txt"
 
   it("saves a session with the branch name", function()
     -- vim.cmd ":SessionSave"
