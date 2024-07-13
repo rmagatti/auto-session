@@ -5,7 +5,7 @@ PLENARY_URL = https://github.com/nvim-lua/plenary.nvim
 FILES := $(wildcard tests/*_spec.lua)
 
 .PHONY: test $(FILES) args-tests
-test: $(PLENARY_DIR) $(FILES)
+test: $(PLENARY_DIR) $(FILES) args-tests
 
 $(FILES):
 	nvim --clean --headless --embed -u tests/minimal.vim +"PlenaryBustedFile $@"
