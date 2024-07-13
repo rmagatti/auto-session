@@ -50,16 +50,16 @@ end
 ---@type defaultConf
 local defaultConf = {
   log_level = vim.g.auto_session_log_level or AutoSession.conf.log_level or AutoSession.conf.log_level or "error", -- Sets the log level of the plugin (debug, info, error). camelCase logLevel for compatibility.
-  auto_session_enable_last_session = vim.g.auto_session_enable_last_session or false,                              -- Enables/disables the "last session" feature
-  auto_session_root_dir = vim.fn.stdpath "data" .. "/sessions/",                                                   -- Root dir where sessions will be stored
-  auto_session_enabled = true,                                                                                     -- Enables/disables auto creating, saving and restoring
-  auto_session_create_enabled = nil,                                                                               -- Enables/disables auto creating new sessions. Can take a function that should return true/false if a session should be created or not
-  auto_save_enabled = nil,                                                                                         -- Enables/disables auto save feature
-  auto_restore_enabled = nil,                                                                                      -- Enables/disables auto restore feature
-  auto_restore_lazy_delay_enabled = true,                                                                          -- Enables/disables Lazy delay feature
-  auto_session_suppress_dirs = nil,                                                                                -- Suppress session restore/create in certain directories
-  auto_session_allowed_dirs = nil,                                                                                 -- Allow session restore/create in certain directories
-  auto_session_use_git_branch = vim.g.auto_session_use_git_branch or false,                                        -- Include git branch name in session name
+  auto_session_enable_last_session = vim.g.auto_session_enable_last_session or false, -- Enables/disables the "last session" feature
+  auto_session_root_dir = vim.fn.stdpath "data" .. "/sessions/", -- Root dir where sessions will be stored
+  auto_session_enabled = true, -- Enables/disables auto creating, saving and restoring
+  auto_session_create_enabled = nil, -- Enables/disables auto creating new sessions. Can take a function that should return true/false if a session should be created or not
+  auto_save_enabled = nil, -- Enables/disables auto save feature
+  auto_restore_enabled = nil, -- Enables/disables auto restore feature
+  auto_restore_lazy_delay_enabled = true, -- Enables/disables Lazy delay feature
+  auto_session_suppress_dirs = nil, -- Suppress session restore/create in certain directories
+  auto_session_allowed_dirs = nil, -- Allow session restore/create in certain directories
+  auto_session_use_git_branch = vim.g.auto_session_use_git_branch or false, -- Include git branch name in session name
 }
 
 ---Lua Only Configs for Auto Session
@@ -104,7 +104,7 @@ local luaOnlyConf = {
     load_on_setup = true,
     session_control = {
       control_dir = vim.fn.stdpath "data" .. "/auto_session/", -- Auto session control dir, for control files, like alternating between two sessions with session-lens
-      control_filename = "session_control.json",               -- File name of the session control file
+      control_filename = "session_control.json", -- File name of the session control file
     },
   },
   silent_restore = true,
@@ -122,14 +122,16 @@ Lib.conf = {
 ---@param config defaultConf config for auto session
 function AutoSession.setup(config)
   AutoSession.conf = vim.tbl_deep_extend("force", AutoSession.conf, config or {})
-  Lib.ROOT_DIR = AutoSession.conf.auto_session_root_dir
   Lib.setup(AutoSession.conf)
+  Lib.logger.debug("Config at start of setup", { conf = AutoSession.conf })
+
+  -- Validate the root dir here so AutoSession.conf.auto_session_root_dir is set
+  -- correctly in all cases
+  AutoSession.get_root_dir()
 
   if AutoSession.conf.session_lens.load_on_setup then
-    Lib.logger.debug("Loading session lens on setup", { conf = AutoSession.conf })
+    Lib.logger.debug "Loading session lens on setup"
     AutoSession.setup_session_lens()
-  else
-    Lib.logger.debug("Skipping loading session lens on setup", { conf = AutoSession.conf })
   end
 
   AutoCmds.setup_autocmds(AutoSession.conf, AutoSession)
@@ -175,12 +177,12 @@ end
 
 local function is_auto_create_enabled()
   if vim.g.auto_session_create_enabled ~= nil then
-    if type(vim.g.auto_session_create_enabled) == 'function' then
-      if (vim.g.auto_session_create_enabled()) then
-        Lib.logger.debug('vim.g.auto_session_create_enabled returned true, allowing creation')
+    if type(vim.g.auto_session_create_enabled) == "function" then
+      if vim.g.auto_session_create_enabled() then
+        Lib.logger.debug "vim.g.auto_session_create_enabled returned true, allowing creation"
         return true
       else
-        Lib.logger.debug('vim.g.auto_session_create_enabled returned false, not allowing creation')
+        Lib.logger.debug "vim.g.auto_session_create_enabled returned false, not allowing creation"
         return false
       end
     else
@@ -189,12 +191,12 @@ local function is_auto_create_enabled()
   end
 
   if AutoSession.conf.auto_session_create_enabled ~= nil then
-    if type(AutoSession.conf.auto_session_create_enabled) == 'function' then
+    if type(AutoSession.conf.auto_session_create_enabled) == "function" then
       if AutoSession.conf.auto_session_create_enabled() then
-        Lib.logger.debug('AutoSession.conf.auto_session_create_enabled returned true, allowing creation')
+        Lib.logger.debug "AutoSession.conf.auto_session_create_enabled returned true, allowing creation"
         return true
       else
-        Lib.logger.debug('AutoSession.conf.auto_session_create_enabled returned false, not allowing creation')
+        Lib.logger.debug "AutoSession.conf.auto_session_create_enabled returned false, not allowing creation"
         return false
       end
     else
@@ -478,7 +480,7 @@ function AutoSession.AutoSaveSession(sessions_dir)
     if not is_auto_create_enabled() then
       local session_file_name = get_session_file_name(sessions_dir)
       if not Lib.is_readable(session_file_name) then
-        Lib.logger.debug('Create not enabled and no existing session, not creating session')
+        Lib.logger.debug "Create not enabled and no existing session, not creating session"
         return
       end
     end
@@ -504,9 +506,9 @@ function AutoSession.get_root_dir()
   end
 
   local root_dir = vim.g["auto_session_root_dir"] or AutoSession.conf.auto_session_root_dir
-  Lib.init_dir(root_dir)
 
   AutoSession.conf.auto_session_root_dir = Lib.validate_root_dir(root_dir)
+  Lib.logger.debug("Root dir set to: " .. AutoSession.conf.auto_session_root_dir)
   AutoSession.validated = true
   return root_dir
 end
@@ -827,7 +829,7 @@ local function extract_dir_or_file(session_dir_or_file)
   if Lib.is_empty(session_dir_or_file) then
     session_dir = vim.fn.getcwd()
   elseif vim.fn.isdirectory(Lib.expand(session_dir_or_file)) == Lib._VIM_TRUE then
-    if not Lib.ends_with(session_dir_or_file, "/") then
+    if not vim.endswith(session_dir_or_file, "/") then
       session_dir = session_dir_or_file
     else
       session_dir = session_dir_or_file

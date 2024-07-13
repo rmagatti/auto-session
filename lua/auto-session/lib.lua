@@ -48,39 +48,30 @@ function Lib.is_empty(s)
   return s == nil or s == ""
 end
 
-function Lib.ends_with(str, ending)
-  return ending == "" or str:sub(-#ending) == ending
-end
-
-function Lib.append_slash(str)
-  if not Lib.is_empty(str) then
-    if not Lib.ends_with(str, "/") then
-      str = str .. "/"
-    end
-  end
-  return str
-end
-
+-- Makes sure the directory ends in a slash
+-- Also creates it if necessary
+-- Falls back to vim.fn.stdpath "data" .. "/sessions/" if the directory is invalid for some reason
 function Lib.validate_root_dir(root_dir)
-  if Lib.is_empty(root_dir) or Lib.expand(root_dir) == Lib.expand(Lib.ROOT_DIR) then
-    return Lib.ROOT_DIR
-  end
-
-  if not Lib.ends_with(root_dir, "/") then
+  if not vim.endswith(root_dir, "/") then
     root_dir = root_dir .. "/"
   end
 
   if vim.fn.isdirectory(Lib.expand(root_dir)) == Lib._VIM_FALSE then
-    vim.cmd(
-      "echoerr 'Invalid g:auto_session_root_dir. "
-        .. "Path does not exist or is not a directory. "
-        .. string.format("Defaulting to %s.", Lib.ROOT_DIR)
-    )
-    return Lib.ROOT_DIR
-  else
-    Lib.logger.debug("Using custom session dir: " .. root_dir)
-    return root_dir
+    vim.fn.mkdir(root_dir, "p")
+
+    -- NOTE: I don't think the code below will ever be triggered because the call to mkdir
+    -- above will throw an error if it can't make the directory
+    if vim.fn.isdirectory(Lib.expand(root_dir)) == Lib._VIM_FALSE then
+      local fallback = vim.fn.stdpath "data" .. "/sessions/"
+      vim.cmd(
+        "echoerr 'Invalid auto_session_root_dir. "
+          .. "Path does not exist or is not a directory. "
+          .. string.format("Defaulting to %s.", fallback)
+      )
+      return fallback
+    end
   end
+  return root_dir
 end
 
 function Lib.init_dir(dir)
