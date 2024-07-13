@@ -3,7 +3,7 @@ M = {}
 -- This disables the headless check inside autosession
 -- I couldn't find a good way to mock out the calls to make this unnecessary
 -- without creating more problems
-vim.fn.setenv("AUTOSESSION_ALLOW_HEADLESS_TESTING", 1)
+vim.fn.setenv("AUTOSESSION_UNIT_TESTING", 1)
 
 function M.escapeSessionName(name)
   if vim.fn.has "win32" == 1 then
@@ -33,10 +33,14 @@ M.default_session_path = M.session_dir .. M.default_session_name .. ".vim"
 M.named_session_name = "mysession"
 M.named_session_path = M.session_dir .. M.named_session_name .. ".vim"
 
+function M.sessionHasFile(session_path, file)
+  return vim.fn.system('rg badd "' .. session_path .. '" | rg -c "' .. file .. '"'):gsub("%s+", "") == "1"
+end
+
 function M.assertSessionHasFile(session_path, file)
   -- requires ripgrep
   ---@diagnostic disable-next-line: undefined-field
-  assert.equals("1", vim.fn.system('rg badd "' .. session_path .. '" | rg -c "' .. file .. '"'):gsub("%s+", ""))
+  assert.equals(true, M.sessionHasFile(session_path, file))
 end
 
 function M.clearSessionFilesAndBuffers()

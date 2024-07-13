@@ -259,6 +259,7 @@ local function enabled_for_command_line_argv(is_save)
   end
 
   if not AutoSession.conf.args_allow_files_auto_save then
+    Lib.logger.debug "args_allow_files_auto_save is false, not enabling restoring/saving"
     return false
   end
 
@@ -281,7 +282,7 @@ local in_headless_mode = function()
   -- Allow testing in headless mode
   -- In theory, we could mock out vim.api.nvim_list_uis but that was causing
   -- downstream issues with nvim_list_wins
-  if vim.env.AUTOSESSION_ALLOW_HEADLESS_TESTING then
+  if vim.env.AUTOSESSION_UNIT_TESTING then
     return false
   end
 
@@ -476,25 +477,27 @@ end
 ---Function called by auto_session to trigger auto_saving sessions, for example on VimExit events.
 ---@param sessions_dir? string the session directory to auto_save a session for. If empty this function will end up using the cwd to infer what session to save for.
 function AutoSession.AutoSaveSession(sessions_dir)
-  if auto_save_conditions_met() then
-    if not is_auto_create_enabled() then
-      local session_file_name = get_session_file_name(sessions_dir)
-      if not Lib.is_readable(session_file_name) then
-        Lib.logger.debug "Create not enabled and no existing session, not creating session"
-        return
-      end
-    end
-
-    if AutoSession.conf.close_unsupported_windows then
-      -- Wrap in pcall in case there's an error while trying to close windows
-      local success, result = pcall(Lib.close_unsupported_windows)
-      if not success then
-        Lib.logger.debug("Error closing unsupported windows: " .. result)
-      end
-    end
-
-    AutoSession.SaveSession(sessions_dir, true)
+  if not auto_save_conditions_met() then
+    return false
   end
+
+  if not is_auto_create_enabled() then
+    local session_file_name = get_session_file_name(sessions_dir)
+    if not Lib.is_readable(session_file_name) then
+      Lib.logger.debug "Create not enabled and no existing session, not creating session"
+      return false
+    end
+  end
+
+  if AutoSession.conf.close_unsupported_windows then
+    -- Wrap in pcall in case there's an error while trying to close windows
+    local success, result = pcall(Lib.close_unsupported_windows)
+    if not success then
+      Lib.logger.debug("Error closing unsupported windows: " .. result)
+    end
+  end
+
+  return AutoSession.SaveSession(sessions_dir, true)
 end
 
 ---Gets the root directory of where to save the sessions.
@@ -820,6 +823,12 @@ local function auto_restore_session_at_vim_enter()
   run_hook_cmds(no_restore_cmds, "no-restore")
 
   return false
+end
+
+-- If we're unit testing, we need this entry point since the test harness loads our tests after
+-- VimEnter has been called
+if vim.env.AUTOSESSION_UNIT_TESTING then
+  AutoSession.auto_restore_session_at_vim_enter = auto_restore_session_at_vim_enter
 end
 
 local function extract_dir_or_file(session_dir_or_file)
