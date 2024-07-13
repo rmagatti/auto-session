@@ -28,12 +28,26 @@ function Lib.get_file_extension(url)
   return url:match "^.+(%..+)$"
 end
 
+-- BUG: This doesn't work correctly for automatically created sessions on windows
+-- because they have dashes in the name
 function Lib.current_session_name()
   local fname = Lib.get_file_name(vim.v.this_session)
   local extension = Lib.get_file_extension(fname)
   local fname_without_extension = fname:gsub(extension:gsub("%.", "%%%.") .. "$", "")
   local fname_split = vim.split(fname_without_extension, "%%")
   local session_name = fname_split[#fname_split] or ""
+  -- print(
+  --   "fname: "
+  --     .. fname
+  --     .. " ext: "
+  --     .. extension
+  --     .. " fn w/o ext: "
+  --     .. fname_without_extension
+  --     .. " split: "
+  --     .. vim.inspect(fname_split)
+  --     .. " session_name: "
+  --     .. session_name
+  -- )
   return session_name
 end
 

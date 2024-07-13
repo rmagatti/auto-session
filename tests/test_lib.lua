@@ -34,8 +34,8 @@ M.named_session_name = "mysession"
 M.named_session_path = M.session_dir .. M.named_session_name .. ".vim"
 
 function M.assertSessionHasFile(session_path, file)
-  ---@diagnostic disable-next-line: undefined-field
   -- requires ripgrep
+  ---@diagnostic disable-next-line: undefined-field
   assert.equals("1", vim.fn.system('rg badd "' .. session_path .. '" | rg -c "' .. file .. '"'):gsub("%s+", ""))
 end
 
