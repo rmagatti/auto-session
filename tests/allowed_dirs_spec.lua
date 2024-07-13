@@ -1,5 +1,6 @@
 ---@diagnostic disable: undefined-field
 local TL = require "tests/test_lib"
+TL.clearSessionFilesAndBuffers()
 
 describe("The allowed dirs config", function()
   require("auto-session").setup {

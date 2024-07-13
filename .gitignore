@@ -3,7 +3,7 @@ doc/tags
 .luarc.json
 .build_tools
 
-tests/test_files
 tests/test_sessions
+tests/custom_sessions
 tests/test_git
 

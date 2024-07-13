@@ -1,7 +1,7 @@
 ---@diagnostic disable: undefined-field
 local TL = require "tests/test_lib"
 
-describe("A custom session directory with no trailing slash", function()
+describe("A session directory with no trailing slash", function()
   require("auto-session").setup {
     -- Remove trailing slash
     auto_session_root_dir = TL.session_dir:gsub("/$", ""),
@@ -14,12 +14,10 @@ describe("A custom session directory with no trailing slash", function()
   it("saves a session to the directory", function()
     vim.cmd ":SessionSave"
 
-    local session_path = TL.session_dir .. vim.fn.getcwd():gsub("/", "%%") .. ".vim"
-
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 
     -- Make sure it is the same as if it had the trailing slash
-    assert.equals(1, vim.fn.filereadable(session_path))
+    assert.equals(1, vim.fn.filereadable(TL.default_session_path))
   end)
 
   it("loads a session from the directory", function()
