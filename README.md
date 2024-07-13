@@ -18,13 +18,14 @@ Manually saving a session can still be done by calling `:SessionSave`.
 
 AutoSession can now track `cwd` changes!
 By default, `cwd` handling is disabled but when enabled, it works as follows:
-  DirChangedPre (before the cwd actually changes):
+
+- DirChangedPre (before the cwd actually changes):
     - Save the current session
     - Clear all buffers `%bd!`. This guarantees buffers don't bleed to the
       next session.
     - Clear jumps. Also done so there is no bleeding between sessions.
     - Run the `pre_cwd_changed_hook`/
-  DirChanged (after the cwd has changed):
+- DirChanged (after the cwd has changed):
     - Restore session using new cwd
     - Run the `post_cwd_changed_hook`
 
