@@ -4,7 +4,12 @@ local AutoCmds = require "auto-session.autocmds"
 ----------- Setup ----------
 local AutoSession = {
   ---@type luaOnlyConf
+  ---@diagnostic disable-next-line: missing-fields
   conf = {},
+
+  -- Hold on to the lib object here, useful to have the same Lib object for unit
+  -- testing, especially since the logger needs the config to be functional
+  Lib = Lib,
 }
 
 -- Run command hooks
