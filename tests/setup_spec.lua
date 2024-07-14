@@ -73,7 +73,7 @@ describe("The default config", function()
     vim.cmd(":SessionRestore " .. TL.named_session_path)
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
-    assert.equals(TL.named_session_name, require("auto-session.lib").current_session_name())
+    assert.equals(TL.named_session_name, require("auto-session").Lib.current_session_name())
   end)
 
   it("can restore a session using SessionRestoreFromFile", function()
@@ -87,7 +87,7 @@ describe("The default config", function()
     vim.cmd(":SessionRestoreFromFile " .. TL.named_session_name)
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
-    assert.equals(TL.named_session_name, require("auto-session.lib").current_session_name())
+    assert.equals(TL.named_session_name, require("auto-session").Lib.current_session_name())
   end)
 
   it("can delete a session with a file path", function()

@@ -33,6 +33,10 @@ M.default_session_path = M.session_dir .. M.default_session_name .. ".vim"
 M.named_session_name = "mysession"
 M.named_session_path = M.session_dir .. M.named_session_name .. ".vim"
 
+function M.fileHasString(file_path, string)
+  return vim.fn.system('rg -c "' .. string .. '" "' .. file_path .. '"'):gsub("%s+", "") ~= ""
+end
+
 function M.sessionHasFile(session_path, file)
   return vim.fn.system('rg badd "' .. session_path .. '" | rg -c "' .. file .. '"'):gsub("%s+", "") == "1"
 end
