@@ -202,7 +202,7 @@ Auto Session exposes two commands that can be used or mapped to any keybindings 
 :SessionRestore ~/my/custom/path " restores a previously saved session based on the provided path.
 :SessionRestoreFromFile ~/session/path " restores any currently saved session
 :SessionDelete " deletes a session in the currently set `auto_session_root_dir`.
-:SessionDelete ~/my/custom/path " deleetes a session based on the provided path.
+:SessionDelete ~/my/custom/path " deletes a session based on the provided path.
 :SessionPurgeOrphaned " removes all orphaned sessions with no working directory left.
 :Autosession search
 :Autosession delete
