@@ -55,4 +55,25 @@ describe("The cwd_change_handling config", function()
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
   end)
+
+  it("does not double load a session when using SessionRestore", function()
+    -- Move to different directory
+    vim.cmd "cd tests"
+
+    pre_cwd_changed_hook_called = false
+    post_cwd_changed_hook_called = false
+    assert.equals(0, vim.fn.bufexists(TL.test_file))
+
+    -- Calling session restore will result in a cd to the main directory
+    -- which will also try to restore the session which will throw an error
+    -- if this case isn't working
+    vim.cmd(":SessionRestore " .. TL.default_session_path)
+
+    assert.equals(1, vim.fn.bufexists(TL.test_file))
+
+    -- Currently, the code doesn't dispatch the *_cwd_changed_hooks if a session
+    -- is already being loaded
+    assert.equals(false, pre_cwd_changed_hook_called)
+    assert.equals(false, post_cwd_changed_hook_called)
+  end)
 end)
