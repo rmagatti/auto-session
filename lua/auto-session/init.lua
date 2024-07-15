@@ -613,8 +613,6 @@ local function handle_autosession_command(data)
 end
 
 -- Handler for when a session is picked from the UI, either via Telescope or via AutoSession.select_session
--- We'll load the selected session file, setting restore_in_progress so DirChangedPre/DirChanged won't
--- also try to load the session when the directory is changed
 function AutoSession.restore_selected_session(session_filename)
   Lib.logger.debug("[restore_selected_session]: filename: " .. session_filename)
 
@@ -646,16 +644,13 @@ function AutoSession.restore_selected_session(session_filename)
   -- Would it be better to always clear jumps in RestoreSession?
   vim.cmd "clearjumps"
 
-  -- Set restore_in_progress so cwd_change_handling won't also try to load the session when the directory is changed
-  -- And use a pcall to make sure we unset the flag whether loading was successful or not
-  AutoSession.restore_in_progress = true
-  local success, result = pcall(AutoSession.RestoreSession, session_filename)
-  AutoSession.restore_in_progress = false
+  local result = AutoSession.RestoreSession(session_filename)
 
-  if not success or not result then
+  if not result then
     Lib.logger.info("Could not load session for filename: " .. session_filename)
-    return
   end
+
+  return result
 end
 
 vim.api.nvim_create_user_command("Autosession", handle_autosession_command, { nargs = 1 })
@@ -813,12 +808,7 @@ local function auto_restore_session_at_vim_enter()
     Lib.logger.debug("Launched with single directory, using as session_dir: " .. session_dir)
   end
 
-  -- Restoring here may change the cwd so disable cwd processing while restoring
-  AutoSession.restore_in_progress = true
-  local success, result = pcall(AutoSession.AutoRestoreSession, session_dir)
-  AutoSession.restore_in_progress = false
-
-  if success and result then
+  if AutoSession.AutoRestoreSession(session_dir) then
     return true
   end
 
@@ -856,6 +846,8 @@ local function extract_dir_or_file(session_dir_or_file)
 end
 
 ---RestoreSessionFromFile takes a session_file and calls RestoreSession after parsing the provided parameter.
+-- Will set restore_in_progress so DirChangedPre/DirChanged won't also try to
+-- load the session when the directory is changed
 ---@param session_file string
 function AutoSession.RestoreSessionFromFile(session_file)
   AutoSession.RestoreSession(string.format(AutoSession.get_root_dir() .. "%s.vim", session_file:gsub("/", "%%")))
@@ -875,7 +867,12 @@ function AutoSession.RestoreSession(sessions_dir_or_file)
     run_hook_cmds(pre_cmds, "pre-restore")
 
     local cmd = AutoSession.conf.silent_restore and "silent source " .. file_path or "source " .. file_path
+
+    -- Set restore_in_progress here so we won't also try to save/load the session if
+    -- cwd_change_handling = true and the session contains a cd command
+    AutoSession.restore_in_progress = true
     local success, result = pcall(vim.cmd, cmd)
+    AutoSession.restore_in_progress = false
 
     -- Clear any saved command line args since we don't need them anymore
     launch_argv = nil

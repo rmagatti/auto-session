@@ -32,14 +32,21 @@ M.setup_autocmds = function(config, AutoSession)
 
       if AutoSession.restore_in_progress then
         Lib.logger.debug "DirChangedPre: restore_in_progress is true, ignoring this event"
+        -- NOTE: We don't call the cwd_changed_hook here
+        -- I think that's probably the right choice because I assume that event is mostly
+        -- for preparing sessions for save/restoring but we don't want to do that when we're
+        -- already restoring a session
         return
       end
 
       AutoSession.AutoSaveSession()
 
       -- Clear all buffers and jumps after session save so session doesn't blead over to next session.
-      -- NOTE: If the code in restore_selected_session that tries to keep matching buftypes open across
-      -- sessions actually works, we should also have that logic here.
+
+      -- BUG: I think this is probably better done in RestoreSession. If we do it here and the
+      -- directory change fails (e.g. it doesn't exist), we'll have cleared the buffers and still be
+      -- in the same directory. If autosaving is enabled, we'll save an empty session when we exit
+      -- blowing away the session we were trying to save
       vim.cmd "%bd!"
 
       vim.cmd "clearjumps"
@@ -65,6 +72,10 @@ M.setup_autocmds = function(config, AutoSession)
         end
 
         if AutoSession.restore_in_progress then
+          -- NOTE: We don't call the cwd_changed_hook here (or in the other case below)
+          -- I think that's probably the right choice because I assume that event is mostly
+          -- for preparing sessions for save/restoring but we don't want to do that when we're
+          -- already restoring a session
           Lib.logger.debug "DirChanged: restore_in_progress is true, ignoring this event"
           return
         end
