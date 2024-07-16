@@ -18,4 +18,4 @@ args-tests:
 
 
 $(PLENARY_DIR):
-git clone --depth=1 --branch $(PLENARY_VER) $(PLENARY_URL) $(PLENARY_DIR)
+	git clone --depth=1 --branch $(PLENARY_VER) $(PLENARY_URL) $(PLENARY_DIR)
