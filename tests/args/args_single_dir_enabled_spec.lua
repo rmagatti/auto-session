@@ -5,8 +5,6 @@ local stub = require "luassert.stub"
 describe("The args single dir enabled config", function()
   local no_restore_hook_called = false
   require("auto-session").setup {
-    auto_session_root_dir = TL.session_dir,
-
     args_allow_single_directory = true,
     args_allow_files_auto_save = false,
 

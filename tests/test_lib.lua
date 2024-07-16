@@ -23,7 +23,7 @@ M.test_file = M.tests_base_dir .. "/test_files/test.txt"
 M.other_file = M.tests_base_dir .. "/test_files/other.txt"
 
 -- Use absolute path here for cwd_change_handling
-M.session_dir = vim.fn.getcwd() .. "/tests/test_sessions/"
+M.session_dir = vim.fn.getcwd() .. "/.test/data/nvim/sessions/"
 
 -- Construct the session name for the current directory
 M.default_session_name = M.escapeSessionName(vim.fn.getcwd())

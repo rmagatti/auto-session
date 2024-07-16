@@ -2,9 +2,7 @@
 local TL = require "tests/test_lib"
 
 describe("The default config", function()
-  require("auto-session").setup {
-    auto_session_root_dir = TL.session_dir,
-  }
+  require("auto-session").setup {}
 
   TL.clearSessionFilesAndBuffers()
 

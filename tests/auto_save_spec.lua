@@ -3,7 +3,6 @@ local TL = require "tests/test_lib"
 
 describe("The auto_save_enabled=false config", function()
   require("auto-session").setup {
-    auto_session_root_dir = TL.session_dir,
     auto_save_enabled = false,
   }
 

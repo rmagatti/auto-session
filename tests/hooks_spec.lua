@@ -11,7 +11,6 @@ describe("Hooks", function()
   local post_delete_cmd_called = false
 
   as.setup {
-    auto_session_root_dir = TL.session_dir,
     pre_save_cmds = {
       function()
         print "pre_save_cmd"

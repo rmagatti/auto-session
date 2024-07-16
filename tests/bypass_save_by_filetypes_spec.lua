@@ -5,7 +5,6 @@ describe("Bypass save by filetypes", function()
   local as = require "auto-session"
 
   as.setup {
-    auto_session_root_dir = TL.session_dir,
     bypass_session_save_file_types = { "text" },
   }
 

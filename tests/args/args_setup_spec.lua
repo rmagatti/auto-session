@@ -1,7 +1,6 @@
 ---@diagnostic disable: undefined-field
 local TL = require "tests/test_lib"
 require("auto-session").setup {
-  auto_session_root_dir = TL.session_dir,
   auto_save_enabled = false,
 }
 

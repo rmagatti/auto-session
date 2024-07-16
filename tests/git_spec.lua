@@ -3,7 +3,6 @@ local TL = require "tests/test_lib"
 
 describe("The git config", function()
   require("auto-session").setup {
-    auto_session_root_dir = TL.session_dir,
     auto_session_use_git_branch = true,
   }
 

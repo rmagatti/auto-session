@@ -1,6 +1,7 @@
 # Auto-generated tag files
 doc/tags
 .luarc.json
+.test
 .build_tools
 
 tests/test_sessions
