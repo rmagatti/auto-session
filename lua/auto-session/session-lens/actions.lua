@@ -14,15 +14,14 @@ local function get_alternate_session()
   local filepath = M.conf.session_control.control_dir .. M.conf.session_control.control_filename
 
   if vim.fn.filereadable(filepath) == 1 then
-    local content = vim.fn.readfile(filepath)[1] or "{}"
-    local json = vim.json.decode(content) or {} -- should never hit the or clause since we're defaulting to a string for content
+    local json = Lib.load_session_control_file(filepath)
 
     local sessions = {
       current = json.current,
       alternate = json.alternate,
     }
 
-    Lib.logger.debug("get_alternate_session", { sessions = sessions, content = content })
+    Lib.logger.debug("get_alternate_session", { sessions = sessions, json = json })
 
     if sessions.current ~= sessions.alternate then
       return sessions.alternate
@@ -39,7 +38,7 @@ local function source_session(selection, prompt_bufnr)
   end
 
   vim.defer_fn(function()
-    M.functions.restore_selected_session(type(selection) == "table" and selection.path)
+    M.functions.restore_selected_session(selection)
   end, 50)
 end
 
@@ -67,12 +66,8 @@ M.alternate_session = function(prompt_bufnr)
   local alternate_session = get_alternate_session()
 
   if not alternate_session then
-    Lib.logger.info "There is no alternate session to navigate to, aborting operation"
-
-    if prompt_bufnr then
-      actions.close(prompt_bufnr)
-    end
-
+    vim.notify "There is no alternate session"
+    -- Keep the picker open in case they want to select a session to load
     return
   end
 

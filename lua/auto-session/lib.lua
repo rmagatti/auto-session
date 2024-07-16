@@ -265,4 +265,27 @@ function Lib.is_session_file(session_dir, file_path)
   return first_line and string.find(first_line, "SessionLoad") ~= nil
 end
 
+---Decodes the contents of session_control_file_path as a JSON object and returns it.
+---Returns an empty table if the file doesn't exist or if the contents couldn't be decoded
+--@param session_control_file_path string
+--@return table
+function Lib.load_session_control_file(session_control_file_path)
+  -- No file, return empty table
+  if vim.fn.filereadable(session_control_file_path) ~= 1 then
+    return {}
+  end
+
+  local file_lines = vim.fn.readfile(session_control_file_path)
+  local content = table.concat(file_lines, " ")
+
+  local success, json = pcall(vim.json.decode, content)
+
+  -- Failed to decode, return an empty table
+  if not success or not json then
+    return {}
+  end
+
+  return json
+end
+
 return Lib
