@@ -24,11 +24,15 @@ M.other_file = M.tests_base_dir .. "/test_files/other.txt"
 
 -- This is set in minimal.lua to be auto-session/.test/...
 M.session_dir = vim.fn.stdpath "data" .. "/sessions/"
+M.session_control_dir = vim.fn.stdpath "data" .. "/auto_session/"
 
 -- Construct the session name for the current directory
 M.default_session_name = M.escapeSessionName(vim.fn.getcwd())
 
 M.default_session_path = M.session_dir .. M.default_session_name .. ".vim"
+
+M.default_session_control_name = "session_control.json"
+M.default_session_control_path = M.session_control_dir .. M.default_session_control_name
 
 M.named_session_name = "mysession"
 M.named_session_path = M.session_dir .. M.named_session_name .. ".vim"
@@ -49,6 +53,7 @@ end
 
 function M.clearSessionFilesAndBuffers()
   M.clearSessionFiles(M.session_dir)
+  M.clearSessionFiles(M.session_control_dir)
   vim.cmd "silent %bw"
 end
 
