@@ -21,6 +21,7 @@ function Lib.setup(config)
 end
 
 function Lib.get_file_name(url)
+  -- BUG: This is broken on windows when the path is only using blackslashes
   return url:match "^.+/(.+)$"
 end
 
@@ -29,7 +30,8 @@ function Lib.get_file_extension(url)
 end
 
 -- BUG: This doesn't work correctly for automatically created sessions on windows
--- because they have dashes in the name
+-- because they have dashes in the name. Can also be broken for paths that only
+-- have backslahes (see bug above)
 function Lib.current_session_name()
   local fname = Lib.get_file_name(vim.v.this_session)
   local extension = Lib.get_file_extension(fname)

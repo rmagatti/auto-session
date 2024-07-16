@@ -22,8 +22,8 @@ M.tests_base_dir = "tests"
 M.test_file = M.tests_base_dir .. "/test_files/test.txt"
 M.other_file = M.tests_base_dir .. "/test_files/other.txt"
 
--- Use absolute path here for cwd_change_handling
-M.session_dir = vim.fn.getcwd() .. "/.test/data/nvim/sessions/"
+-- This is set in minimal.lua to be auto-session/.test/...
+M.session_dir = vim.fn.stdpath "data" .. "/sessions/"
 
 -- Construct the session name for the current directory
 M.default_session_name = M.escapeSessionName(vim.fn.getcwd())
