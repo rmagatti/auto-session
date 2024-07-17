@@ -51,21 +51,45 @@ describe("The default config", function()
     -- Should not be empty
     assert.is_not_nil(next(session_control))
 
-    print("session_control: " .. vim.inspect(session_control))
+    local as = require "auto-session"
 
-    assert.equals(TL.named_session_path, session_control.current)
-    assert.equals(TL.default_session_path, session_control.alternate)
+    assert.equals(as.Lib.expand(TL.named_session_path), session_control.current)
+    assert.equals(as.Lib.expand(TL.default_session_path), session_control.alternate)
+  end)
+
+  it("Saving twice doesn't set alternate", function()
+    -- Save a session then restore it twice to make sure it's not both current and alternate
+    vim.cmd ":SessionSave"
+
+    vim.cmd ":SessionRestore"
+
+    vim.cmd ":SessionRestore "
+
+    -- Make sure the session control file was written
+    assert.equals(1, vim.fn.filereadable(TL.default_session_control_path))
+
+    local session_control = require("auto-session").Lib.load_session_control_file(TL.default_session_control_path)
+
+    -- Should not be empty
+    assert.is_not_nil(next(session_control))
+
+    local as = require "auto-session"
+
+    assert.equals(as.Lib.expand(TL.default_session_path), session_control.current)
+
+    -- Should still be mysession from test above
+    assert.equals(as.Lib.expand(TL.named_session_path), session_control.alternate)
   end)
 
   it("lib function handles edge cases", function()
-    local lib = require("auto-session").Lib
+    local as = require "auto-session"
 
     -- Don't throw an error on nil
-    local session_control = lib.load_session_control_file(nil)
+    local session_control = as.Lib.load_session_control_file(nil)
     assert.equals("table", type(session_control))
 
     -- Don't throw an error on not a js file
-    session_control = lib.load_session_control_file "tests/session_control_spec.lua"
+    session_control = as.Lib.load_session_control_file "tests/session_control_spec.lua"
     assert.equals("table", type(session_control))
   end)
 end)

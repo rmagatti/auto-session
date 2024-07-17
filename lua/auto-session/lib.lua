@@ -164,6 +164,14 @@ function Lib.is_readable(file_path)
   return readable
 end
 
+-- NOTE: expand has the side effect of canonicalizing the path
+-- separators on windows, meaning if it's a mix of \ and /, it
+-- will come out of expand with all \ (or, if shellslash is on,
+-- all /)
+
+---Get the full path for the passed in path
+--@param string
+--@return string
 function Lib.expand(file_or_dir)
   local saved_wildignore = vim.api.nvim_get_option "wildignore"
   vim.api.nvim_set_option("wildignore", "")
