@@ -526,7 +526,7 @@ function AutoSession.get_root_dir(with_trailing_separator)
     return AutoSession.conf.auto_session_root_dir
   end
 
-  return Lib.dir_without_trailing_separator(AutoSession.conf.auto_session_root_dir)
+  return Lib.remove_trailing_separator(AutoSession.conf.auto_session_root_dir)
 end
 
 ---Get the hook commands to run

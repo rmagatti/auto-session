@@ -117,7 +117,7 @@ end
 ---the path and make equality checks fail (e.g. session control alternate)
 ---@param dir string
 ---@return string
-function Lib.dir_without_trailing_separator(dir)
+function Lib.remove_trailing_separator(dir)
   -- For windows, have to check for both as either could be used
   if vim.fn.has "win32" == 1 then
     dir = dir:gsub("\\$", "")
