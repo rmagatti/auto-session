@@ -23,4 +23,15 @@ describe("Lib", function()
       assert.equals("c:\\temp\\blah", Lib.dir_without_trailing_separator "c:\\temp\\blah/")
     end
   end)
+
+  it("ensure_trailing_separator works", function()
+    assert.equals("/test/path/", Lib.ensure_trailing_separator "/test/path/")
+    assert.equals("/test/path/", Lib.ensure_trailing_separator "/test/path")
+
+    if vim.fn.has "win32" == 1 then
+      -- For the future, if we want to canonicalize paths, we can could call vim.fn.expand
+      assert.equals("c:\\test\\path\\", Lib.ensure_trailing_separator "c:\\test\\path\\")
+      assert.equals("c:\\test\\path/", Lib.ensure_trailing_separator "c:\\test\\path")
+    end
+  end)
 end)

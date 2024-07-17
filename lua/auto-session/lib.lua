@@ -67,9 +67,7 @@ end
 -- Also creates it if necessary
 -- Falls back to vim.fn.stdpath "data" .. "/sessions/" if the directory is invalid for some reason
 function Lib.validate_root_dir(root_dir)
-  if not vim.endswith(root_dir, "/") then
-    root_dir = root_dir .. "/"
-  end
+  root_dir = Lib.ensure_trailing_separator(root_dir)
 
   if vim.fn.isdirectory(Lib.expand(root_dir)) == Lib._VIM_FALSE then
     vim.fn.mkdir(root_dir, "p")
@@ -93,6 +91,25 @@ function Lib.init_dir(dir)
   if vim.fn.isdirectory(Lib.expand(dir)) == Lib._VIM_FALSE then
     vim.fn.mkdir(dir, "p")
   end
+end
+
+---Returns a string that's guaranteed to end in a path separator
+---@param dir string
+---@return string
+function Lib.ensure_trailing_separator(dir)
+  if vim.endswith(dir, "/") then
+    return dir
+  end
+
+  -- For windows, have to also check if it ends in a \
+  if vim.fn.has "win32" == 1 then
+    if vim.endswith(dir, "\\") then
+      return dir
+    end
+  end
+
+  -- If not, a / will work for both systems
+  return dir .. "/"
 end
 
 ---Removes the trailing separator (if any) from a directory, for both unix and windows
