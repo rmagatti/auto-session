@@ -31,14 +31,14 @@ local function get_alternate_session()
   end
 end
 
-local function source_session(selection, prompt_bufnr)
+local function source_session(path, prompt_bufnr)
   if prompt_bufnr then
     local actions = require "telescope.actions"
     actions.close(prompt_bufnr)
   end
 
   vim.defer_fn(function()
-    M.functions.restore_selected_session(selection)
+    M.functions.restore_selected_session(path)
   end, 50)
 end
 
@@ -48,7 +48,7 @@ end
 M.source_session = function(prompt_bufnr)
   local action_state = require "telescope.actions.state"
   local selection = action_state.get_selected_entry()
-  source_session(selection, prompt_bufnr)
+  source_session(selection.path, prompt_bufnr)
 end
 
 ---Delete session action
