@@ -1,5 +1,4 @@
 local path = require "plenary.path"
-local AutoSessionLib = require "auto-session.lib"
 
 local Config = {}
 local Lib = {
@@ -11,13 +10,11 @@ local Lib = {
   Config = Config,
   _VIM_FALSE = 0,
   _VIM_TRUE = 1,
-  ROOT_DIR = nil,
 }
 
 function Lib.setup(config, functions)
   Lib.conf = vim.tbl_deep_extend("force", Lib.conf, config)
   Lib.functions = functions
-  Lib.ROOT_DIR = Lib.functions.get_root_dir()
 end
 
 function Lib.isEmpty(s)
@@ -34,11 +31,15 @@ function Lib.appendSlash(str)
 end
 
 function Lib.make_entry.gen_from_file(opts)
-  local root = Lib.functions.get_root_dir()
+  -- NOTE:: Lib.functions.Lib is AutoSession.Lib
+  -- Maybe would be better to require('auto-session') and access the Lib property instead?
+
+  -- We don't want the trailing separator because plenary will add one
+  local root = Lib.functions.get_root_dir(false)
   return function(line)
     -- Don't include <session>x.vim files that nvim makes for custom user
     -- commands
-    if not AutoSessionLib.is_session_file(root, line) then
+    if not Lib.functions.Lib.is_session_file(root, line) then
       return nil
     end
 
@@ -48,7 +49,7 @@ function Lib.make_entry.gen_from_file(opts)
       filename = line,
       cwd = root,
       display = function(_)
-        local out = AutoSessionLib.unescape_dir(line):match "(.+)%.vim"
+        local out = Lib.functions.Lib.unescape_dir(line):match "(.+)%.vim"
         if opts.path_display and vim.tbl_contains(opts.path_display, "shorten") then
           out = path:new(out):shorten()
         end

@@ -507,18 +507,26 @@ end
 
 ---Gets the root directory of where to save the sessions.
 ---By default this resolves to `vim.fn.stdpath "data" .. "/sessions/"`
+---@param with_trailing_separator? boolean whether to incude the trailing separator. A few places (telescope picker don't expect a trailing separator)
 ---@return string
-function AutoSession.get_root_dir()
-  if AutoSession.validated then
+function AutoSession.get_root_dir(with_trailing_separator)
+  if with_trailing_separator == nil then
+    with_trailing_separator = true
+  end
+
+  if not AutoSession.validated then
+    local root_dir = vim.g["auto_session_root_dir"] or AutoSession.conf.auto_session_root_dir
+
+    AutoSession.conf.auto_session_root_dir = Lib.validate_root_dir(root_dir)
+    Lib.logger.debug("Root dir set to: " .. AutoSession.conf.auto_session_root_dir)
+    AutoSession.validated = true
+  end
+
+  if with_trailing_separator then
     return AutoSession.conf.auto_session_root_dir
   end
 
-  local root_dir = vim.g["auto_session_root_dir"] or AutoSession.conf.auto_session_root_dir
-
-  AutoSession.conf.auto_session_root_dir = Lib.validate_root_dir(root_dir)
-  Lib.logger.debug("Root dir set to: " .. AutoSession.conf.auto_session_root_dir)
-  AutoSession.validated = true
-  return root_dir
+  return Lib.dir_without_trailing_separator(AutoSession.conf.auto_session_root_dir)
 end
 
 ---Get the hook commands to run
@@ -573,11 +581,9 @@ function AutoSession.get_session_files()
     return Lib.is_session_file(sessions_dir, item)
   end)
 
-  -- Get cross platform path separator
-  local path_separator = Lib.get_path_separator()
-
   return vim.tbl_map(function(entry)
-    return { display_name = AutoSession.format_file_name(entry), path = sessions_dir .. path_separator .. entry }
+    --  sessions_dir is guaranteed to have a trailing separator so don't need to add another one here
+    return { display_name = AutoSession.format_file_name(entry), path = sessions_dir .. entry }
   end, entries)
 end
 
@@ -614,7 +620,7 @@ end
 
 -- Handler for when a session is picked from the UI, either via Telescope or via AutoSession.select_session
 function AutoSession.restore_selected_session(session_filename)
-  Lib.logger.debug("[restore_selected_session]: filename: " .. session_filename)
+  Lib.logger.debug("[restore_selected_session]: filename: ", session_filename)
 
   AutoSession.AutoSaveSession()
 

@@ -10,7 +10,6 @@ local Lib = {
   Config = Config,
   _VIM_FALSE = 0,
   _VIM_TRUE = 1,
-  ROOT_DIR = nil,
 }
 
 function Lib.setup(config)
@@ -94,6 +93,20 @@ function Lib.init_dir(dir)
   if vim.fn.isdirectory(Lib.expand(dir)) == Lib._VIM_FALSE then
     vim.fn.mkdir(dir, "p")
   end
+end
+
+---Removes the trailing separator (if any) from a directory, for both unix and windows
+---This is needed in some places to avoid duplicate separators that complicate
+---the path and make equality checks fail (e.g. session control alternate)
+---@param dir string
+---@return string
+function Lib.dir_without_trailing_separator(dir)
+  -- For windows, have to check for both as either could be used
+  if vim.fn.has "win32" == 1 then
+    dir = dir:gsub("\\$", "")
+  end
+
+  return (dir:gsub("/$", ""))
 end
 
 function Lib.init_file(file_path)
