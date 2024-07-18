@@ -163,11 +163,30 @@ function Lib.escape_dir(dir)
 end
 
 function Lib.escaped_session_name_from_cwd()
-  return IS_WIN32 and Lib.unescape_dir(vim.fn.getcwd()) or Lib.escape_dir(vim.fn.getcwd())
+  return IS_WIN32 and Lib.escape_dir(vim.fn.getcwd()) or Lib.escape_dir(vim.fn.getcwd())
 end
 
 function Lib.escape_branch_name(branch_name)
-  return IS_WIN32 and Lib.unescape_dir(branch_name) or Lib.escape_dir(branch_name)
+  return IS_WIN32 and Lib.escape_dir(branch_name) or Lib.escape_dir(branch_name)
+end
+
+---Returns a string with path characters escaped. Works with both *nix and Windows
+---This string is not escaped for use in Vim commands. For that, call Lib.escape_for_vim
+---@param str string The string to escape, most likely a path
+---@return string
+function Lib.escape_path(str)
+  if IS_WIN32 then
+    return win32_escaped_dir(str)
+  end
+
+  return (str:gsub("/", "%%"))
+end
+
+---Returns a sstring with % characters escaped, suitable for use with vim cmds
+---@param str string The string to vim escape
+---@return string
+function Lib.escape_string_for_vim(str)
+  return (str:gsub("%%", "\\%%"))
 end
 
 local function get_win32_legacy_cwd(cwd)

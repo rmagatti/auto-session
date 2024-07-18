@@ -13,7 +13,7 @@ describe("The default config", function()
   it("can disable autosaving", function()
     as.conf.auto_save_enabled = true
 
-    vim.cmd "SessionDisableAutoSave"
+    vim.cmd "SessionEnableAutoSave!"
 
     assert.False(as.conf.auto_save_enabled)
   end)

@@ -213,7 +213,7 @@ local function is_auto_create_enabled()
 end
 
 -- get the current git branch name, if any, and only if configured to do so
-local function get_branch_name()
+local function get_git_branch_name()
   if AutoSession.conf.auto_session_use_git_branch then
     -- WARN: this assumes you want the branch of the cwd
     local out = vim.fn.systemlist "git rev-parse --abbrev-ref HEAD"
@@ -391,6 +391,7 @@ local function is_allowed_dir()
   return false
 end
 
+-- FIXME: remove this after updating all of the callers
 local function get_session_file_name(upcoming_session_dir)
   local session = upcoming_session_dir and upcoming_session_dir ~= "" and upcoming_session_dir or nil
   local is_empty = Lib.is_empty(upcoming_session_dir)
@@ -418,7 +419,7 @@ local function get_session_file_name(upcoming_session_dir)
     local session_name = Lib.escape_dir(upcoming_session_dir)
 
     if not last_loaded_session_name then
-      local branch_name = get_branch_name()
+      local branch_name = get_git_branch_name()
       branch_name = Lib.escape_branch_name(branch_name ~= "" and "_" .. branch_name or "")
 
       Lib.logger.debug("not session_name", { sessions_dir = upcoming_session_dir, session_name = session_name })
@@ -564,14 +565,15 @@ function AutoSession.get_cmds(typ)
   return AutoSession.conf[typ .. "_cmds"] or vim.g["auto_session_" .. typ .. "_cmds"]
 end
 
-local function message_after_saving(path, auto)
+local function message_after_saving(session_name, auto)
   if auto then
-    Lib.logger.debug("Session saved at " .. path)
+    Lib.logger.debug("Saved session: " .. session_name)
   else
-    Lib.logger.info("Session saved at " .. path)
+    Lib.logger.info("Saved session:  " .. session_name)
   end
 end
 
+-- FIXME: Remove this when done
 ---Save extra info to "{session_file}x.vim"
 local function save_extra_cmds(session_file_name)
   local extra_cmds = AutoSession.get_cmds "save_extra"
@@ -582,6 +584,21 @@ local function save_extra_cmds(session_file_name)
     extra_file = string.gsub(extra_file, "\\%%", "%%")
     vim.fn.writefile(datas, extra_file)
   end
+end
+
+local function save_extra_cmds_new(session_path)
+  local extra_cmds = AutoSession.get_cmds "save_extra"
+  if not extra_cmds then
+    return
+  end
+
+  local data = run_hook_cmds(extra_cmds, "save-extra")
+  if not data then
+    return
+  end
+
+  local extra_file = string.gsub(session_path, ".vim$", "x.vim")
+  vim.fn.writefile(data, extra_file)
 end
 
 ---@class PickerItem
@@ -1004,7 +1021,7 @@ function AutoSession.DeleteSessionByName(...)
 end
 
 ---DeleteSession delets a single session given a provided path
----@param ... string[]
+---@param ... string
 function AutoSession.DeleteSession(...)
   local pre_cmds = AutoSession.get_cmds "pre_delete"
   run_hook_cmds(pre_cmds, "pre-delete")
@@ -1052,6 +1069,73 @@ function AutoSession.PurgeOrphanedSessions()
   end
 end
 
+---get_session_file_name_new Returns the escaped version of the name with .vim appended.
+---If no filename is passed it, will generate one using the cwd and, if enabled, the git
+---branchname
+---@param session_name string|nil The sessio name to use or nil
+local function get_session_file_name_new(session_name)
+  if not session_name then
+    session_name = vim.fn.getcwd()
+    Lib.logger.debug("get_session_file_name no session_name, using cwd: " .. session_name)
+
+    local git_branch_name = get_git_branch_name()
+    if git_branch_name and git_branch_name ~= "" then
+      -- TODO: Should find a better way to encode branch name
+      session_name = session_name .. "_" .. git_branch_name
+    end
+  end
+
+  local escaped_session_name = Lib.escape_path(session_name)
+
+  if not escaped_session_name:match "%.vim$" then
+    escaped_session_name = escaped_session_name .. ".vim"
+  end
+
+  return escaped_session_name
+end
+
+---SaveSessionToDir saves a session to the passed in directory. If no optional
+---session name is passed in, it use the cwd as the session name
+---@param session_dir string Directory to write the session file to
+---@param session_name? string Optional session name. If no name is provided,
+---@param auto? boolean Optional, was this an autosave or not
+---the cwd
+function AutoSession.SaveSessionToDir(session_dir, session_name, auto)
+  Lib.logger.debug("SaveSessionToDir start", { session_dir, session_name })
+
+  -- Canonicalize and create session_dir
+  Lib.logger.debug("SaveSessionToDir session_dir: ", session_dir)
+  session_dir = Lib.validate_root_dir(session_dir)
+  Lib.logger.debug("SaveSessionToDir session_dir: ", session_dir)
+
+  local escaped_session_name = get_session_file_name_new(session_name)
+
+  Lib.logger.debug("SaveSessionToDir escaped session name: " .. escaped_session_name)
+
+  local pre_cmds = AutoSession.get_cmds "pre_save"
+  run_hook_cmds(pre_cmds, "pre-save")
+
+  local session_path = session_dir .. escaped_session_name
+
+  Lib.logger.debug("SaveSessionToDir writing session to: " .. session_path)
+
+  -- Vim cmds require escaping any % with a \ but we don't want to do that
+  -- for direct filesystem operations (like in save_extra_cmds_new)
+  local vim_session_path = Lib.escape_string_for_vim(session_path)
+  vim.cmd("mks! " .. vim_session_path)
+
+  save_extra_cmds_new(session_path)
+
+  -- TODO: Not sure if this should be escaped_session_name or if
+  -- it would be better to unescape it
+  message_after_saving(escaped_session_name, auto)
+
+  local post_cmds = AutoSession.get_cmds "post_save"
+  run_hook_cmds(post_cmds, "post-save")
+
+  return true
+end
+
 function SetupAutocmds()
   Lib.logger.info "Setting up autocmds"
 
@@ -1071,12 +1155,20 @@ function SetupAutocmds()
     return AutoSession.PurgeOrphanedSessions()
   end
 
+  vim.api.nvim_create_user_command("SessionSaveToDir", function(args)
+    return AutoSession.SaveSessionToDir(args.fargs[1], args.fargs[2])
+  end, {
+    bang = true,
+    nargs = "+",
+    desc = "Save session to passed in directory for the current working directory or an optional session name",
+  })
+
   vim.api.nvim_create_user_command("SessionSave", function(args)
     return AutoSession.SaveSession(args.args, false)
   end, {
     bang = true,
     nargs = "?",
-    desc = "Save session for the current working directory or the passed in session name",
+    desc = "Save session for the current working directory or an optional session name",
   })
 
   vim.api.nvim_create_user_command("SessionRestore", function(args)
@@ -1085,7 +1177,7 @@ function SetupAutocmds()
     complete = AutoSession.CompleteSessions,
     bang = true,
     nargs = "?",
-    desc = "Restore session for the current working directory or the passed in session name",
+    desc = "Restore session for the current working directory or optional session name",
   })
 
   vim.api.nvim_create_user_command("SessionDelete", function(args)
@@ -1094,21 +1186,14 @@ function SetupAutocmds()
     complete = AutoSession.CompleteSessions,
     bang = true,
     nargs = "*",
-    desc = "Delete Session for the current working directory or the passed in sessio name",
+    desc = "Delete Session for the current working directory or optional sessio name",
   })
 
-  vim.api.nvim_create_user_command("SessionEnableAutoSave", function()
-    AutoSession.conf.auto_save_enabled = true
+  vim.api.nvim_create_user_command("SessionEnableAutoSave", function(args)
+    AutoSession.conf.auto_save_enabled = not args.bang
   end, {
     bang = true,
     desc = "Enable auto saving",
-  })
-
-  vim.api.nvim_create_user_command("SessionDisableAutoSave", function()
-    AutoSession.conf.auto_save_enabled = false
-  end, {
-    bang = true,
-    desc = "Disable auto saving",
   })
 
   vim.api.nvim_create_user_command("SessionToggleAutoSave", function()
