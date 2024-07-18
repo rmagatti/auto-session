@@ -18,12 +18,12 @@ describe("The git config", function()
   end
 
   -- get a file in that dir
-  vim.cmd(":e " .. TL.test_file)
-  vim.cmd(":w! " .. git_test_dir .. "/test.txt")
+  vim.cmd("e " .. TL.test_file)
+  vim.cmd("w! " .. git_test_dir .. "/test.txt")
   vim.cmd "%bw"
 
   -- change to that dir
-  vim.cmd(":cd " .. git_test_dir)
+  vim.cmd("cd " .. git_test_dir)
 
   local function runCmdAndPrint(cmd)
     ---@diagnostic disable-next-line: unused-local
@@ -45,7 +45,7 @@ describe("The git config", function()
   runCmdAndPrint "git commit -m 'init'"
 
   -- open a file so we have something to save
-  vim.cmd ":e test.txt"
+  vim.cmd "e test.txt"
 
   it("saves a session with the branch name", function()
     -- vim.cmd ":SessionSave"

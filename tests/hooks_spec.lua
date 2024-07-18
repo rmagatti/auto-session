@@ -57,7 +57,7 @@ describe("Hooks", function()
   TL.clearSessionFilesAndBuffers()
 
   it("fire when saving", function()
-    vim.cmd(":e " .. TL.test_file)
+    vim.cmd("e " .. TL.test_file)
 
     assert.True(as.AutoSaveSession())
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))

@@ -8,7 +8,7 @@ describe("The suppress dirs config", function()
   }
 
   TL.clearSessionFilesAndBuffers()
-  vim.cmd(":e " .. TL.test_file)
+  vim.cmd("e " .. TL.test_file)
 
   it("doesn't save a session for a suppressed dir", function()
     ---@diagnostic disable-next-line: missing-parameter
@@ -35,7 +35,7 @@ describe("The suppress dirs config", function()
   end)
 
   TL.clearSessionFilesAndBuffers()
-  vim.cmd(":e " .. TL.test_file)
+  vim.cmd("e " .. TL.test_file)
 
   require("auto-session").setup {
     auto_session_root_dir = TL.session_dir,

@@ -54,7 +54,7 @@ describe("The args files enabled config", function()
   end)
 
   it("does autosave a session", function()
-    vim.cmd(":e " .. TL.other_file)
+    vim.cmd("e " .. TL.other_file)
     assert.equals(1, vim.fn.bufexists(TL.other_file))
 
     local as = require "auto-session"
@@ -75,7 +75,7 @@ describe("The args files enabled config", function()
   it("doesn't autosave when args_allow_files_auto_save returns false", function()
     M.clearSessionFilesAndBuffers()
 
-    vim.cmd(":e " .. TL.other_file)
+    vim.cmd("e " .. TL.other_file)
     assert.equals(1, vim.fn.bufexists(TL.other_file))
 
     local as = require "auto-session"
@@ -96,7 +96,7 @@ describe("The args files enabled config", function()
   it("does autosave a session when args_allow_files_auto_save returns true", function()
     M.clearSessionFilesAndBuffers()
 
-    vim.cmd(":e " .. TL.other_file)
+    vim.cmd("e " .. TL.other_file)
     assert.equals(1, vim.fn.bufexists(TL.other_file))
 
     local as = require "auto-session"

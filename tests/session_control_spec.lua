@@ -9,10 +9,10 @@ describe("The default config", function()
   TL.clearSessionFilesAndBuffers()
 
   it("can save a session control file", function()
-    vim.cmd(":e " .. TL.test_file)
+    vim.cmd("e " .. TL.test_file)
 
     ---@diagnostic disable-next-line: missing-parameter
-    vim.cmd ":SessionSave"
+    vim.cmd "SessionSave"
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
 
@@ -20,7 +20,7 @@ describe("The default config", function()
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 
     -- Session control is only written on restore
-    vim.cmd ":SessionRestore"
+    vim.cmd "SessionRestore"
 
     -- Make sure the restore worked
     assert.equals(1, vim.fn.bufexists(TL.test_file))
@@ -31,14 +31,14 @@ describe("The default config", function()
 
   it("can save a session control file", function()
     -- Save a new session
-    vim.cmd(":SessionSave " .. TL.named_session_name)
+    vim.cmd("SessionSave " .. TL.named_session_name)
 
     vim.cmd "%bw!"
 
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 
     -- Restore the session to set the original one as the alternate
-    vim.cmd(":SessionRestore " .. TL.named_session_path)
+    vim.cmd("SessionRestore " .. TL.named_session_path)
 
     -- Make sure session restored
     assert.equals(1, vim.fn.bufexists(TL.test_file))
@@ -59,11 +59,11 @@ describe("The default config", function()
 
   it("Saving twice doesn't set alternate", function()
     -- Save a session then restore it twice to make sure it's not both current and alternate
-    vim.cmd ":SessionSave"
+    vim.cmd "SessionSave"
 
-    vim.cmd ":SessionRestore"
+    vim.cmd "SessionRestore"
 
-    vim.cmd ":SessionRestore "
+    vim.cmd "SessionRestore "
 
     -- Make sure the session control file was written
     assert.equals(1, vim.fn.filereadable(TL.default_session_control_path))

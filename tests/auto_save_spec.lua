@@ -9,7 +9,7 @@ describe("The auto_save_enabled=false config", function()
   TL.clearSessionFilesAndBuffers()
 
   it("does not create an autosaved session", function()
-    vim.cmd(":e " .. TL.test_file)
+    vim.cmd("e " .. TL.test_file)
 
     ---@diagnostic disable-next-line: missing-parameter
     require("auto-session").AutoSaveSession()
@@ -19,10 +19,10 @@ describe("The auto_save_enabled=false config", function()
   end)
 
   it("can save a session", function()
-    vim.cmd(":e " .. TL.test_file)
+    vim.cmd("e " .. TL.test_file)
 
     ---@diagnostic disable-next-line: missing-parameter
-    vim.cmd ":SessionSave"
+    vim.cmd "SessionSave"
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))

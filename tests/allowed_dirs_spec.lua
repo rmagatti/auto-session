@@ -8,7 +8,7 @@ describe("The allowed dirs config", function()
   }
 
   TL.clearSessionFilesAndBuffers()
-  vim.cmd(":e " .. TL.test_file)
+  vim.cmd("e " .. TL.test_file)
 
   it("doesn't save a session for a non-allowed dir", function()
     ---@diagnostic disable-next-line: missing-parameter

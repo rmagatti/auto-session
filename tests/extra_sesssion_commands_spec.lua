@@ -20,7 +20,7 @@ describe("Config with extra session commands", function()
   local extra_cmds_path = session_path:gsub("%.vim$", "x.vim")
 
   it("can save a session with extra commands", function()
-    vim.cmd(":e " .. TL.test_file)
+    vim.cmd("e " .. TL.test_file)
 
     local as = require "auto-session"
 
@@ -29,7 +29,7 @@ describe("Config with extra session commands", function()
 
     -- Save a session named "x.vim"
     ---@diagnostic disable-next-line: missing-parameter
-    vim.cmd(":SessionSave " .. session_name)
+    vim.cmd("SessionSave " .. session_name)
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(session_path))
