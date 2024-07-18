@@ -1,17 +1,19 @@
-# 🗒️ Description
+# 🗒️ AutoSession
 
-Auto Session takes advantage of Neovim's existing session management capabilities to provide seamless automatic session management.
+AutoSession takes advantage of Neovim's existing session management capabilities to provide seamless automatic session management.
 
 <img src="https://github.com/rmagatti/readme-assets/blob/main/auto-session-new-example.gif" width="800" />
 
+[<img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/rmagatti/auto-session/tests.yml?style=for-the-badge&label=tests">](https://github.com/rmagatti/auto-session/actions/workflows/tests.yml)
+
 # 💡 Behaviour
 
-1. When starting `nvim` with no arguments, auto-session will try to restore an existing session for the current `cwd` if one exists.
-2. When starting `nvim .` (or another directory), auto-session will try to restore the session for that directory.
-3. When starting `nvim some_file.txt` (or multiple files), by default, auto-session won't do anything. See [argument handling](#argument-handling) for more details.
+1. When starting `nvim` with no arguments, AutoSession will try to restore an existing session for the current `cwd` if one exists.
+2. When starting `nvim .` (or another directory), AutoSession will try to restore the session for that directory.
+3. When starting `nvim some_file.txt` (or multiple files), by default, AutoSession won't do anything. See [argument handling](#argument-handling) for more details.
 4. Even after starting `nvim` with a file argument, a session can still be manually restored by running `:SessionRestore`.
 5. Any session saving and restoration takes into consideration the current working directory `cwd`.
-6. When piping to `nvim`, e.g: `cat myfile | nvim`, auto-session won't do anything.
+6. When piping to `nvim`, e.g: `cat myfile | nvim`, AutoSession won't do anything.
 
 :warning: Please note that if there are errors in your config, restoring the session might fail, if that happens, auto session will then disable auto saving for the current session.
 Manually saving a session can still be done by calling `:SessionSave`.
@@ -20,16 +22,16 @@ AutoSession can now track `cwd` changes!
 By default, `cwd` handling is disabled but when enabled, it works as follows:
 
 - DirChangedPre (before the cwd actually changes):
-    - Save the current session
-    - Clear all buffers `%bd!`. This guarantees buffers don't bleed to the
-      next session.
-    - Clear jumps. Also done so there is no bleeding between sessions.
-    - Run the `pre_cwd_changed_hook`/
+  - Save the current session
+  - Clear all buffers `%bd!`. This guarantees buffers don't bleed to the
+    next session.
+  - Clear jumps. Also done so there is no bleeding between sessions.
+  - Run the `pre_cwd_changed_hook`/
 - DirChanged (after the cwd has changed):
-    - Restore session using new cwd
-    - Run the `post_cwd_changed_hook`
+  - Restore session using new cwd
+  - Run the `post_cwd_changed_hook`
 
-Now when the user changes the cwd with `:cd some/new/dir` auto-session handles it gracefully, saving the current session so there aren't losses and loading the session for the upcoming cwd if it exists.
+Now when the user changes the cwd with `:cd some/new/dir` AutoSession handles it gracefully, saving the current session so there aren't losses and loading the session for the upcoming cwd if it exists.
 
 Hooks are available for custom actions _before_ and _after_ the `cwd` is changed. These hooks can be configured through the `cwd_change_handling` key as follows:
 
@@ -85,7 +87,7 @@ use {
 
 ### Default
 
-Auto Session by default stores sessions in `vim.fn.stdpath('data').."/sessions/"`.
+AutoSession by default stores sessions in `vim.fn.stdpath('data').."/sessions/"`.
 
 ### Custom
 
@@ -194,7 +196,7 @@ Now last session will be restored only when Neovim is launched in the home direc
 
 # 📢 Commands
 
-Auto Session exposes two commands that can be used or mapped to any keybindings for manually saving and restoring sessions.
+AutoSession exposes the following commands that can be used or mapped to any keybindings for manually saving and restoring sessions.
 
 ```viml
 :SessionSave " saves or creates a session in the currently set `auto_session_root_dir`.
@@ -205,8 +207,8 @@ Auto Session exposes two commands that can be used or mapped to any keybindings 
 :SessionDelete " deletes a session in the currently set `auto_session_root_dir`.
 :SessionDelete ~/my/custom/path " deletes a session based on the provided path.
 :SessionPurgeOrphaned " removes all orphaned sessions with no working directory left.
-:Autosession search
-:Autosession delete
+:Autosession search " open a vim.ui.select picker to choose a session to load.
+:Autosession delete " open a vim.ui.select picker to choose a session to delete.
 ```
 
 You can use the `Autosession {delete|search}` command to open a picker using `vim.ui.select` this will allow you to either delete or search for a session to restore.
@@ -218,14 +220,14 @@ There's also Telescope support, see the [Session Lens](#-session-lens) section b
 
 Command hooks exist in the format: {hook_name}
 
-- {pre_save}: executes _before_ a session is saved
-- {save_extra}: executes _after_ a session is saved, return string will save to `*x.vim`, reference `:help mks`
-- {post_save}: executes _after_ a session is saved
-- {pre_restore}: executes _before_ a session is restored
-- {post_restore}: executes _after_ a session is restored
-- {pre_delete}: executes _before_ a session is deleted
-- {post_delete}: executes _after_ a session is deleted
-- {no_restore}: executes _at_ `VimEnter` _when_ no session is restored
+- `{pre_save}`: executes _before_ a session is saved
+- `{save_extra}`: executes _after_ a session is saved, return string will save to `*x.vim`, reference `:help mks`
+- `{post_save}`: executes _after_ a session is saved
+- `{pre_restore}`: executes _before_ a session is restored
+- `{post_restore}`: executes _after_ a session is restored
+- `{pre_delete}`: executes _before_ a session is deleted
+- `{post_delete}`: executes _after_ a session is deleted
+- `{no_restore}`: executes _at_ `VimEnter` _when_ no session is restored
 
 Hooks are configured by setting
 
@@ -290,7 +292,7 @@ use this to only create sessions for git projects:
 
 ## Argument Handling
 
-By default, when `nvim` is run with a single directory argument, auto-session will try to restore the session for that directory. If `nvim` is run with multiple directories or any file arguments, auto-session won't try to restore a session and won't auto-save a session on exit (if enabled). Those behaviors can be changed with these config parameters:
+By default, when `nvim` is run with a single directory argument, AutoSession will try to restore the session for that directory. If `nvim` is run with multiple directories or any file arguments, AutoSession won't try to restore a session and won't auto-save a session on exit (if enabled). Those behaviors can be changed with these config parameters:
 
 ```lua
   args_allow_single_directory = true, -- boolean Follow normal sesion save/load logic if launched with a single directory as the only argument
@@ -303,7 +305,7 @@ For `args_allow_single_directory`, if you frequently use `netrw` to look at dire
       bypass_session_save_file_types = { 'netrw' }
 ```
 
-If `args_allow_files_auto_save` is true, auto-session won't load any session when `nvim` is launched with file argument(s) but it will save on exit. What's probably more useful is to set `args_allow_files_auto_save` to a function that returns true if a session should be saved and false otherwise. auto-session will call that function on auto save when run with arguments. Here's one example config where it will save the session if at least two buffers are open after being launched with arguments:
+If `args_allow_files_auto_save` is true, AutoSession won't load any session when `nvim` is launched with file argument(s) but it will save on exit. What's probably more useful is to set `args_allow_files_auto_save` to a function that returns true if a session should be saved and false otherwise. AutoSession will call that function on auto save when run with arguments. Here's one example config where it will save the session if at least two buffers are open after being launched with arguments:
 
 ```lua
 return {
@@ -379,7 +381,7 @@ For troubleshooting refer to the [wiki page](https://github.com/rmagatti/auto-se
 
 ## 🔭 Session Lens
 
-Session Lens has been merged into Auto Session so now you can see, load, and delete your sessions using Telescope! It's enabled by
+Session Lens has been merged into AutoSession so now you can see, load, and delete your sessions using Telescope! It's enabled by
 default if you have Telescope, but here's the Lazy config that shows the configuration options:
 
 ```lua
@@ -419,12 +421,13 @@ vim.keymap.set("n", "<C-s>", require("auto-session.session-lens").search_session
 You can also use `:Telescope session-lens` to launch the session picker.
 
 The following shortcuts are available when the session-lens picker is open
-* `<c-s>` restores the previously opened session. This can give you a nice flow if you're constantly switching between two projects.
-* `<c-d>` will delete the currently highlighted session. This makes it easy to keep the session list clean.
+
+- `<c-s>` restores the previously opened session. This can give you a nice flow if you're constantly switching between two projects.
+- `<c-d>` will delete the currently highlighted session. This makes it easy to keep the session list clean.
 
 NOTE: If you previously installed `rmagatti/session-lens`, you should remove it from your config as it is no longer necessary.
 
-Auto Session provides its own `:Autosession search` and `:Autosession delete` commands, but session-lens is a more complete version of those commands that is specifically built to be used with `telescope.nvim`. These commands make use of `vim.ui.select` which can itself be implemented by other plugins other than telescope.
+AutoSession provides its own `:Autosession search` and `:Autosession delete` commands, but session-lens is a more complete version of those commands that is specifically built to be used with `telescope.nvim`. These commands make use of `vim.ui.select` which can itself be implemented by other plugins other than telescope.
 
 ### Preview
 
@@ -432,7 +435,7 @@ Auto Session provides its own `:Autosession search` and `:Autosession delete` co
 
 ### Statusline
 
-One can show the current session name in the statusline by using an auto-session helper function.
+One can show the current session name in the statusline by using an AutoSession helper function.
 
 Lualine example config and how it looks
 
@@ -454,5 +457,5 @@ Neovim > 0.7
 Tested with:
 
 ```
-NVIM v0.7.0
+NVIM v0.7.0 - NVIM 0.10.0
 ```

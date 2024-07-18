@@ -618,7 +618,8 @@ local function handle_autosession_command(data)
   end
 end
 
--- Handler for when a session is picked from the UI, either via Telescope or via AutoSession.select_session
+---@private
+---- Handler for when a session is picked from the UI, either via Telescope or via AutoSession.select_session
 function AutoSession.restore_selected_session(session_filename)
   Lib.logger.debug("[restore_selected_session]: filename: ", session_filename)
 
