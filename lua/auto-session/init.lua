@@ -467,7 +467,33 @@ do
 end
 
 local function auto_save_conditions_met()
-  return is_enabled() and auto_save() and not suppress_session() and is_allowed_dir() and not bypass_save_by_filetype()
+  if not is_enabled() then
+    Lib.logger.debug "auto_save_conditions_met: is_enabled() is false, returning false"
+    return false
+  end
+
+  if not auto_save() then
+    Lib.logger.debug "auto_save_conditions_met: auto_save() is false, returning false"
+    return false
+  end
+
+  if suppress_session() then
+    Lib.logger.debug "auto_save_conditions_met: suppress_session() is true, returning false"
+    return false
+  end
+
+  if not is_allowed_dir() then
+    Lib.logger.debug "auto_save_conditions_met: is_allowed_dir() is false, returning false"
+    return false
+  end
+
+  if bypass_save_by_filetype() then
+    Lib.logger.debug "auto_save_conditions_met: bypass_save_by_filetype() is true, returning false"
+    return false
+  end
+
+  Lib.logger.debug "auto_save_conditions_met: returning true"
+  return true
 end
 
 -- Quickly checks if a session file exists for the current working directory.
@@ -483,6 +509,7 @@ end
 ---@param sessions_dir? string the session directory to auto_save a session for. If empty this function will end up using the cwd to infer what session to save for.
 function AutoSession.AutoSaveSession(sessions_dir)
   if not auto_save_conditions_met() then
+    Lib.logger.debug "Auto save conditions not met"
     return false
   end
 
@@ -949,6 +976,7 @@ end
 ---CompleteSessions is used by the vimscript command for session name/path completion.
 ---@return string
 function AutoSession.CompleteSessions()
+  -- TODO: look at this function
   local session_files = vim.fn.glob(AutoSession.get_root_dir() .. "/*", true, true)
   local session_names = {}
 
@@ -1035,54 +1063,65 @@ function SetupAutocmds()
   -- Initialize variables
   vim.g.in_pager_mode = false
 
-  local function SaveSession(args)
-    return AutoSession.SaveSession(args.args, false)
-  end
-
-  local function SessionRestore(args)
-    return AutoSession.RestoreSession(args.args)
-  end
-
   local function SessionRestoreFromFile(args)
     return AutoSession.RestoreSessionFromFile(args.args)
-  end
-
-  local function SessionDelete(args)
-    return AutoSession.DeleteSession(args.args)
   end
 
   local function SessionPurgeOrphaned()
     return AutoSession.PurgeOrphanedSessions()
   end
 
-  local function DisableAutoSave()
-    return AutoSession.DisableAutoSave()
-  end
+  vim.api.nvim_create_user_command("SessionSave", function(args)
+    return AutoSession.SaveSession(args.args, false)
+  end, {
+    bang = true,
+    nargs = "?",
+    desc = "Save session for the current working directory or the passed in session name",
+  })
 
-  vim.api.nvim_create_user_command(
-    "SessionSave",
-    SaveSession,
-    { bang = true, nargs = "?", desc = "Save the current session. Based in cwd if no arguments are passed" }
-  )
+  vim.api.nvim_create_user_command("SessionRestore", function(args)
+    return AutoSession.RestoreSession(args.args)
+  end, {
+    complete = AutoSession.CompleteSessions,
+    bang = true,
+    nargs = "?",
+    desc = "Restore session for the current working directory or the passed in session name",
+  })
 
-  vim.api.nvim_create_user_command(
-    "SessionRestore",
-    SessionRestore,
-    { bang = true, nargs = "?", desc = "Restore Session" }
-  )
+  vim.api.nvim_create_user_command("SessionDelete", function(args)
+    return AutoSession.DeleteSession(args.args)
+  end, {
+    complete = AutoSession.CompleteSessions,
+    bang = true,
+    nargs = "*",
+    desc = "Delete Session for the current working directory or the passed in sessio name",
+  })
 
-  vim.api.nvim_create_user_command("DisableAutoSave", DisableAutoSave, { bang = true, desc = "Disable Auto Save" })
+  vim.api.nvim_create_user_command("SessionEnableAutoSave", function()
+    AutoSession.conf.auto_save_enabled = true
+  end, {
+    bang = true,
+    desc = "Enable auto saving",
+  })
+
+  vim.api.nvim_create_user_command("SessionDisableAutoSave", function()
+    AutoSession.conf.auto_save_enabled = false
+  end, {
+    bang = true,
+    desc = "Disable auto saving",
+  })
+
+  vim.api.nvim_create_user_command("SessionToggleAutoSave", function()
+    AutoSession.conf.auto_save_enabled = not AutoSession.conf.auto_save_enabled
+  end, {
+    bang = true,
+    desc = "Toggle auto saving",
+  })
 
   vim.api.nvim_create_user_command(
     "SessionRestoreFromFile",
     SessionRestoreFromFile,
     { complete = AutoSession.CompleteSessions, bang = true, nargs = "*", desc = "Restore Session from file" }
-  )
-
-  vim.api.nvim_create_user_command(
-    "SessionDelete",
-    SessionDelete,
-    { complete = AutoSession.CompleteSessions, bang = true, nargs = "*", desc = "Delete Session" }
   )
 
   vim.api.nvim_create_user_command(

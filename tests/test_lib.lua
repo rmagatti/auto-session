@@ -51,12 +51,14 @@ function M.assertSessionHasFile(session_path, file)
   assert.equals(true, M.sessionHasFile(session_path, file))
 end
 
+---Clear session directory, session control file, and delete all buffers
 function M.clearSessionFilesAndBuffers()
   M.clearSessionFiles(M.session_dir)
   M.clearSessionFiles(M.session_control_dir)
   vim.cmd "silent %bw"
 end
 
+---Cross pltform delete all files in directory
 function M.clearSessionFiles(dir)
   if vim.fn.has "win32" == 1 then
     pcall(vim.fn.system, "del /Q " .. (dir .. "*.vim"):gsub("/", "\\"))

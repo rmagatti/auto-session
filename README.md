@@ -199,20 +199,38 @@ Now last session will be restored only when Neovim is launched in the home direc
 AutoSession exposes the following commands that can be used or mapped to any keybindings for manually saving and restoring sessions.
 
 ```viml
-:SessionSave " saves or creates a session in the currently set `auto_session_root_dir`.
-:SessionSave ~/my/custom/path " saves or creates a session in the specified directory path.
-:SessionRestore " restores a previously saved session based on the `cwd`.
-:SessionRestore ~/my/custom/path " restores a previously saved session based on the provided path.
-:SessionRestoreFromFile ~/session/path " restores any currently saved session
-:SessionDelete " deletes a session in the currently set `auto_session_root_dir`.
-:SessionDelete ~/my/custom/path " deletes a session based on the provided path.
+:SessionSave " saves a session based on the `cwd` in `auto_session_root_dir`
+:SessionSave my_session " saves a session called `my_session` in `auto_session_root_dir`
+
+:SessionRestore " restores a session based on the `cwd` from `auto_session_root_dir`
+:SessionRestore my_session " restores `my_session` from `auto_session_root_dir`
+
+:SessionDelete " deletes a session based on the `cwd` from `auto_session_root_dir`
+:SessionDelete my_session " deletes `my_sesion` from `auto_session_root_dir`
+
+:SesssionEnableAutoSave "enable autosaving on exit, subject to all of the filters in the config
+:SesssionDisableAutoSave "disable autosaving on exit
+:SesssionToggleAutoSave "toggle autosaving
+
 :SessionPurgeOrphaned " removes all orphaned sessions with no working directory left.
+
 :Autosession search " open a vim.ui.select picker to choose a session to load.
 :Autosession delete " open a vim.ui.select picker to choose a session to delete.
 ```
 
 You can use the `Autosession {delete|search}` command to open a picker using `vim.ui.select` this will allow you to either delete or search for a session to restore.
 There's also Telescope support, see the [Session Lens](#-session-lens) section below.
+
+There are also versions of Save/Restore/Delete that take a directory and optional session name:
+
+```viml
+:SessionSaveToDir /some/dir " saves a session based on the `cwd` to `/some/dir`
+:SessionSaveToDir /some/dir my_session " saves `my_session` to `/some/dir`
+:SessionRestoreFromDir /some/dir " restores a session based on the `cwd` from `/some/dir`
+:SessionRestoreFromDir /some/dir my_session " restores `my_session` from `/some/dir`
+:SessionDeleteFromDir /some/dir " deletes a session based on the `cwd` from `/some/dir`
+:SessionDeleteFromDir /some/dir my_session " deletes `my_session` from `/some/dir`
+```
 
 ## 🪝 Command Hooks
 
