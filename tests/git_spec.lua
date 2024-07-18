@@ -25,10 +25,24 @@ describe("The git config", function()
   -- change to that dir
   vim.cmd(":cd " .. git_test_dir)
 
+  local function runCmdAndPrint(cmd)
+    ---@diagnostic disable-next-line: unused-local
+    local result = vim.fn.system(cmd)
+    -- print("Command output:", result)
+    --
+    -- local lines = vim.split(result, "\n")
+    -- for _, line in ipairs(lines) do
+    --   print(line)
+    -- end
+    --
+    -- print("Exit status:", vim.v.shell_error)
+  end
+
   -- init repo and make a commit
-  vim.fn.system "git init -b main"
-  vim.fn.system "git add ."
-  vim.fn.system "git commit -m 'init'"
+  runCmdAndPrint "git init -b main"
+  runCmdAndPrint 'git config user.email "test@test.com"; git config user.name "test"'
+  runCmdAndPrint "git add test.txt"
+  runCmdAndPrint "git commit -m 'init'"
 
   -- open a file so we have something to save
   vim.cmd ":e test.txt"
@@ -38,6 +52,8 @@ describe("The git config", function()
     require("auto-session").AutoSaveSession()
 
     local session_path = TL.session_dir .. TL.escapeSessionName(vim.fn.getcwd() .. "_main.vim")
+
+    print(session_path)
 
     assert.equals(1, vim.fn.filereadable(session_path))
   end)
