@@ -8,13 +8,14 @@ FILES := $(wildcard tests/*_spec.lua)
 test: $(PLENARY_DIR) $(FILES) args-tests
 
 $(FILES): $(PLENARY_DIR)
-	nvim --clean --headless --embed -u tests/minimal.lua +"PlenaryBustedFile $@"
+	nvim --clean --headless -u tests/minimal.lua +"PlenaryBustedFile $@"
+	
 
 args-tests: $(PLENARY_DIR)
-	nvim --clean --headless --embed -u tests/minimal.lua +"PlenaryBustedFile tests/args/args_setup_spec.lua"
-	nvim --clean --headless --embed -u tests/minimal.lua +"PlenaryBustedFile tests/args/args_not_enabled_spec.lua"
-	nvim --clean --headless --embed -u tests/minimal.lua +"PlenaryBustedFile tests/args/args_single_dir_enabled_spec.lua"
-	nvim --clean --headless --embed -u tests/minimal.lua +"PlenaryBustedFile tests/args/args_files_enabled_spec.lua"
+	nvim --clean --headless -u tests/minimal.lua +"PlenaryBustedFile tests/args/args_setup_spec.lua"
+	nvim --clean --headless -u tests/minimal.lua +"PlenaryBustedFile tests/args/args_not_enabled_spec.lua"
+	nvim --clean --headless -u tests/minimal.lua +"PlenaryBustedFile tests/args/args_single_dir_enabled_spec.lua"
+	nvim --clean --headless -u tests/minimal.lua +"PlenaryBustedFile tests/args/args_files_enabled_spec.lua"
 
 
 $(PLENARY_DIR):
