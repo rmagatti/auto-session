@@ -120,9 +120,6 @@ AutoSession.get_session_files()                  *AutoSession.get_session_files*
         (PickerItem[])
 
 
-AutoSession.restore_selected_session()    *AutoSession.restore_selected_session*
-
-
                                                        *AutoSession.SaveSession*
 AutoSession.SaveSession({sessions_dir?}, {auto})
 
