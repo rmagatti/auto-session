@@ -3,7 +3,7 @@ local root = vim.fn.fnamemodify("./.test", ":p")
 
 -- set stdpaths to use .repro
 for _, name in ipairs { "config", "data", "state", "cache" } do
-  vim.env[("XDG_%s_HOME"):format(name:upper())] = root .. "/" .. name
+  vim.env[("XDG_%s_HOME"):format(name:upper())] = root .. name
 end
 
 -- Add plenary so we can run it
