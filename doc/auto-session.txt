@@ -52,10 +52,6 @@ AutoSession.setup({config})                                  *AutoSession.setup*
         {config}  (defaultConf)  config for auto session
 
 
-AutoSession.setup_session_lens()                *AutoSession.setup_session_lens*
-    Make sure session_lens is setup. Ok to call multiple times
-
-
 AutoSession.session_exists_for_cwd()        *AutoSession.session_exists_for_cwd*
     Quickly checks if a session file exists for the current working directory.
     This is useful for starter plugins which don't want to display 'restore session'
@@ -84,13 +80,6 @@ AutoSession.get_cmds({typ})                               *AutoSession.get_cmds*
         (function[]|string[])
 
 
-PickerItem                                                          *PickerItem*
-
-    Fields: ~
-        {session_name}  (string)
-        {path}          (string)
-
-
                                                 *AutoSession.AutoRestoreSession*
 AutoSession.AutoRestoreSession({session_name?})
     Function called by AutoSession when automatically restoring a session.
@@ -102,15 +91,8 @@ AutoSession.AutoRestoreSession({session_name?})
         (boolean)  returns whether restoring the session was successful or not.
 
 
-AutoSession.CompleteSessions()                    *AutoSession.CompleteSessions*
-    CompleteSessions is used by the vimscript command for session name/path completion.
-
-    Returns: ~
-        (table)
-
-
 AutoSession.PurgeOrphanedSessions()          *AutoSession.PurgeOrphanedSessions*
-    PurgeOrphanedSessions deletes sessions with no working directory exist
+     Deletes sessions where the original directory no longer exists
 
 
                                                        *AutoSession.SaveSession*
@@ -180,15 +162,6 @@ AutoSession.DeleteSessionFromDir({session_dir}, {session_name?})
         {session_name?}  (string|nil)  Optional session name
 
 
-                                                              *M.setup_autocmds*
-M.setup_autocmds({config}, {AutoSession})
-    Setup autocmds for DirChangedPre and DirChanged
-
-    Parameters: ~
-        {config}       (table)  auto session config
-        {AutoSession}  (table)  auto session instance
-
-
 session_lens_config                                        *session_lens_config*
     Session Lens Config
 
@@ -212,28 +185,6 @@ SessionLens.search_session({custom_opts})
 
     Parameters: ~
         {custom_opts}  (any)
-
-
-M.setup()                                                              *M.setup*
-
-
-M.source_session({prompt_bufnr})                              *M.source_session*
-    Source session action
-    Source a selected session after doing proper current session saving and cleanup
-
-    Parameters: ~
-        {prompt_bufnr}  (number)  the telescope prompt bufnr
-
-
-M.delete_session({prompt_bufnr})                              *M.delete_session*
-    Delete session action
-    Delete a selected session file
-
-    Parameters: ~
-        {prompt_bufnr}  (number)  the telescope prompt bufnr
-
-
-M.alternate_session()                                      *M.alternate_session*
 
 
 vim:tw=78:ts=8:noet:ft=help:norl:
