@@ -397,4 +397,22 @@ function Lib.get_latest_session(session_dir)
   return latest_session.session_name
 end
 
+---complete_session is used by the vimscript command for session name/path completion.
+---@param session_dir string The session directory look in
+---@return table
+function Lib.complete_session_for_dir(session_dir, ArgLead, _, _)
+  -- Lib.logger.debug("CompleteSessions: ", { ArgLead, CmdLine, CursorPos })
+  local session_files = vim.fn.glob(session_dir .. "*", true, true)
+  local session_names = {}
+
+  for _, sf in ipairs(session_files) do
+    local name = Lib.unescape_dir(vim.fn.fnamemodify(sf, ":t:r"))
+    table.insert(session_names, name)
+  end
+
+  return vim.tbl_filter(function(item)
+    return item:match("^" .. ArgLead)
+  end, session_names)
+end
+
 return Lib

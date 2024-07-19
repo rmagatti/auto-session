@@ -95,13 +95,12 @@ describe("The default config", function()
   end)
 
   it("can complete session names", function()
-    local sessions = as.CompleteSessions ""
-
+    local sessions = as.Lib.complete_session_for_dir(TL.session_dir, "")
     assert.True(vim.tbl_contains(sessions, TL.default_session_name))
     assert.True(vim.tbl_contains(sessions, TL.named_session_name))
 
     -- With my prefix, only named session should be present
-    sessions = as.CompleteSessions "my"
+    sessions = as.Lib.complete_session_for_dir(TL.session_dir, "my")
     assert.False(vim.tbl_contains(sessions, TL.default_session_name))
     assert.True(vim.tbl_contains(sessions, TL.named_session_name))
   end)

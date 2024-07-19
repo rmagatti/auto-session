@@ -735,21 +735,9 @@ if vim.env.AUTOSESSION_UNIT_TESTING then
   AutoSession.auto_restore_session_at_vim_enter = auto_restore_session_at_vim_enter
 end
 
----complete_session is used by the vimscript command for session name/path completion.
----@return table
-local function complete_session(ArgLead, _, _)
-  -- Lib.logger.debug("CompleteSessions: ", { ArgLead, CmdLine, CursorPos })
-  local session_files = vim.fn.glob(AutoSession.get_root_dir() .. "*", true, true)
-  local session_names = {}
-
-  for _, sf in ipairs(session_files) do
-    local name = Lib.unescape_dir(vim.fn.fnamemodify(sf, ":t:r"))
-    table.insert(session_names, name)
-  end
-
-  return vim.tbl_filter(function(item)
-    return item:match("^" .. ArgLead)
-  end, session_names)
+---Calls lib function for completeing session names with session dir
+local function complete_session(ArgLead, CmdLine, CursorPos)
+  return Lib.complete_session_for_dir(AutoSession.get_root_dir(), ArgLead, CmdLine, CursorPos)
 end
 
 --- Deletes sessions where the original directory no longer exists
