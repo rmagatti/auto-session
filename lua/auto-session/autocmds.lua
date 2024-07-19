@@ -2,6 +2,7 @@ local Lib = require "auto-session.lib"
 
 local M = {}
 
+---@private
 ---Setup autocmds for DirChangedPre and DirChanged
 ---@param config table auto session config
 ---@param AutoSession table auto session instance

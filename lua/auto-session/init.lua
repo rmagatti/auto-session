@@ -148,6 +148,7 @@ function AutoSession.setup(config)
   SetupAutocmds()
 end
 
+---@private
 ---Make sure session_lens is setup. Ok to call multiple times
 function AutoSession.setup_session_lens()
   if AutoSession.session_lens then
@@ -557,6 +558,7 @@ local function save_extra_cmds_new(session_path)
   return true
 end
 
+---@private
 ---@class PickerItem
 ---@field session_name string
 ---@field path string
@@ -733,9 +735,9 @@ if vim.env.AUTOSESSION_UNIT_TESTING then
   AutoSession.auto_restore_session_at_vim_enter = auto_restore_session_at_vim_enter
 end
 
----CompleteSessions is used by the vimscript command for session name/path completion.
+---complete_session is used by the vimscript command for session name/path completion.
 ---@return table
-function AutoSession.CompleteSessions(ArgLead, _, _)
+local function complete_session(ArgLead, _, _)
   -- Lib.logger.debug("CompleteSessions: ", { ArgLead, CmdLine, CursorPos })
   local session_files = vim.fn.glob(AutoSession.get_root_dir() .. "*", true, true)
   local session_names = {}
@@ -750,7 +752,7 @@ function AutoSession.CompleteSessions(ArgLead, _, _)
   end, session_names)
 end
 
----PurgeOrphanedSessions deletes sessions with no working directory exist
+--- Deletes sessions where the original directory no longer exists
 function AutoSession.PurgeOrphanedSessions()
   local orphaned_sessions = {}
 
@@ -1017,7 +1019,7 @@ function SetupAutocmds()
   vim.api.nvim_create_user_command("SessionRestore", function(args)
     return AutoSession.RestoreSession(args.args)
   end, {
-    complete = AutoSession.CompleteSessions,
+    complete = complete_session,
     bang = true,
     nargs = "?",
     desc = "Restore session using current working directory as the session name or an optional session name",
@@ -1026,7 +1028,7 @@ function SetupAutocmds()
   vim.api.nvim_create_user_command("SessionDelete", function(args)
     return AutoSession.DeleteSession(args.args)
   end, {
-    complete = AutoSession.CompleteSessions,
+    complete = complete_session,
     bang = true,
     nargs = "*",
     desc = "Delete session using the current working directory as the session name or an optional session name",

@@ -5,6 +5,7 @@ local M = {
   functions = {},
 }
 
+---@private
 function M.setup(config, functions)
   M.conf = vim.tbl_deep_extend("force", config, M.conf)
   M.functions = functions
@@ -42,6 +43,7 @@ local function source_session(path, prompt_bufnr)
   end, 50)
 end
 
+---@private
 ---Source session action
 ---Source a selected session after doing proper current session saving and cleanup
 ---@param prompt_bufnr number the telescope prompt bufnr
@@ -51,6 +53,7 @@ M.source_session = function(prompt_bufnr)
   source_session(Lib.unescape_path(selection.filename), prompt_bufnr)
 end
 
+---@private
 ---Delete session action
 ---Delete a selected session file
 ---@param prompt_bufnr number the telescope prompt bufnr
@@ -62,6 +65,7 @@ M.delete_session = function(prompt_bufnr)
   end)
 end
 
+---@private
 M.alternate_session = function(prompt_bufnr)
   local alternate_session = get_alternate_session()
 
