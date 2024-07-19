@@ -9,6 +9,12 @@ describe("The last loaded session config", function()
 
   TL.clearSessionFilesAndBuffers()
 
+  it("doesn't crash when restoring with no sessions", function()
+    vim.cmd "SessionRestore"
+
+    assert.equals(0, vim.fn.bufexists(TL.test_file))
+  end)
+
   it("can save a session for the cwd", function()
     vim.cmd("e " .. TL.test_file)
 
@@ -39,19 +45,34 @@ describe("The last loaded session config", function()
     TL.assertSessionHasFile(TL.named_session_path, TL.other_file)
   end)
 
-  it("correctly restores the last session", function()
+  it("doesn't restore the last session when doing a normal SessionRestore", function()
     -- switch to directory that doesn't have a session
     vim.cmd "%bw!"
     assert.equals(0, vim.fn.bufexists(TL.test_file))
     assert.equals(0, vim.fn.bufexists(TL.other_file))
 
+    -- WARN: this test below also expects to be run from the tests directory
     vim.cmd "cd tests"
 
-    local as = require "auto-session"
+    vim.cmd "SessionRestore"
 
-    print("Latest session:" .. as.get_latest_session())
+    -- Have file from latest session
+    assert.equals(0, vim.fn.bufexists(TL.other_file))
 
-    vim.cmd "SessionRestore "
+    -- Don't have file from earlier session
+    assert.equals(0, vim.fn.bufexists(TL.test_file))
+  end)
+
+  it("does restores the last session when doing an auto-restore", function()
+    -- switch to directory that doesn't have a session
+    vim.cmd "%bw!"
+    assert.equals(0, vim.fn.bufexists(TL.test_file))
+    assert.equals(0, vim.fn.bufexists(TL.other_file))
+
+    -- WARN: this test depends on the cd state above
+    -- we're still in tests/ so don't need to cd again
+
+    assert.True(require("auto-session").AutoRestoreSession())
 
     -- Have file from latest session
     assert.equals(1, vim.fn.bufexists(TL.other_file))

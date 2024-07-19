@@ -21,6 +21,7 @@ local SessionLens = {
 ---@field load_on_setup boolean
 
 ---@type session_lens_config
+---@diagnostic disable-next-line: missing-fields
 local defaultConf = {
   theme_conf = {},
   previewer = false,
@@ -32,6 +33,7 @@ SessionLens.conf = defaultConf
 
 function SessionLens.setup(auto_session)
   SessionLens.conf = vim.tbl_deep_extend("force", SessionLens.conf, auto_session.conf.session_lens)
+  ---@diagnostic disable-next-line: inject-field
   SessionLens.conf.functions = auto_session
 
   Lib.setup(SessionLens.conf, auto_session)

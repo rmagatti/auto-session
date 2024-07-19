@@ -3,7 +3,7 @@ local TL = require "tests/test_lib"
 
 describe("The default config", function()
   require("auto-session").setup {
-    log_level = "debug",
+    -- log_level = "debug",
   }
 
   local custom_sessions_dir = vim.fn.getcwd() .. "/tests/custom_sessions/"
@@ -15,9 +15,9 @@ describe("The default config", function()
   TL.clearSessionFiles(custom_sessions_dir)
 
   it("can save a session for the cwd to a custom directory", function()
-    vim.cmd(":e " .. TL.test_file)
+    vim.cmd("e " .. TL.test_file)
 
-    vim.cmd(":SessionSaveToDir " .. custom_sessions_dir)
+    vim.cmd("SessionSaveToDir " .. custom_sessions_dir)
 
     -- Make sure the session was created
     print(cwd_session_path)
@@ -35,24 +35,24 @@ describe("The default config", function()
     -- Make sure the buffer is gone
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 
-    vim.cmd(":SessionRestoreFromDir " .. custom_sessions_dir)
+    vim.cmd("SessionRestoreFromDir " .. custom_sessions_dir)
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
   end)
 
   it("can delete a session for the cwd from a custom directory", function()
     -- Make sure the session was created
-    assert.equals(1, vim.fn.filereadable(custom_sessions_dir))
+    assert.equals(1, vim.fn.filereadable(cwd_session_path))
 
-    vim.cmd(":SessionDeleteFromDir " .. custom_sessions_dir)
+    vim.cmd("SessionDeleteFromDir " .. custom_sessions_dir)
 
     assert.equals(0, vim.fn.filereadable(cwd_session_path))
   end)
 
   it("can save a named session to a custom directory", function()
-    vim.cmd(":e " .. TL.test_file)
+    vim.cmd("e " .. TL.test_file)
 
-    vim.cmd(":SessionSaveToDir " .. custom_sessions_dir .. " " .. TL.named_session_name)
+    vim.cmd("SessionSaveToDir " .. custom_sessions_dir .. " " .. TL.named_session_name)
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(named_session_path))
@@ -65,9 +65,9 @@ describe("The default config", function()
   TL.clearSessionFiles(custom_sessions_dir)
 
   it("can save a named session ending in .vim to a custom directory", function()
-    vim.cmd(":e " .. TL.test_file)
+    vim.cmd("e " .. TL.test_file)
 
-    vim.cmd(":SessionSaveToDir " .. custom_sessions_dir .. " " .. TL.named_session_name .. ".vim")
+    vim.cmd("SessionSaveToDir " .. custom_sessions_dir .. " " .. TL.named_session_name .. ".vim")
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(named_session_path))
@@ -84,7 +84,7 @@ describe("The default config", function()
     -- Make sure the buffer is gone
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 
-    vim.cmd(":SessionRestoreFromDir " .. custom_sessions_dir .. " " .. TL.named_session_name)
+    vim.cmd("SessionRestoreFromDir " .. custom_sessions_dir .. " " .. TL.named_session_name)
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
   end)
@@ -94,7 +94,7 @@ describe("The default config", function()
     assert.equals(1, vim.fn.filereadable(named_session_path))
 
     ---@diagnostic disable-next-line: param-type-mismatch
-    vim.cmd(":SessionDeleteFromDir " .. custom_sessions_dir .. " " .. TL.named_session_name)
+    vim.cmd("SessionDeleteFromDir " .. custom_sessions_dir .. " " .. TL.named_session_name)
 
     assert.equals(0, vim.fn.filereadable(named_session_path))
   end)

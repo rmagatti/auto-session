@@ -17,6 +17,10 @@ function M.escapeSessionName(name)
   end
 end
 
+function M.makeSessionPath(session_name)
+  return M.session_dir .. M.escapeSessionName(session_name) .. ".vim"
+end
+
 M.tests_base_dir = "tests"
 
 M.test_file = M.tests_base_dir .. "/test_files/test.txt"
@@ -27,9 +31,9 @@ M.session_dir = vim.fn.stdpath "data" .. "/sessions/"
 M.session_control_dir = vim.fn.stdpath "data" .. "/auto_session/"
 
 -- Construct the session name for the current directory
-M.default_session_name = M.escapeSessionName(vim.fn.getcwd())
+M.default_session_name = vim.fn.getcwd()
 
-M.default_session_path = M.session_dir .. M.default_session_name .. ".vim"
+M.default_session_path = M.makeSessionPath(M.default_session_name)
 
 M.default_session_control_name = "session_control.json"
 M.default_session_control_path = M.session_control_dir .. M.default_session_control_name
@@ -61,9 +65,9 @@ end
 ---Cross pltform delete all files in directory
 function M.clearSessionFiles(dir)
   if vim.fn.has "win32" == 1 then
-    pcall(vim.fn.system, "del /Q " .. (dir .. "*.vim"):gsub("/", "\\"))
+    pcall(vim.fn.system, "del /Q " .. (dir .. "*.vim .vim"):gsub("/", "\\"))
   else
-    pcall(vim.fn.system, "rm -rf " .. dir .. "*.vim")
+    pcall(vim.fn.system, "rm -rf " .. dir .. "*.vim .vim")
   end
 end
 

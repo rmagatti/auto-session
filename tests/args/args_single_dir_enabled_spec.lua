@@ -20,9 +20,14 @@ describe("The args single dir enabled config", function()
   it("does restore a session when run with a single directory", function()
     assert.equals(false, no_restore_hook_called)
 
+    local cwd = vim.fn.getcwd()
+
+    -- Change out of current directory so we don't load session for it
+    vim.cmd "cd tests"
+
     -- Stub
     local s = stub(vim.fn, "argv")
-    s.returns { "." }
+    s.returns { cwd }
 
     -- only exported because we set the unit testing env in TL
     assert.equals(true, require("auto-session").auto_restore_session_at_vim_enter())

@@ -120,7 +120,7 @@ EOF
 | Config                           | Options                  | Default                              | Description                                                                                                                                          |
 | -------------------------------- | ------------------------ | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | log_level                        | 'debug', 'info', 'error' | 'info'                               | Sets the log level of the plugin                                                                                                                     |
-| auto_session_enable_last_session | false, true              | false                                | Loads the last loaded session if session for cwd does not exist                                                                                      |
+| auto_session_enable_last_session | false, true              | false                                | On startup, loads the last loaded session if session for cwd does not exist                                                                          |
 | auto_session_root_dir            | "/some/path/you/want"    | vim.fn.stdpath('data').."/sessions/" | Changes the root dir for sessions                                                                                                                    |
 | auto_session_enabled             | false, true              | true                                 | Enables/disables the plugin's auto save _and_ restore features                                                                                       |
 | auto_session_create_enabled      | false, true, function    | true                                 | Enables/disables the plugin's session auto creation. Can also be a Lua function that returns true if a session should be created and false otherwise |
@@ -172,7 +172,7 @@ set sessionoptions+=winpos,terminal,folds
 ### Last Session
 
 This optional feature enables the keeping track and loading of the last session.
-This loading of a last session happens only when a `SessionRestore` could not find a session for the current dir.
+The last session is only loaded at startup if there isn't already a session for the current working directory.
 This feature can come in handy when starting Neovim from a GUI for example.
 
 :warning: If the directory does not exist, default directory will be used and an error message will be printed.  
@@ -208,26 +208,27 @@ AutoSession exposes the following commands that can be used or mapped to any key
 :SessionDelete " deletes a session based on the `cwd` from `auto_session_root_dir`
 :SessionDelete my_session " deletes `my_sesion` from `auto_session_root_dir`
 
-:SesssionEnableAutoSave "enable autosaving on exit, subject to all of the filters in the config
-:SesssionEnableAutoSave! "disable autosaving on exit
-:SesssionToggleAutoSave "toggle autosaving
+:SesssionEnableAutoSave "enables autosave on exit, subject to all of the normal filters in the config
+:SesssionEnableAutoSave! "disables autosave on exit
+:SesssionToggleAutoSave "toggles autosave
 
 :SessionPurgeOrphaned " removes all orphaned sessions with no working directory left.
+
+:SessionSearch " open a session picker, uses Telescope if installed, vim.ui.select otherwise
 
 :Autosession search " open a vim.ui.select picker to choose a session to load.
 :Autosession delete " open a vim.ui.select picker to choose a session to delete.
 ```
 
-You can use the `Autosession {delete|search}` command to open a picker using `vim.ui.select` this will allow you to either delete or search for a session to restore.
-There's also Telescope support, see the [Session Lens](#-session-lens) section below.
-
-There are also versions of Save/Restore/Delete that take a directory and optional session name:
+There are also versions of Save/Restore/Delete that take a session directory and an optional session name:
 
 ```viml
 :SessionSaveToDir /some/dir " saves a session based on the `cwd` to `/some/dir`
 :SessionSaveToDir /some/dir my_session " saves `my_session` to `/some/dir`
+
 :SessionRestoreFromDir /some/dir " restores a session based on the `cwd` from `/some/dir`
 :SessionRestoreFromDir /some/dir my_session " restores `my_session` from `/some/dir`
+
 :SessionDeleteFromDir /some/dir " deletes a session based on the `cwd` from `/some/dir`
 :SessionDeleteFromDir /some/dir my_session " deletes `my_session` from `/some/dir`
 ```

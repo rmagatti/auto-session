@@ -66,7 +66,7 @@ describe("The cwd_change_handling config", function()
     -- Calling session restore will result in a cd to the main directory
     -- which will also try to restore the session which will throw an error
     -- if this case isn't working
-    vim.cmd("SessionRestore " .. TL.default_session_path)
+    vim.cmd("SessionRestore " .. TL.default_session_name)
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 

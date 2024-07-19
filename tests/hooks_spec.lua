@@ -82,10 +82,7 @@ describe("Hooks", function()
   it("fire when deleting", function()
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
 
-    -- DeleteSession doesn't currently return true/false because it supports
-    -- variable args, presumably so you could delete multiple sessions in one
-    -- call
-    as.DeleteSession()
+    assert.True(as.DeleteSession())
     assert.equals(0, vim.fn.filereadable(TL.default_session_path))
 
     assert.True(pre_delete_cmd_called)

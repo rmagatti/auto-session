@@ -41,16 +41,6 @@ M.setup_autocmds = function(config, AutoSession)
 
       AutoSession.AutoSaveSession()
 
-      -- Clear all buffers and jumps after session save so session doesn't blead over to next session.
-
-      -- BUG: I think this is probably better done in RestoreSession. If we do it here and the
-      -- directory change fails (e.g. it doesn't exist), we'll have cleared the buffers and still be
-      -- in the same directory. If autosaving is enabled, we'll save an empty session when we exit
-      -- blowing away the session we were trying to save
-      vim.cmd "%bd!"
-
-      vim.cmd "clearjumps"
-
       if type(conf.pre_cwd_changed_hook) == "function" then
         conf.pre_cwd_changed_hook()
       end

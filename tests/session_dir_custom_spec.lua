@@ -22,7 +22,10 @@ describe("A custom session dir config", function()
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 
-    local session_path = vim.fn.getcwd() .. custom_session_dir .. TL.default_session_name .. ".vim"
+    local session_path = vim.fn.getcwd()
+      .. custom_session_dir
+      .. TL.escapeSessionName(TL.default_session_name)
+      .. ".vim"
 
     -- Make sure it is the same as if it had the trailing slash
     print(session_path)
@@ -69,9 +72,7 @@ describe("A custom session dir config", function()
     -- Make sure the buffer is gone
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 
-    local session_path = vim.fn.getcwd() .. custom_session_dir .. named_session .. ".vim"
-
-    vim.cmd("SessionRestore " .. session_path)
+    vim.cmd("SessionRestore " .. named_session)
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
   end)

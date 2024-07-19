@@ -38,7 +38,7 @@ describe("The default config", function()
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 
     -- Restore the session to set the original one as the alternate
-    vim.cmd("SessionRestore " .. TL.named_session_path)
+    vim.cmd("SessionRestore " .. TL.named_session_name)
 
     -- Make sure session restored
     assert.equals(1, vim.fn.bufexists(TL.test_file))

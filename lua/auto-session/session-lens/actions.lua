@@ -38,7 +38,7 @@ local function source_session(path, prompt_bufnr)
   end
 
   vim.defer_fn(function()
-    M.functions.restore_selected_session(path)
+    M.functions.autosave_and_restore(path)
   end, 50)
 end
 
@@ -48,7 +48,7 @@ end
 M.source_session = function(prompt_bufnr)
   local action_state = require "telescope.actions.state"
   local selection = action_state.get_selected_entry()
-  source_session(selection.path, prompt_bufnr)
+  source_session(Lib.unescape_path(selection.filename), prompt_bufnr)
 end
 
 ---Delete session action
@@ -58,7 +58,7 @@ M.delete_session = function(prompt_bufnr)
   local action_state = require "telescope.actions.state"
   local current_picker = action_state.get_current_picker(prompt_bufnr)
   current_picker:delete_selection(function(selection)
-    M.functions.DeleteSession(selection.path)
+    M.functions.DeleteSession(Lib.unescape_path(selection.filename), prompt_bufnr)
   end)
 end
 
@@ -71,13 +71,7 @@ M.alternate_session = function(prompt_bufnr)
     return
   end
 
-  source_session(alternate_session, prompt_bufnr)
+  source_session(M.functions.Lib.get_session_name_from_path(alternate_session), prompt_bufnr)
 end
-
---TODO: figure out the whole file placeholder parsing, expanding, escaping issue!!
----ex:
----"/Users/ronnieandrewmagatti/.local/share/nvim/sessions//%Users%ronnieandrewmagatti%Projects%dotfiles.vim",
----"/Users/ronnieandrewmagatti/.local/share/nvim/sessions/%Users%ronnieandrewmagatti%Projects%auto-session.vim"
----"/Users/ronnieandrewmagatti/.local/share/nvim/sessions/\\%Users\\%ronnieandrewmagatti\\%Projects\\%auto-session.vim"
 
 return M

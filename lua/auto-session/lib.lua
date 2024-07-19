@@ -5,7 +5,6 @@ local Lib = {
   logger = {},
   conf = {
     log_level = false,
-    last_loaded_session = nil,
   },
   Config = Config,
   _VIM_FALSE = 0,
@@ -63,9 +62,11 @@ function Lib.is_empty(s)
   return s == nil or s == ""
 end
 
--- Makes sure the directory ends in a slash
--- Also creates it if necessary
--- Falls back to vim.fn.stdpath "data" .. "/sessions/" if the directory is invalid for some reason
+---Makes sure the directory ends in a slash
+---Also creates it if necessary
+---Falls back to vim.fn.stdpath "data" .. "/sessions/" if the directory is invalid for some reason
+---@param root_dir string The session root directory
+---@return string The validated session root directory with a trailing path separator
 function Lib.validate_root_dir(root_dir)
   root_dir = Lib.ensure_trailing_separator(root_dir)
 
@@ -94,8 +95,8 @@ function Lib.init_dir(dir)
 end
 
 ---Returns a string that's guaranteed to end in a path separator
----@param dir string
----@return string
+---@param dir string The directory path to make sure has a trailing separator
+---@return string Dir guaranteed to have a trailing separator
 function Lib.ensure_trailing_separator(dir)
   if vim.endswith(dir, "/") then
     return dir
@@ -115,8 +116,8 @@ end
 ---Removes the trailing separator (if any) from a directory, for both unix and windows
 ---This is needed in some places to avoid duplicate separators that complicate
 ---the path and make equality checks fail (e.g. session control alternate)
----@param dir string
----@return string
+---@param dir string The directory path to make sure doesn't have a trailing separator
+---@return string Dir guaranteed to not have a trailing separator
 function Lib.remove_trailing_separator(dir)
   -- For windows, have to check for both as either could be used
   if vim.fn.has "win32" == 1 then
@@ -170,10 +171,12 @@ function Lib.escape_branch_name(branch_name)
   return IS_WIN32 and Lib.escape_dir(branch_name) or Lib.escape_dir(branch_name)
 end
 
+-- FIXME:These escape functions should be replaced with something better, probably urlencoding
+
 ---Returns a string with path characters escaped. Works with both *nix and Windows
 ---This string is not escaped for use in Vim commands. For that, call Lib.escape_for_vim
----@param str string The string to escape, most likely a path
----@return string
+---@param str string The string to escape, most likely a path to be used as a session_name
+---@return string The escaped string
 function Lib.escape_path(str)
   if IS_WIN32 then
     return win32_escaped_dir(str)
@@ -182,11 +185,34 @@ function Lib.escape_path(str)
   return (str:gsub("/", "%%"))
 end
 
+---Returns a string with path characters unescaped. Works with both *nix and Windows
+---@param str string The string to unescape, most likely a path to be used as a session_name
+---@return string The unescaped string
+function Lib.unescape_path(str)
+  if IS_WIN32 then
+    return win32_unescaped_dir(str)
+  end
+
+  return (str:gsub("%%", "/"))
+end
+
 ---Returns a sstring with % characters escaped, suitable for use with vim cmds
 ---@param str string The string to vim escape
----@return string
+---@return string The string escaped for use with vim.cmd
 function Lib.escape_string_for_vim(str)
   return (str:gsub("%%", "\\%%"))
+end
+
+---Returns the session file name from a full path
+---@param session_path string The file path, with path and file name components
+---@return string The session name component
+function Lib.get_session_name_from_path(session_path)
+  if vim.fn.has "win32" == 1 then
+    -- On windows, the final path separator could be a / or a \
+    return session_path:match ".*[/\\](.+)$" or session_path
+  end
+
+  return session_path:match ".*[/](.+)$" or session_path
 end
 
 local function get_win32_legacy_cwd(cwd)
@@ -219,8 +245,8 @@ end
 -- all /)
 
 ---Get the full path for the passed in path
---@param string
---@return string
+---@param file_or_dir string
+---@return string
 function Lib.expand(file_or_dir)
   local saved_wildignore = vim.api.nvim_get_option "wildignore"
   vim.api.nvim_set_option("wildignore", "")
@@ -249,8 +275,8 @@ function Lib.has_open_buffers()
   return result
 end
 
--- Iterate over the tabpages and then the windows and close any window that has a buffer that isn't backed by
--- a real file
+---Iterate over the tabpages and then the windows and close any window that has a buffer that isn't backed by
+---a real file
 function Lib.close_unsupported_windows()
   local tabpages = vim.api.nvim_list_tabpages()
   for _, tabpage in ipairs(tabpages) do
@@ -269,50 +295,49 @@ function Lib.close_unsupported_windows()
   end
 end
 
--- Count the number of supported buffers
-function Lib.count_supported_buffers()
-  local supported = 0
+---Convert a session file name to a session_name, which is useful for display
+---and can also be passed to SessionRestore/Delete
+---@param session_file_name string The session file name. It should not have a path component
+---@return string The session name, suitable for display or passing to other cmds
+function Lib.session_file_name_to_session_name(session_file_name)
+  return Lib.unescape_dir(session_file_name):gsub("%.vim$", "")
+end
 
-  local buffers = vim.api.nvim_list_bufs()
-
-  for _, buf in ipairs(buffers) do
-    -- Check if the buffer is valid and loaded
-    if vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_is_loaded(buf) then
-      local file_name = vim.api.nvim_buf_get_name(buf)
-      if Lib.is_readable(file_name) then
-        supported = supported + 1
-        Lib.logger.debug("is supported: " .. file_name .. " count: " .. vim.inspect(supported))
-      end
-    end
+---Returns if a session is a named session or not (i.e. from a cwd)
+---@param session_file_name string The session_file_name. It should not have a path component
+---@return boolean Whether the session is a named session (e.g. mysession.vim or one
+---generated from a directory
+function Lib.is_named_session(session_file_name)
+  if vim.fn.has "win32" == 1 then
+    -- Matches any letter followed by a colon
+    return not session_file_name:find "^%a:"
   end
 
-  return supported
+  -- Matches / at the start of the string
+  return not session_file_name:find "^/.*"
 end
 
-function Lib.get_path_separator()
-  -- Get cross platform path separator
-  return package.config:sub(1, 1)
-end
-
--- When Neovim makes a session file, it may save an additional <filename>x.vim file
--- with custom user commands. This function returns false if it's one of those files
-function Lib.is_session_file(session_dir, file_path)
+---When saving a session file, we may save an additional <filename>x.vim file
+---with custom user commands. This function returns false if it's one of those files
+---@param session_dir string The session directory
+---@param file_name string The file being considered
+---@return boolean True if the file is a session file, false otherwise
+function Lib.is_session_file(session_dir, file_name)
   -- if it's a directory, don't include
-  if vim.fn.isdirectory(file_path) ~= 0 then
+  if vim.fn.isdirectory(file_name) ~= 0 then
     return false
   end
 
   -- if it's a file that doesn't end in x.vim, include
-  if not string.find(file_path, "x.vim$") then
+  if not string.find(file_name, "x.vim$") then
     return true
   end
 
-  local path_separator = Lib.get_path_separator()
-
   -- the file ends in x.vim, make sure it has SessionLoad on the first line
-  local file = io.open(session_dir .. path_separator .. file_path, "r")
+  local file_path = session_dir .. "/" .. file_name
+  local file = io.open(file_path, "r")
   if not file then
-    Lib.logger.debug("Could not open file: " .. session_dir .. path_separator .. file_path)
+    Lib.logger.debug("Could not open file: " .. file_path)
     return false
   end
 
@@ -324,8 +349,8 @@ end
 
 ---Decodes the contents of session_control_file_path as a JSON object and returns it.
 ---Returns an empty table if the file doesn't exist or if the contents couldn't be decoded
---@param session_control_file_path string
---@return table
+---@param session_control_file_path string
+---@return table Contents of the decoded JSON file, or an empty table
 function Lib.load_session_control_file(session_control_file_path)
   -- No file, return empty table
   if vim.fn.filereadable(session_control_file_path) ~= 1 then
@@ -343,6 +368,33 @@ function Lib.load_session_control_file(session_control_file_path)
   end
 
   return json
+end
+
+---Get latest session for the "last session" feature
+---@param session_dir string The session directory to look for sessions in
+---@return string|nil
+function Lib.get_latest_session(session_dir)
+  if not session_dir then
+    return nil
+  end
+
+  local latest_session = { session_path = nil, last_edited = 0 }
+
+  for _, session_name in ipairs(vim.fn.readdir(session_dir)) do
+    local session = session_dir .. session_name
+    local last_edited = vim.fn.getftime(session)
+
+    if last_edited > latest_session.last_edited then
+      latest_session.session_name = session_name
+      latest_session.last_edited = last_edited
+    end
+  end
+
+  if not latest_session.session_name then
+    return nil
+  end
+
+  return latest_session.session_name
 end
 
 return Lib
