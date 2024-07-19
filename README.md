@@ -208,8 +208,8 @@ AutoSession exposes the following commands that can be used or mapped to any key
 :SessionDelete " deletes a session based on the `cwd` from `auto_session_root_dir`
 :SessionDelete my_session " deletes `my_sesion` from `auto_session_root_dir`
 
-:SesssionEnableAutoSave "enables autosave on exit, subject to all of the normal filters in the config
-:SesssionEnableAutoSave! "disables autosave on exit
+:SesssionDisableAutoSave "disables autosave on exit
+:SesssionDisavleAutoSave! "enables autosave on exit, subject to all of the normal filters in the config
 :SesssionToggleAutoSave "toggles autosave
 
 :SessionPurgeOrphaned " removes all orphaned sessions with no working directory left.

@@ -959,6 +959,14 @@ function AutoSession.DeleteSessionFromDir(session_dir, session_name)
   return true
 end
 
+---Disables autosave. Enables autosave if enable is true
+---@param enable? boolean Optional paramter to enable autosaving
+---@return boolean Whether autosaving is enabled or not
+function AutoSession.DisableAutoSave(enable)
+  AutoSession.conf.auto_save_enabled = enable or false
+  return AutoSession.conf.auto_save_enabled
+end
+
 function SetupAutocmds()
   -- Check if the auto-session plugin has already been loaded to prevent loading it twice
   if vim.g.loaded_auto_session ~= nil then
@@ -1022,18 +1030,18 @@ function SetupAutocmds()
     desc = "Delete session using the current working directory as the session name or an optional session name",
   })
 
-  vim.api.nvim_create_user_command("SessionEnableAutoSave", function(args)
-    AutoSession.conf.auto_save_enabled = not args.bang
+  vim.api.nvim_create_user_command("SessionDisableAutoSave", function(args)
+    return AutoSession.DisableAutoSave(args.bang)
   end, {
     bang = true,
-    desc = "Enable auto saving. Disable with a !",
+    desc = "Disable autosave. Enable with a !",
   })
 
   vim.api.nvim_create_user_command("SessionToggleAutoSave", function()
     AutoSession.conf.auto_save_enabled = not AutoSession.conf.auto_save_enabled
   end, {
     bang = true,
-    desc = "Toggle auto saving",
+    desc = "Toggle autosave",
   })
 
   vim.api.nvim_create_user_command("SessionSearch", function()
