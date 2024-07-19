@@ -3,7 +3,7 @@ defaultConf                                                        *defaultConf*
 
     Fields: ~
         {log_level?}                         (string|integer)        "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
-        {auto_session_enable_last_session?}  (boolean)
+        {auto_session_enable_last_session?}  (boolean)               On startup, loads the last saved session if session for cwd does not exist
         {auto_session_root_dir?}             (string)                root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
         {auto_session_enabled?}              (boolean)               enable auto session
         {auto_session_create_enabled}        (boolean|function|nil)  Enables/disables auto creating new sessions. Can take a function that should return true/false if a session should be created or not
@@ -53,37 +53,24 @@ AutoSession.setup({config})                                  *AutoSession.setup*
 
 
 AutoSession.setup_session_lens()                *AutoSession.setup_session_lens*
-
-
-AutoSession.get_latest_session()                *AutoSession.get_latest_session*
-    Get latest session for the "last session" feature
-
-    Returns: ~
-        (string|nil)
+    Make sure session_lens is setup. Ok to call multiple times
 
 
 AutoSession.session_exists_for_cwd()        *AutoSession.session_exists_for_cwd*
+    Quickly checks if a session file exists for the current working directory.
+    This is useful for starter plugins which don't want to display 'restore session'
+    unless a session for the current working directory exists.
+
+    Returns: ~
+        (boolean)  if a session exists for the cwd
 
 
-                                                   *AutoSession.AutoSaveSession*
-AutoSession.AutoSaveSession({sessions_dir?})
+AutoSession.AutoSaveSession()                      *AutoSession.AutoSaveSession*
     AutoSaveSession
     Function called by auto_session to trigger auto_saving sessions, for example on VimExit events.
 
-    Parameters: ~
-        {sessions_dir?}  (string)  the session directory to auto_save a session for. If empty this function will end up using the cwd to infer what session to save for.
-
-
-                                                      *AutoSession.get_root_dir*
-AutoSession.get_root_dir({with_trailing_separator?})
-    Gets the root directory of where to save the sessions.
-    By default this resolves to `vim.fn.stdpath "data" .. "/sessions/"`
-
-    Parameters: ~
-        {with_trailing_separator?}  (boolean)  whether to incude the trailing separator. A few places (telescope picker don't expect a trailing separator)
-
     Returns: ~
-        (string)
+        (boolean)  if a session was saved
 
 
 AutoSession.get_cmds({typ})                               *AutoSession.get_cmds*
@@ -100,95 +87,97 @@ AutoSession.get_cmds({typ})                               *AutoSession.get_cmds*
 PickerItem                                                          *PickerItem*
 
     Fields: ~
-        {display_name}  (string)
+        {session_name}  (string)
         {path}          (string)
 
 
-AutoSession.format_file_name({path})              *AutoSession.format_file_name*
-     Formats an autosession file name to be more presentable to a user
-
-    Parameters: ~
-        {path}  (string)
-
-    Returns: ~
-        (string)
-
-
-AutoSession.get_session_files()                  *AutoSession.get_session_files*
-
-    Returns: ~
-        (PickerItem[])
-
-
-AutoSession.restore_selected_session()    *AutoSession.restore_selected_session*
-
-
-                                                       *AutoSession.SaveSession*
-AutoSession.SaveSession({sessions_dir?}, {auto})
-
-    Parameters: ~
-        {sessions_dir?}  (string)
-        {auto}           (boolean)
-
-
                                                 *AutoSession.AutoRestoreSession*
-AutoSession.AutoRestoreSession({session_dir})
+AutoSession.AutoRestoreSession({session_name?})
     Function called by AutoSession when automatically restoring a session.
 
     Parameters: ~
-        {session_dir}  (any)
+        {session_name?}  (string)  An optional session to load
 
     Returns: ~
         (boolean)  returns whether restoring the session was successful or not.
-
-
-                                            *AutoSession.RestoreSessionFromFile*
-AutoSession.RestoreSessionFromFile({session_file})
-
-    Parameters: ~
-        {session_file}  (string)
-
-
-                                                    *AutoSession.RestoreSession*
-AutoSession.RestoreSession({sessions_dir_or_file})
-    Restores the session by sourcing the session file if it exists/is readable.
-    This function is intended to be called by the user but it is also called by `AutoRestoreSession`
-
-    Parameters: ~
-        {sessions_dir_or_file}  (string)  a dir string or a file string
-
-    Returns: ~
-        (boolean)  returns whether restoring the session was successful or not.
-
-
-AutoSession.DisableAutoSave()                      *AutoSession.DisableAutoSave*
-    DisableAutoSave
-    Intended to be called by the user
 
 
 AutoSession.CompleteSessions()                    *AutoSession.CompleteSessions*
     CompleteSessions is used by the vimscript command for session name/path completion.
 
     Returns: ~
-        (string)
-
-
-AutoSession.DeleteSessionByName({...})         *AutoSession.DeleteSessionByName*
-    DeleteSessionByName deletes sessions given a provided list of paths
-
-    Parameters: ~
-        {...}  (string[])
-
-
-AutoSession.DeleteSession({...})                     *AutoSession.DeleteSession*
-    DeleteSession delets a single session given a provided path
-
-    Parameters: ~
-        {...}  (string[])
+        (table)
 
 
 AutoSession.PurgeOrphanedSessions()          *AutoSession.PurgeOrphanedSessions*
     PurgeOrphanedSessions deletes sessions with no working directory exist
+
+
+                                                       *AutoSession.SaveSession*
+AutoSession.SaveSession({session_name?}, {auto?})
+    Saves a session to the dir specified in the config. If no optional
+    session name is passed in, it uses the cwd as the session name
+
+    Parameters: ~
+        {session_name?}  (string|nil)  Optional session name
+        {auto?}          (boolean)     Optional, is this an autosave or not
+
+    Returns: ~
+        (boolean)
+
+
+                                                  *AutoSession.SaveSessionToDir*
+AutoSession.SaveSessionToDir({session_dir}, {session_name?}, {auto?})
+    Saves a session to the passed in directory. If no optional
+    session name is passed in, it uses the cwd as the session name
+
+    Parameters: ~
+        {session_dir}    (string)      Directory to write the session file to
+        {session_name?}  (string|nil)  Optional session name
+        {auto?}          (boolean)     Optional, is this an autosave or not
+
+    Returns: ~
+        (boolean)
+
+
+                                                    *AutoSession.RestoreSession*
+AutoSession.RestoreSession({session_name?}, {auto?})
+    Restores a session from the passed in directory. If no optional session name
+    is passed in, it uses the cwd as the session name
+
+    Parameters: ~
+        {session_name?}  (string|nil)  Optional session name
+        {auto?}          (boolean)     Optional, is this an autorestore or not
+
+
+                                             *AutoSession.RestoreSessionFromDir*
+AutoSession.RestoreSessionFromDir({session_dir}, {session_name?}, {auto?})
+    Restores a session from the passed in directory. If no optional session name
+    is passed in, it uses the cwd as the session name
+
+    Parameters: ~
+        {session_dir}    (string)      Directory to write the session file to
+        {session_name?}  (string|nil)  Optional session name
+        {auto?}          (boolean)     Optional, is this an autorestore or not
+
+
+                                                     *AutoSession.DeleteSession*
+AutoSession.DeleteSession({session_name?})
+    Deletes a session from the config session dir. If no optional session name
+    is passed in, it uses the cwd as the session name
+
+    Parameters: ~
+        {session_name?}  (string|nil)  Optional session name
+
+
+                                              *AutoSession.DeleteSessionFromDir*
+AutoSession.DeleteSessionFromDir({session_dir}, {session_name?})
+    Deletes a session from the passed in directory. If no optional session
+    name is passed in, it uses the cwd as the session name
+
+    Parameters: ~
+        {session_dir}    (string)      Directory to delete the session from
+        {session_name?}  (string|nil)  Optional session name
 
 
                                                               *M.setup_autocmds*
