@@ -162,6 +162,16 @@ AutoSession.DeleteSessionFromDir({session_dir}, {session_name?})
         {session_name?}  (string|nil)  Optional session name
 
 
+AutoSession.DisableAutoSave({enable?})             *AutoSession.DisableAutoSave*
+    Disables autosave. Enables autosave if enable is true
+
+    Parameters: ~
+        {enable?}  (boolean)  Optional paramter to enable autosaving
+
+    Returns: ~
+        (boolean)  autosaving is enabled or not
+
+
 session_lens_config                                        *session_lens_config*
     Session Lens Config
 
