@@ -77,8 +77,7 @@ describe("The default config", function()
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 
-    -- FIXME: This currently fails on windows because of Lib.get_file_name(url)
-    -- assert.equals(TL.named_session_name, require("auto-session").Lib.current_session_name())
+    assert.equals(TL.named_session_name, require("auto-session").Lib.current_session_name())
   end)
 
   it("can restore a named session that already has .vim", function()
@@ -166,8 +165,7 @@ describe("The default config", function()
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 
-    -- FIXME: This currently fails on windows because of the dashes issue
-    -- assert.equals("auto-session", require("auto-session.lib").current_session_name())
+    assert.equals(vim.fn.getcwd(), require("auto-session.lib").current_session_name())
   end)
 
   it("can purge old sessions", function()

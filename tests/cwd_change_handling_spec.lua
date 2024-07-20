@@ -49,8 +49,7 @@ describe("The cwd_change_handling config", function()
 
     vim.cmd "cd .."
 
-    -- Not checking session name currently because of dashes bug on windows
-    -- assert.equals("auto-session", require("auto-session.lib").current_session_name())
+    assert.equals(vim.fn.getcwd(), require("auto-session.lib").current_session_name())
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
   end)

@@ -18,37 +18,14 @@ function Lib.setup(config)
   }
 end
 
-function Lib.get_file_name(url)
-  -- BUG: This is broken on windows when the path is only using blackslashes
-  return url:match "^.+/(.+)$"
-end
-
-function Lib.get_file_extension(url)
-  return url:match "^.+(%..+)$"
-end
-
--- BUG: This doesn't work correctly for automatically created sessions on windows
--- because they have dashes in the name. Can also be broken for paths that only
--- have backslahes (see bug above)
+---Returns the current session name. For an automatically generated session name, it
+---will just be the same as vim.fn.getcwd(). For a named session, it will be the name
+---without .vim
+---@return string The current session name
 function Lib.current_session_name()
-  local fname = Lib.get_file_name(vim.v.this_session)
-  local extension = Lib.get_file_extension(fname)
-  local fname_without_extension = fname:gsub(extension:gsub("%.", "%%%.") .. "$", "")
-  local fname_split = vim.split(fname_without_extension, "%%")
-  local session_name = fname_split[#fname_split] or ""
-  -- print(
-  --   "fname: "
-  --     .. fname
-  --     .. " ext: "
-  --     .. extension
-  --     .. " fn w/o ext: "
-  --     .. fname_without_extension
-  --     .. " split: "
-  --     .. vim.inspect(fname_split)
-  --     .. " session_name: "
-  --     .. session_name
-  -- )
-  return session_name
+  -- get the filename without the extension
+  local file_name = vim.fn.fnamemodify(vim.v.this_session, ":t:r")
+  return Lib.unescape_session_name(file_name)
 end
 
 function Lib.is_empty_table(t)
@@ -56,10 +33,6 @@ function Lib.is_empty_table(t)
     return true
   end
   return next(t) == nil
-end
-
-function Lib.is_empty(s)
-  return s == nil or s == ""
 end
 
 ---Makes sure the directory ends in a slash
