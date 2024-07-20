@@ -25,7 +25,7 @@ end
 function Lib.current_session_name()
   -- get the filename without the extension
   local file_name = vim.fn.fnamemodify(vim.v.this_session, ":t:r")
-  return Lib.unescape_session_name(file_name)
+  return Lib.get_session_display_name(file_name)
 end
 
 function Lib.is_empty_table(t)
@@ -105,7 +105,7 @@ end
 ---because dashes in the session name are lost
 ---@param dir string Session name to be unescaped
 ---@return string The unescaped session name
-local function win32_unescaped_dir(dir)
+local function legacy_win32_unescaped_dir(dir)
   dir = dir:gsub("++", ":")
   if not vim.o.shellslash then
     dir = dir:gsub("-", "\\")
@@ -119,7 +119,7 @@ end
 ---because dashes in the session name are lost
 ---@param dir string Session name to be escaped
 ---@return string The escaped session name
-local function win32_escaped_dir(dir)
+local function legacy_win32_escaped_dir(dir)
   dir = dir:gsub(":", "++")
   if not vim.o.shellslash then
     dir = dir:gsub("\\", "-")
@@ -192,7 +192,7 @@ end
 ---@return string The escaped string
 function Lib.legacy_escape_session_name(session_name)
   if IS_WIN32 then
-    return win32_escaped_dir(session_name)
+    return legacy_win32_escaped_dir(session_name)
   end
 
   return (session_name:gsub("/", "%%"))
@@ -204,7 +204,7 @@ end
 ---@return string The unescaped string
 function Lib.legacy_unescape_session_name(escaped_session_name)
   if IS_WIN32 then
-    return win32_unescaped_dir(escaped_session_name)
+    return legacy_win32_unescaped_dir(escaped_session_name)
   end
 
   return (escaped_session_name:gsub("%%", "/"))
@@ -270,7 +270,7 @@ function Lib.convert_session_dir(session_dir)
       Lib.logger.debug("File already exists! ", new_file_path)
     else
       ---@diagnostic disable-next-line: undefined-field
-      local ok, err = vim.uv.fs_rename(session_dir .. old_file_name, new_file_path)
+      local ok, err = vim.loop.fs_rename(session_dir .. old_file_name, new_file_path)
       if not ok then
         Lib.logger.error("Failed to move old session: " .. old_file_path " to new format. Error: " .. err)
       else
@@ -353,12 +353,38 @@ function Lib.close_unsupported_windows()
   end
 end
 
----Convert a session file name to a session_name, which is useful for display
----and can also be passed to SessionRestore/Delete
----@param session_file_name string The session file name. It should not have a path component
+---Convert a session file name to a session_name that passed to SessionRestore/Delete.
+---Although, those commands should also take a session name ending in .vim
+---@param escaped_session_name string The session file name. It should not have a path component
 ---@return string The session name, suitable for display or passing to other cmds
-function Lib.session_file_name_to_session_name(session_file_name)
-  return (Lib.unescape_session_name(session_file_name):gsub("%.vim$", ""))
+function Lib.escaped_session_name_to_session_name(escaped_session_name)
+  return (Lib.unescape_session_name(escaped_session_name):gsub("%.vim$", ""))
+end
+
+---Get the session displayname as a table of components. Index 1 will always be the session
+---name (but not file name) with any annotations coming after (like git branch)
+---@param escaped_session_name string The session file name. It should not have a path component
+---@return table The session name components
+function Lib.get_session_display_name_as_table(escaped_session_name)
+  -- sesssion name contains a |, split on that and get git branch
+  local session_name = Lib.escaped_session_name_to_session_name(escaped_session_name)
+  local splits = vim.split(session_name, "|")
+
+  if #splits == 1 then
+    return splits
+  end
+
+  splits[2] = "(branch: " .. splits[2] .. ")"
+  return splits
+end
+---Convert a session file name to a display name The result cannot be used with commands
+---like SessionRestore/SessionDelete as it might have additional annotations (like a git branch)
+---@param escaped_session_name string The session file name. It should not have a path component
+---@return string The session name suitable for display
+function Lib.get_session_display_name(escaped_session_name)
+  local splits = Lib.get_session_display_name_as_table(escaped_session_name)
+
+  return table.concat(splits, " ")
 end
 
 ---Returns if a session is a named session or not (i.e. from a cwd)

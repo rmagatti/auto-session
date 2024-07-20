@@ -55,7 +55,7 @@ describe("Legacy file name support", function()
     as.SaveSession()
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
 
-    vim.uv.fs_rename(TL.default_session_path, TL.default_session_path_legacy)
+    vim.loop.fs_rename(TL.default_session_path, TL.default_session_path_legacy)
 
     assert.equals(1, vim.fn.filereadable(TL.default_session_path_legacy))
     assert.equals(0, vim.fn.filereadable(TL.default_session_path))

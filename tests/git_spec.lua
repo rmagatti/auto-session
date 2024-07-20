@@ -49,12 +49,16 @@ describe("The git config", function()
 
   it("saves a session with the branch name", function()
     -- vim.cmd ":SessionSave"
-    require("auto-session").AutoSaveSession()
+    local as = require "auto-session"
 
-    local session_path = TL.session_dir .. TL.escapeSessionName(vim.fn.getcwd() .. " main.vim")
+    as.AutoSaveSession()
+
+    local session_path = TL.session_dir .. TL.escapeSessionName(vim.fn.getcwd() .. "|main.vim")
 
     print(session_path)
 
     assert.equals(1, vim.fn.filereadable(session_path))
+
+    assert.equals(vim.fn.getcwd() .. " (branch: main)", as.Lib.current_session_name())
   end)
 end)

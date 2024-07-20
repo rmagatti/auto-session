@@ -47,16 +47,28 @@ local function make_telescope_callback(opts)
       return nil
     end
 
+    -- the name of the session, to be used for restoring/deleting
     local session_name
+
+    -- the name to display, possibly with a shortened path
+    local display_name
+
+    -- an annotation about the sesssion, added to display_name after any path processing
     local annotation = ""
     if Lib.is_legacy_file_name(file_name) then
       session_name = (Lib.legacy_unescape_session_name(file_name):gsub("%.vim$", ""))
+      display_name = session_name
       annotation = " (legacy)"
     else
-      session_name = Lib.session_file_name_to_session_name(file_name)
+      session_name = Lib.escaped_session_name_to_session_name(file_name)
+      display_name = session_name
+      local name_components = Lib.get_session_display_name_as_table(file_name)
+      if #name_components > 1 then
+        display_name = name_components[1]
+        annotation = " " .. name_components[2]
+      end
     end
 
-    local display_name = session_name
     if opts.path_display and vim.tbl_contains(opts.path_display, "shorten") then
       display_name = path:new(display_name):shorten()
       if not display_name then

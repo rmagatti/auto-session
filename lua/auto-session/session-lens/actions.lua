@@ -79,7 +79,7 @@ M.alternate_session = function(prompt_bufnr)
   if Lib.is_legacy_file_name(file_name) then
     session_name = (Lib.legacy_unescape_session_name(file_name):gsub("%.vim$", ""))
   else
-    session_name = Lib.session_file_name_to_session_name(file_name)
+    session_name = Lib.escaped_session_name_to_session_name(file_name)
   end
 
   source_session(session_name, prompt_bufnr)

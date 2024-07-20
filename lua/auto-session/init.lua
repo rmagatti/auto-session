@@ -420,8 +420,7 @@ local function get_session_file_name(session_name, legacy)
 
     local git_branch_name = get_git_branch_name()
     if git_branch_name and git_branch_name ~= "" then
-      -- TODO: Should find a better way to encode branch name
-      session_name = session_name .. " " .. git_branch_name
+      session_name = session_name .. "|" .. git_branch_name
     end
   end
 
@@ -590,8 +589,8 @@ local function get_session_files()
       session_name = (Lib.legacy_unescape_session_name(file_name):gsub("%.vim$", ""))
       display_name = session_name .. " (legacy)"
     else
-      session_name = Lib.session_file_name_to_session_name(file_name)
-      display_name = session_name
+      session_name = Lib.escaped_session_name_to_session_name(file_name)
+      display_name = Lib.get_session_display_name(file_name)
     end
 
     return {
@@ -833,7 +832,7 @@ function AutoSession.SaveSessionToDir(session_dir, session_name, show_message)
   -- session_name might be nil (e.g. when using cwd), unescape escaped_session_name instead
   Lib.logger.debug("Saved session: " .. Lib.unescape_session_name(escaped_session_name))
   if show_message == nil or show_message then
-    vim.notify("Saved session: " .. Lib.unescape_session_name(escaped_session_name))
+    vim.notify("Saved session: " .. Lib.get_session_display_name(escaped_session_name))
   end
 
   return true
@@ -875,14 +874,14 @@ function AutoSession.RestoreSessionFromDir(session_dir, session_name, show_messa
 
     if vim.fn.filereadable(legacy_session_path) ~= 1 then
       if show_message == nil or show_message then
-        vim.notify("Could not restore session: " .. Lib.session_file_name_to_session_name(escaped_session_name))
+        vim.notify("Could not restore session: " .. Lib.get_session_display_name(escaped_session_name))
       end
       return false
     end
 
     Lib.logger.debug("RestoreSessionFromDir renaming legacy session: " .. legacy_escaped_session_name)
     ---@diagnostic disable-next-line: undefined-field
-    if not vim.uv.fs_rename(legacy_session_path, session_path) then
+    if not vim.loop.fs_rename(legacy_session_path, session_path) then
       Lib.logger.debug(
         "RestoreSessionFromDir rename failed!",
         { session_path = session_path, legacy_session_path = legacy_session_path }
@@ -933,7 +932,7 @@ Disabling auto save. Please check for errors in your config. Error:
   -- session_name might be nil (e.g. when using cwd), unescape escaped_session_name instead
   Lib.logger.debug("Restored session: " .. Lib.unescape_session_name(escaped_session_name))
   if show_message == nil or show_message then
-    vim.notify("Restored session: " .. Lib.session_file_name_to_session_name(escaped_session_name))
+    vim.notify("Restored session: " .. Lib.get_session_display_name(escaped_session_name))
   end
 
   local post_cmds = AutoSession.get_cmds "post_restore"
@@ -975,7 +974,7 @@ function AutoSession.DeleteSessionFromDir(session_dir, session_name)
     local legacy_session_path = session_dir .. legacy_escaped_session_name
 
     if vim.fn.filereadable(legacy_session_path) ~= 1 then
-      vim.notify("Could not session to delete: " .. Lib.session_file_name_to_session_name(escaped_session_name))
+      vim.notify("Could not session to delete: " .. Lib.get_session_display_name(escaped_session_name))
       return false
     end
     Lib.logger.debug("DeleteSessionFromDir using legacy session: " .. legacy_escaped_session_name)
