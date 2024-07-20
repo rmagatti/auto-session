@@ -5,15 +5,20 @@ M = {}
 -- without creating more problems
 vim.fn.setenv("AUTOSESSION_UNIT_TESTING", 1)
 
-function M.escapeSessionName(name)
+function M.escapeSessionName(session_name)
+  return require("auto-session.lib").urlencode(session_name)
+  -- return M.legacyEscapeSessionName(session_name)
+end
+
+function M.legacyEscapeSessionName(session_name)
   if vim.fn.has "win32" == 1 then
     -- Harcoded implementation from Lib
-    local temp = name:gsub(":", "++")
+    local temp = session_name:gsub(":", "++")
     if not vim.o.shellslash then
       return temp:gsub("\\", "-"):gsub("/", "-")
     end
   else
-    return name:gsub("/", "%%")
+    return session_name:gsub("/", "%%")
   end
 end
 
@@ -34,6 +39,7 @@ M.session_control_dir = vim.fn.stdpath "data" .. "/auto_session/"
 M.default_session_name = vim.fn.getcwd()
 
 M.default_session_path = M.makeSessionPath(M.default_session_name)
+M.default_session_path_legacy = M.session_dir .. M.legacyEscapeSessionName(M.default_session_name) .. ".vim"
 
 M.default_session_control_name = "session_control.json"
 M.default_session_control_path = M.session_control_dir .. M.default_session_control_name
@@ -69,6 +75,11 @@ function M.clearSessionFiles(dir)
   else
     pcall(vim.fn.system, "rm -rf " .. dir .. "*.vim .vim")
   end
+end
+
+function M.createFile(file_path)
+  vim.cmd("ene | w " .. file_path:gsub("%%", "\\%%") .. " | bw")
+  assert.True(vim.fn.filereadable(file_path) ~= 0)
 end
 
 return M

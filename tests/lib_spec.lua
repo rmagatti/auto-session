@@ -3,9 +3,7 @@ local TL = require "tests/test_lib"
 
 describe("Lib / Helper functions", function()
   local as = require "auto-session"
-  as.setup {
-    auto_session_root_dir = TL.session_dir,
-  }
+  as.setup {}
 
   local Lib = as.Lib
 
@@ -63,19 +61,31 @@ describe("Lib / Helper functions", function()
     end
   end)
 
-  it("escape_path() works", function()
+  it("escape_session_name() works", function()
+    assert.equals(
+      "%2Fsome%2Fdir%2Fwith%20spaces%2Fand-dashes",
+      Lib.escape_session_name "/some/dir/with spaces/and-dashes"
+    )
+
+    assert.equals(
+      "c%3A%5Csome%5Cdir%5Cwith%20space%5Cand-dashes%5C",
+      Lib.escape_session_name "c:\\some\\dir\\with space\\and-dashes\\"
+    )
+  end)
+
+  it("legacy_escape_session_name() works", function()
     if vim.fn.has "win32" == 1 then
-      assert.equals("c++-some-dir-", Lib.escape_path "c:\\some\\dir\\")
+      assert.equals("c++-some-dir-", Lib.legacy_escape_session_name "c:\\some\\dir\\")
     else
-      assert.equals("%some%dir%", Lib.escape_path "/some/dir/")
+      assert.equals("%some%dir%", Lib.legacy_escape_session_name "/some/dir/")
     end
   end)
 
-  it("unescape_path() works", function()
+  it("legacy_escape_session_name() works", function()
     if vim.fn.has "win32" == 1 then
-      assert.equals("c:\\some\\dir\\", Lib.unescape_path "c++-some-dir-")
+      assert.equals("c:\\some\\dir\\", Lib.legacy_unescape_session_name "c++-some-dir-")
     else
-      assert.equals("/some/dir/", Lib.unescape_path "%some%dir%")
+      assert.equals("/some/dir/", Lib.legacy_unescape_session_name "%some%dir%")
     end
   end)
 
@@ -83,15 +93,43 @@ describe("Lib / Helper functions", function()
     assert.equals("\\%some\\%dir\\%", Lib.escape_string_for_vim "%some%dir%")
   end)
 
-  it("get_session_name_from_path() works", function()
+  it("can urlencode/urldecode", function()
+    assert.equals("%2Fsome%2Fdir%2Fwith%20spaces%2Fand-dashes", Lib.urlencode "/some/dir/with spaces/and-dashes")
+    assert.equals("/some/dir/with spaces/and-dashes", Lib.urldecode(Lib.urlencode "/some/dir/with spaces/and-dashes"))
+
     assert.equals(
-      TL.escapeSessionName(TL.default_session_name .. ".vim"),
-      as.Lib.get_session_name_from_path(TL.default_session_path)
+      "c%3A%5Csome%5Cdir%5Cwith%20space%5Cand-dashes%5C",
+      Lib.urlencode "c:\\some\\dir\\with space\\and-dashes\\"
     )
     assert.equals(
-      TL.escapeSessionName(TL.named_session_name .. ".vim"),
-      as.Lib.get_session_name_from_path(TL.named_session_path)
+      "c:\\some\\dir\\with space\\and-dashes\\",
+      Lib.urldecode(Lib.urlencode "c:\\some\\dir\\with space\\and-dashes\\")
     )
-    assert.equals("some string", as.Lib.get_session_name_from_path "some string")
+
+    -- round trip should be stable
+    assert.equals(TL.default_session_name, Lib.urldecode(Lib.urlencode(TL.default_session_name)))
+    assert.equals(TL.named_session_name, Lib.urldecode(Lib.urlencode(TL.named_session_name)))
+
+    -- Should not encode anything
+    assert.equals(TL.named_session_name, Lib.urldecode(TL.named_session_name))
+    assert.equals(TL.named_session_name, Lib.urlencode(TL.named_session_name))
+  end)
+
+  it("can identify new and old sessions", function()
+    assert.False(Lib.is_legacy_file_name(Lib.urlencode "mysession" .. ".vim"))
+    assert.False(Lib.is_legacy_file_name(Lib.urlencode "/some/dir/" .. ".vim"))
+    assert.False(Lib.is_legacy_file_name(Lib.urlencode "/some/dir/with spaces/and-dashes" .. ".vim"))
+    assert.False(Lib.is_legacy_file_name(Lib.urlencode "c:\\some\\dir\\with spaces\\and-dashes" .. ".vim"))
+    assert.False(Lib.is_legacy_file_name(Lib.urlencode "c:\\some\\dir\\with spaces\\and-dashes\\" .. ".vim"))
+
+    assert.True(Lib.is_legacy_file_name(TL.legacyEscapeSessionName "/some/dir" .. ".vim"))
+    assert.False(Lib.is_legacy_file_name(TL.legacyEscapeSessionName "mysession" .. ".vim"))
+
+    if vim.fn.has "win32" == 1 then
+      assert.True(Lib.is_legacy_file_name(TL.legacyEscapeSessionName "c:\\some\\dir" .. ".vim"))
+      assert.True(Lib.is_legacy_file_name(TL.legacyEscapeSessionName "c:\\some\\other\\dir" .. ".vim"))
+      assert.True(Lib.is_legacy_file_name(TL.legacyEscapeSessionName "c:\\some\\dir-with-dashes" .. ".vim"))
+      assert.True(Lib.is_legacy_file_name(TL.legacyEscapeSessionName "c:/some/dir-with-dashes" .. ".vim"))
+    end
   end)
 end)

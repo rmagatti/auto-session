@@ -51,7 +51,7 @@ describe("The git config", function()
     -- vim.cmd ":SessionSave"
     require("auto-session").AutoSaveSession()
 
-    local session_path = TL.session_dir .. TL.escapeSessionName(vim.fn.getcwd() .. "_main.vim")
+    local session_path = TL.session_dir .. TL.escapeSessionName(vim.fn.getcwd() .. " main.vim")
 
     print(session_path)
 
