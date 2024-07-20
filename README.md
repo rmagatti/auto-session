@@ -62,7 +62,7 @@ let g:auto_session_root_dir = path/to/my/custom/dir
 " or use Lua
 lua << EOF
 local opts = {
-  log_level = 'info',
+  log_level = 'error',
   auto_session_enable_last_session = false,
   auto_session_root_dir = vim.fn.stdpath('data') .. "/sessions/",
   auto_session_enabled = true,
@@ -82,7 +82,7 @@ EOF
 
 | Config                           | Options                  | Default                              | Description                                                                                                                                          |
 | -------------------------------- | ------------------------ | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| log_level                        | 'debug', 'info', 'error' | 'info'                               | Sets the log level of the plugin                                                                                                                     |
+| log_level                        | 'debug', 'info', 'error' | 'error'                              | Sets the log level of the plugin. Set to info for more feedback on what's happening                                                                  |
 | auto_session_enable_last_session | false, true              | false                                | On startup, loads the last loaded session if session for cwd does not exist                                                                          |
 | auto_session_root_dir            | "/some/path/you/want"    | vim.fn.stdpath('data').."/sessions/" | Changes the root dir for sessions                                                                                                                    |
 | auto_session_enabled             | false, true              | true                                 | Enables/disables the plugin's auto save _and_ restore features                                                                                       |

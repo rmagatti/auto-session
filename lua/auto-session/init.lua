@@ -44,7 +44,7 @@ end
 ---@class defaultConf
 ---@field log_level? string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
 ---@field auto_session_enable_last_session? boolean On startup, loads the last saved session if session for cwd does not exist
----@field auto_session_root_dir? string root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
+---@field auto_session_root_dir? string root directory for session files, by default is `vim.fn.stdpath('data') .. '/sessions/'`
 ---@field auto_session_enabled? boolean enable auto session
 ---@field auto_session_create_enabled boolean|function|nil Enables/disables auto creating new sessions. Can take a function that should return true/false if a session should be created or not
 ---@field auto_save_enabled? boolean Enables/disables auto saving session
@@ -503,8 +503,7 @@ function AutoSession.AutoSaveSession()
     end
   end
 
-  -- Don't try to show a message as we're exiting
-  return AutoSession.SaveSession(nil, false)
+  return AutoSession.SaveSession(nil)
 end
 
 ---@private
@@ -788,20 +787,18 @@ end
 ---Saves a session to the dir specified in the config. If no optional
 ---session name is passed in, it uses the cwd as the session name
 ---@param session_name? string|nil Optional session name
----@param show_message? boolean Optional, whether to show a message on save (true by default)
 ---@return boolean
-function AutoSession.SaveSession(session_name, show_message)
-  return AutoSession.SaveSessionToDir(AutoSession.get_root_dir(), session_name, show_message)
+function AutoSession.SaveSession(session_name)
+  return AutoSession.SaveSessionToDir(AutoSession.get_root_dir(), session_name)
 end
 
 ---Saves a session to the passed in directory. If no optional
 ---session name is passed in, it uses the cwd as the session name
 ---@param session_dir string Directory to write the session file to
 ---@param session_name? string|nil Optional session name
----@param show_message? boolean Optional, whether to show a message on save (true by default)
 ---@return boolean
-function AutoSession.SaveSessionToDir(session_dir, session_name, show_message)
-  Lib.logger.debug("SaveSessionToDir start", { session_dir, session_name, show_message })
+function AutoSession.SaveSessionToDir(session_dir, session_name)
+  Lib.logger.debug("SaveSessionToDir start", { session_dir, session_name })
 
   -- Canonicalize and create session_dir if needed
   session_dir = Lib.validate_root_dir(session_dir)
@@ -830,10 +827,7 @@ function AutoSession.SaveSessionToDir(session_dir, session_name, show_message)
   run_hook_cmds(post_cmds, "post-save")
 
   -- session_name might be nil (e.g. when using cwd), unescape escaped_session_name instead
-  Lib.logger.debug("Saved session: " .. Lib.unescape_session_name(escaped_session_name))
-  if show_message == nil or show_message then
-    vim.notify("Saved session: " .. Lib.get_session_display_name(escaped_session_name))
-  end
+  Lib.logger.info("Saved session: " .. Lib.unescape_session_name(escaped_session_name))
 
   return true
 end
@@ -841,17 +835,15 @@ end
 ---Restores a session from the passed in directory. If no optional session name
 ---is passed in, it uses the cwd as the session name
 ---@param session_name? string|nil Optional session name
----@param show_message? boolean Optional, whether to show a message on restore (true by default)
-function AutoSession.RestoreSession(session_name, show_message)
-  return AutoSession.RestoreSessionFromDir(AutoSession.get_root_dir(), session_name, show_message)
+function AutoSession.RestoreSession(session_name)
+  return AutoSession.RestoreSessionFromDir(AutoSession.get_root_dir(), session_name)
 end
 
 ---Restores a session from the passed in directory. If no optional session name
 ---is passed in, it uses the cwd as the session name
 ---@param session_dir string Directory to write the session file to
 ---@param session_name? string|nil Optional session name
----@param show_message? boolean Optional, whether to show a message on restore (true by default)
-function AutoSession.RestoreSessionFromDir(session_dir, session_name, show_message)
+function AutoSession.RestoreSessionFromDir(session_dir, session_name)
   Lib.logger.debug("RestoreSessionFromDir start", { session_dir, session_name })
   -- Canonicalize and create session_dir if needed
   session_dir = Lib.validate_root_dir(session_dir)
@@ -873,9 +865,7 @@ function AutoSession.RestoreSessionFromDir(session_dir, session_name, show_messa
     local legacy_session_path = session_dir .. legacy_escaped_session_name
 
     if vim.fn.filereadable(legacy_session_path) ~= 1 then
-      if show_message == nil or show_message then
-        vim.notify("Could not restore session: " .. Lib.get_session_display_name(escaped_session_name))
-      end
+      Lib.logger.error("Could not restore session: " .. Lib.get_session_display_name(escaped_session_name))
       return false
     end
 
@@ -930,10 +920,7 @@ Disabling auto save. Please check for errors in your config. Error:
   end
 
   -- session_name might be nil (e.g. when using cwd), unescape escaped_session_name instead
-  Lib.logger.debug("Restored session: " .. Lib.unescape_session_name(escaped_session_name))
-  if show_message == nil or show_message then
-    vim.notify("Restored session: " .. Lib.get_session_display_name(escaped_session_name))
-  end
+  Lib.logger.info("Restored session: " .. Lib.get_session_display_name(escaped_session_name))
 
   local post_cmds = AutoSession.get_cmds "post_restore"
   run_hook_cmds(post_cmds, "post-restore")
