@@ -1011,6 +1011,11 @@ end
 ---@return boolean Whether autosaving is enabled or not
 function AutoSession.DisableAutoSave(enable)
   AutoSession.conf.auto_save_enabled = enable or false
+  if AutoSession.conf.auto_save_enabled then
+    vim.notify "Session auto-save enabled"
+  else
+    vim.notify "Session auto-save disabled"
+  end
   return AutoSession.conf.auto_save_enabled
 end
 
@@ -1085,7 +1090,7 @@ function SetupAutocmds()
   })
 
   vim.api.nvim_create_user_command("SessionToggleAutoSave", function()
-    AutoSession.conf.auto_save_enabled = not AutoSession.conf.auto_save_enabled
+    return AutoSession.DisableAutoSave(not AutoSession.conf.auto_save_enabled)
   end, {
     bang = true,
     desc = "Toggle autosave",
