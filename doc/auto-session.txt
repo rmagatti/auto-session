@@ -4,7 +4,7 @@ defaultConf                                                        *defaultConf*
     Fields: ~
         {log_level?}                         (string|integer)        "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
         {auto_session_enable_last_session?}  (boolean)               On startup, loads the last saved session if session for cwd does not exist
-        {auto_session_root_dir?}             (string)                root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
+        {auto_session_root_dir?}             (string)                root directory for session files, by default is `vim.fn.stdpath('data') .. '/sessions/'`
         {auto_session_enabled?}              (boolean)               enable auto session
         {auto_session_create_enabled}        (boolean|function|nil)  Enables/disables auto creating new sessions. Can take a function that should return true/false if a session should be created or not
         {auto_save_enabled?}                 (boolean)               Enables/disables auto saving session
@@ -95,52 +95,47 @@ AutoSession.PurgeOrphanedSessions()          *AutoSession.PurgeOrphanedSessions*
      Deletes sessions where the original directory no longer exists
 
 
-                                                       *AutoSession.SaveSession*
-AutoSession.SaveSession({session_name?}, {show_message?})
+AutoSession.SaveSession({session_name?})               *AutoSession.SaveSession*
     Saves a session to the dir specified in the config. If no optional
     session name is passed in, it uses the cwd as the session name
 
     Parameters: ~
         {session_name?}  (string|nil)  Optional session name
-        {show_message?}  (boolean)     Optional, whether to show a message on save (true by default)
 
     Returns: ~
         (boolean)
 
 
                                                   *AutoSession.SaveSessionToDir*
-AutoSession.SaveSessionToDir({session_dir}, {session_name?}, {show_message?})
+AutoSession.SaveSessionToDir({session_dir}, {session_name?})
     Saves a session to the passed in directory. If no optional
     session name is passed in, it uses the cwd as the session name
 
     Parameters: ~
         {session_dir}    (string)      Directory to write the session file to
         {session_name?}  (string|nil)  Optional session name
-        {show_message?}  (boolean)     Optional, whether to show a message on save (true by default)
 
     Returns: ~
         (boolean)
 
 
                                                     *AutoSession.RestoreSession*
-AutoSession.RestoreSession({session_name?}, {show_message?})
+AutoSession.RestoreSession({session_name?})
     Restores a session from the passed in directory. If no optional session name
     is passed in, it uses the cwd as the session name
 
     Parameters: ~
         {session_name?}  (string|nil)  Optional session name
-        {show_message?}  (boolean)     Optional, whether to show a message on restore (true by default)
 
 
                                              *AutoSession.RestoreSessionFromDir*
-AutoSession.RestoreSessionFromDir({session_dir}, {session_name?}, {show_message?})
+AutoSession.RestoreSessionFromDir({session_dir}, {session_name?})
     Restores a session from the passed in directory. If no optional session name
     is passed in, it uses the cwd as the session name
 
     Parameters: ~
         {session_dir}    (string)      Directory to write the session file to
         {session_name?}  (string|nil)  Optional session name
-        {show_message?}  (boolean)     Optional, whether to show a message on restore (true by default)
 
 
                                                      *AutoSession.DeleteSession*
