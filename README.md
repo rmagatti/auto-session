@@ -18,55 +18,22 @@ AutoSession takes advantage of Neovim's existing session management capabilities
 :warning: Please note that if there are errors in your config, restoring the session might fail, if that happens, auto session will then disable auto saving for the current session.
 Manually saving a session can still be done by calling `:SessionSave`.
 
-AutoSession can now track `cwd` changes!
-By default, `cwd` handling is disabled but when enabled, it works as follows:
-
-- DirChangedPre (before the cwd actually changes):
-  - Save the current session
-  - Clear all buffers `%bd!`. This guarantees buffers don't bleed to the
-    next session.
-  - Clear jumps. Also done so there is no bleeding between sessions.
-  - Run the `pre_cwd_changed_hook`/
-- DirChanged (after the cwd has changed):
-  - Restore session using new cwd
-  - Run the `post_cwd_changed_hook`
-
-Now when the user changes the cwd with `:cd some/new/dir` AutoSession handles it gracefully, saving the current session so there aren't losses and loading the session for the upcoming cwd if it exists.
-
-Hooks are available for custom actions _before_ and _after_ the `cwd` is changed. These hooks can be configured through the `cwd_change_handling` key as follows:
-
-```lua
-require("auto-session").setup {
-  log_level = "error",
-
-  cwd_change_handling = {
-    restore_upcoming_session = true, -- Disabled by default, set to true to enable
-    pre_cwd_changed_hook = nil, -- already the default, no need to specify like this, only here as an example
-    post_cwd_changed_hook = function() -- example refreshing the lualine status line _after_ the cwd changes
-      require("lualine").refresh() -- refresh lualine so the new session name is displayed in the status bar
-    end,
-  },
-}
-
-```
-
 # 📦 Installation
 
 [Lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ```lua
-return {
-  {
-    'rmagatti/auto-session',
-    dependencies = {
-      'nvim-telescope/telescope.nvim', -- Only needed if you want to use sesssion lens
-    },
-    config = function()
-      require('auto-session').setup({
-        auto_session_suppress_dirs = { '~/', '~/Projects', '~/Downloads', '/' },
-      })
-    end,
+{
+  'rmagatti/auto-session',
+  lazy = false,
+  dependencies = {
+    'nvim-telescope/telescope.nvim', -- Only needed if you want to use sesssion lens
   },
+  config = function()
+    require('auto-session').setup({
+      auto_session_suppress_dirs = { '~/', '~/Projects', '~/Downloads', '/' },
+    })
+  end,
 }
 ```
 
@@ -85,11 +52,7 @@ use {
 
 # ⚙️ Configuration
 
-### Default
-
-AutoSession by default stores sessions in `vim.fn.stdpath('data').."/sessions/"`.
-
-### Custom
+### Configuration
 
 One can set the auto_session root dir that will be used for auto session saving and restoring.
 
@@ -101,7 +64,7 @@ lua << EOF
 local opts = {
   log_level = 'info',
   auto_session_enable_last_session = false,
-  auto_session_root_dir = vim.fn.stdpath('data').."/sessions/",
+  auto_session_root_dir = vim.fn.stdpath('data') .. "/sessions/",
   auto_session_enabled = true,
   auto_save_enabled = nil,
   auto_restore_enabled = nil,
@@ -168,6 +131,40 @@ set sessionoptions+=winpos,terminal,folds
 ```
 
 :warning: if you use [packer.nvim](https://github.com/wbthomason/packer.nvim)'s lazy loading feature, and you have the `options` value in your `sessionoptions` beware it might lead to weird behaviour with the lazy loading, especially around key-based lazy loading where keymaps are kept and thus the lazy loading mapping packer creates never gets set again.
+
+### Current Working Directory
+
+AutoSession can track `cwd` changes!
+
+It's disabled by default, but when enabled it works as follows:
+
+- DirChangedPre (before the cwd actually changes):
+  - Save the current session
+  - Clear all buffers `%bd!`. This guarantees buffers don't bleed to the
+    next session.
+  - Clear jumps. Also done so there is no bleeding between sessions.
+  - Run the `pre_cwd_changed_hook`/
+- DirChanged (after the cwd has changed):
+  - Restore session using new cwd
+  - Run the `post_cwd_changed_hook`
+
+Now when you changes the cwd with `:cd some/new/dir` AutoSession handles it gracefully, saving the current session so there aren't losses and loading the session for the upcoming cwd if it exists.
+
+Hooks are available for custom actions _before_ and _after_ the `cwd` is changed. Here's the config for tracking cwd and a hook example:
+
+```lua
+require('auto-session').setup({
+  auto_session_suppress_dirs = { '~/', '~/Projects', '~/Downloads', '/' },
+
+  cwd_change_handling = {
+    restore_upcoming_session = true, -- Disabled by default, set to true to enable
+    pre_cwd_changed_hook = nil, -- already the default, no need to specify like this, only here as an example
+    post_cwd_changed_hook = function() -- example refreshing the lualine status line _after_ the cwd changes
+      --require("lualine").refresh() -- refresh lualine so the new session name is displayed in the status bar
+    end,
+  },
+})
+```
 
 ### Last Session
 
@@ -400,53 +397,47 @@ For troubleshooting refer to the [wiki page](https://github.com/rmagatti/auto-se
 
 ## 🔭 Session Lens
 
-Session Lens has been merged into AutoSession so now you can see, load, and delete your sessions using Telescope! It's enabled by
-default if you have Telescope, but here's the Lazy config that shows the configuration options:
+You can use Telescope to see, load, and delete your sessions. It's enabled by default if you have Telescope, but here's the Lazy config that shows the configuration options:
 
 ```lua
 
-return {
-  {
-    'rmagatti/auto-session',
-    dependencies = {
-      'nvim-telescope/telescope.nvim',
-    },
-    config = function()
-      require('auto-session').setup({
-        log_level = 'error',
-        auto_session_suppress_dirs = { '~/', '~/Projects', '~/Downloads', '/' },
-
-        -- ⚠️ This will only work if Telescope.nvim is installed
-        -- The following are already the default values, no need to provide them if these are already the settings you want.
-        session_lens = {
-          -- If load_on_setup is set to false, one needs to eventually call `require("auto-session").setup_session_lens()` if they want to use session-lens.
-          load_on_setup = true,
-          theme_conf = { border = true },
-          previewer = false,
-          buftypes_to_ignore = {}, -- list of buffer types that should not be deleted from current session when a new one is loaded
-        },
-      })
-    end,
+{
+  'rmagatti/auto-session',
+  lazy = false,
+  dependencies = {
+    'nvim-telescope/telescope.nvim',
   },
+  keys = {
+    -- Will use Telescope if installed or a vim.ui.select picker otherwise
+    { '<leader>wr', '<cmd>SessionSearch<CR>', desc = 'Session search' },
+    { '<leader>ws', '<cmd>SessionSave<CR>', desc = 'Save session' },
+    { '<leader>wa', '<cmd>SessionToggleAutoSave<CR>', desc = 'Toggle autosave' },
+  },
+  config = function()
+    require('auto-session').setup({
+      log_level = 'debug',
+      -- ⚠️ This will only work if Telescope.nvim is installed
+      -- The following are already the default values, no need to provide them if these are already the settings you want.
+      session_lens = {
+        -- If load_on_setup is false, make sure you use `:SessionSearch` to open the picker as it will initialize everything first
+        load_on_setup = true,
+        theme_conf = { border = true },
+        previewer = false,
+      },
+    })
+  end,
 }
-
--- Set mapping for searching a session.
--- ⚠️ This will only work if Telescope.nvim is installed
-vim.keymap.set("n", "<C-s>", require("auto-session.session-lens").search_session, {
-  noremap = true,
-})
 ```
 
-You can also use `:Telescope session-lens` to launch the session picker.
+You can use `:Telescope session-lens` to launch the session picker but if you set `load_on_setup = false`, you'll need to call `require("auto-session").setup_session_lens()` first. Or you can just use `:SessionSearch` and it'll make sure everything is initialized.
 
 The following shortcuts are available when the session-lens picker is open
 
-- `<c-s>` restores the previously opened session. This can give you a nice flow if you're constantly switching between two projects.
+- `<cr>` loads the currently highlighted session.
+- `<c-s>` swaps to the previously opened session. This can give you a nice flow if you're constantly switching between two projects.
 - `<c-d>` will delete the currently highlighted session. This makes it easy to keep the session list clean.
 
 NOTE: If you previously installed `rmagatti/session-lens`, you should remove it from your config as it is no longer necessary.
-
-AutoSession provides its own `:Autosession search` and `:Autosession delete` commands, but session-lens is a more complete version of those commands that is specifically built to be used with `telescope.nvim`. These commands make use of `vim.ui.select` which can itself be implemented by other plugins other than telescope.
 
 ### Preview
 
@@ -476,5 +467,5 @@ Neovim > 0.7
 Tested with:
 
 ```
-NVIM v0.7.0 - NVIM 0.10.0
+NVIM v0.7.2 - NVIM 0.10.0
 ```

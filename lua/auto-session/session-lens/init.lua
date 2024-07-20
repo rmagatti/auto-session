@@ -132,8 +132,6 @@ SessionLens.search_session = function(custom_opts)
     prompt_title = "Sessions",
     entry_maker = make_telescope_callback(custom_opts),
     cwd = session_root_dir,
-    -- TODO: Document mappings. At least <C-/> in Telescope shows the current mappings for the picker
-    -- Possible future feature: custom mappings?
     attach_mappings = function(_, map)
       telescope_actions.select_default:replace(Actions.source_session)
       map("i", "<c-d>", Actions.delete_session)
