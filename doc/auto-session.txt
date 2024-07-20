@@ -95,47 +95,52 @@ AutoSession.PurgeOrphanedSessions()          *AutoSession.PurgeOrphanedSessions*
      Deletes sessions where the original directory no longer exists
 
 
-AutoSession.SaveSession({session_name?})               *AutoSession.SaveSession*
+                                                       *AutoSession.SaveSession*
+AutoSession.SaveSession({session_name?}, {show_message?})
     Saves a session to the dir specified in the config. If no optional
     session name is passed in, it uses the cwd as the session name
 
     Parameters: ~
         {session_name?}  (string|nil)  Optional session name
+        {show_message?}  (boolean)     Optional, whether to show a message on save (true by default)
 
     Returns: ~
         (boolean)
 
 
                                                   *AutoSession.SaveSessionToDir*
-AutoSession.SaveSessionToDir({session_dir}, {session_name?})
+AutoSession.SaveSessionToDir({session_dir}, {session_name?}, {show_message?})
     Saves a session to the passed in directory. If no optional
     session name is passed in, it uses the cwd as the session name
 
     Parameters: ~
         {session_dir}    (string)      Directory to write the session file to
         {session_name?}  (string|nil)  Optional session name
+        {show_message?}  (boolean)     Optional, whether to show a message on save (true by default)
 
     Returns: ~
         (boolean)
 
 
                                                     *AutoSession.RestoreSession*
-AutoSession.RestoreSession({session_name?})
+AutoSession.RestoreSession({session_name?}, {show_message?})
     Restores a session from the passed in directory. If no optional session name
     is passed in, it uses the cwd as the session name
 
     Parameters: ~
         {session_name?}  (string|nil)  Optional session name
+        {show_message?}  (boolean)     Optional, whether to show a message on restore (true by default)
 
 
                                              *AutoSession.RestoreSessionFromDir*
-AutoSession.RestoreSessionFromDir({session_dir}, {session_name?})
+AutoSession.RestoreSessionFromDir({session_dir}, {session_name?}, {show_message?})
     Restores a session from the passed in directory. If no optional session name
     is passed in, it uses the cwd as the session name
 
     Parameters: ~
         {session_dir}    (string)      Directory to write the session file to
         {session_name?}  (string|nil)  Optional session name
+        {show_message?}  (boolean)     Optional, whether to show a message on restore (true by default)
 
 
                                                      *AutoSession.DeleteSession*
