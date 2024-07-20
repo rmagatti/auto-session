@@ -1,9 +1,6 @@
-local Lib = require "auto-session.session-lens.library"
 local Actions = require "auto-session.session-lens.actions"
-
-local logger = require("auto-session.logger"):new {
-  log_level = vim.log.levels.INFO,
-}
+local AutoSession = require "auto-session"
+local Lib = AutoSession.Lib
 
 ----------- Setup ----------
 local SessionLens = {
@@ -31,17 +28,51 @@ local defaultConf = {
 -- Set default config on plugin load
 SessionLens.conf = defaultConf
 
-function SessionLens.setup(auto_session)
-  SessionLens.conf = vim.tbl_deep_extend("force", SessionLens.conf, auto_session.conf.session_lens)
-  ---@diagnostic disable-next-line: inject-field
-  SessionLens.conf.functions = auto_session
-
-  Lib.setup(SessionLens.conf, auto_session)
-  Actions.setup(SessionLens.conf, auto_session)
-  logger.log_level = auto_session.conf.log_level
+function SessionLens.setup()
+  SessionLens.conf = vim.tbl_deep_extend("force", SessionLens.conf, AutoSession.conf.session_lens)
 
   if SessionLens.conf.buftypes_to_ignore ~= nil and not vim.tbl_isempty(SessionLens.conf.buftypes_to_ignore) then
-    logger.warn "buftypes_to_ignore is deprecated. If you think you need this option, please file a bug on GitHub. If not, please remove it from your config"
+    Lib.logger.warn "buftypes_to_ignore is deprecated. If you think you need this option, please file a bug on GitHub. If not, please remove it from your config"
+  end
+end
+
+local function make_telescope_callback(opts)
+  -- We don't want the trailing separator because plenary will add one
+  local session_root_dir = AutoSession.get_root_dir(false)
+  local path = require "plenary.path"
+  return function(file_name)
+    -- Don't include <session>x.vim files that nvim makes for custom user
+    -- commands
+    if not Lib.is_session_file(session_root_dir, file_name) then
+      return nil
+    end
+
+    local session_name
+    local annotation = ""
+    if Lib.is_legacy_file_name(file_name) then
+      session_name = (Lib.legacy_unescape_session_name(file_name):gsub("%.vim$", ""))
+      annotation = " (legacy)"
+    else
+      session_name = Lib.session_file_name_to_session_name(file_name)
+    end
+
+    local display_name = session_name
+    if opts.path_display and vim.tbl_contains(opts.path_display, "shorten") then
+      display_name = path:new(display_name):shorten()
+      if not display_name then
+        display_name = session_name
+      end
+    end
+    display_name = display_name .. annotation
+
+    return {
+      ordinal = session_name,
+      value = session_name,
+      filename = file_name,
+      cwd = session_root_dir,
+      display = display_name,
+      path = path:new(session_root_dir, file_name):absolute(),
+    }
   end
 end
 
@@ -55,10 +86,10 @@ SessionLens.search_session = function(custom_opts)
   custom_opts = (vim.tbl_isempty(custom_opts or {}) or custom_opts == nil) and SessionLens.conf or custom_opts
 
   -- Use auto_session_root_dir from the Auto Session plugin
-  local cwd = SessionLens.conf.functions.get_root_dir()
+  local session_root_dir = AutoSession.get_root_dir()
 
   if custom_opts.shorten_path ~= nil then
-    logger.warn "`shorten_path` config is deprecated, use the new `path_display` config instead"
+    Lib.logger.warn "`shorten_path` config is deprecated, use the new `path_display` config instead"
     if custom_opts.shorten_path then
       custom_opts.path_display = { "shorten" }
     else
@@ -87,8 +118,8 @@ SessionLens.search_session = function(custom_opts)
 
   local opts = {
     prompt_title = "Sessions",
-    entry_maker = Lib.make_entry.gen_from_file(custom_opts),
-    cwd = cwd,
+    entry_maker = make_telescope_callback(custom_opts),
+    cwd = session_root_dir,
     -- TODO: Document mappings. At least <C-/> in Telescope shows the current mappings for the picker
     -- Possible future feature: custom mappings?
     attach_mappings = function(_, map)

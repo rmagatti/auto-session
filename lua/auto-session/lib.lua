@@ -127,12 +127,11 @@ function Lib.remove_trailing_separator(dir)
   return (dir:gsub("/$", ""))
 end
 
-function Lib.init_file(file_path)
-  if not Lib.is_readable(file_path) then
-    vim.cmd("!touch " .. file_path)
-  end
-end
-
+---Legacy decoding function for windows. Replaces ++ with : and - with \
+---Unfortunately, it is lossy when roundtripping between encoding and decoding
+---because dashes in the session name are lost
+---@param dir string Session name to be unescaped
+---@return string The unescaped session name
 local function win32_unescaped_dir(dir)
   dir = dir:gsub("++", ":")
   if not vim.o.shellslash then
@@ -142,6 +141,11 @@ local function win32_unescaped_dir(dir)
   return dir
 end
 
+---Legacy encoding function for windows. Replaces : with ++ and \ with -
+---Unfortunately, it is lossy when roundtripping between encoding and decoding
+---because dashes in the session name are lost
+---@param dir string Session name to be escaped
+---@return string The escaped session name
 local function win32_escaped_dir(dir)
   dir = dir:gsub(":", "++")
   if not vim.o.shellslash then
@@ -155,45 +159,152 @@ end
 
 local IS_WIN32 = vim.fn.has "win32" == Lib._VIM_TRUE
 
-function Lib.unescape_dir(dir)
-  return IS_WIN32 and win32_unescaped_dir(dir) or dir:gsub("%%", "/")
+-- Modified from: https://gist.github.com/liukun/f9ce7d6d14fa45fe9b924a3eed5c3d99
+---Convers a character to it's hex representation
+---@param c string The single character to convert
+---@return string The hex representation of that character
+local char_to_hex = function(c)
+  return string.format("%%%02X", string.byte(c))
 end
 
-function Lib.escape_dir(dir)
-  return IS_WIN32 and win32_escaped_dir(dir) or dir:gsub("/", "\\%%")
+---Returns the url encoded version of str
+---@param str string The string to encode
+---@return string The url encoded string
+function Lib.urlencode(str)
+  if str == nil then
+    return ""
+  end
+  str = str:gsub("\n", "\r\n")
+  -- Encode for URIs not for form data, so ' ' is converted to %20 rather than +
+  return (str:gsub("([^%w_%%%-%.~])", char_to_hex))
 end
 
-function Lib.escaped_session_name_from_cwd()
-  return IS_WIN32 and Lib.escape_dir(vim.fn.getcwd()) or Lib.escape_dir(vim.fn.getcwd())
+---Convers a hex representation to a single character
+---@param x string The hex representation of a character to convert
+---@return string The single character
+local hex_to_char = function(x)
+  return string.char(tonumber(x, 16))
 end
 
-function Lib.escape_branch_name(branch_name)
-  return IS_WIN32 and Lib.escape_dir(branch_name) or Lib.escape_dir(branch_name)
+---Returns the url decoded version of str.
+---@param str string The string to decode
+---@return string The encoded string
+Lib.urldecode = function(str)
+  if str == nil then
+    return ""
+  end
+  return (str:gsub("%%(%x%x)", hex_to_char))
 end
-
--- FIXME:These escape functions should be replaced with something better, probably urlencoding
 
 ---Returns a string with path characters escaped. Works with both *nix and Windows
 ---This string is not escaped for use in Vim commands. For that, call Lib.escape_for_vim
----@param str string The string to escape, most likely a path to be used as a session_name
+---@param session_name string The sesion name to escape
 ---@return string The escaped string
-function Lib.escape_path(str)
-  if IS_WIN32 then
-    return win32_escaped_dir(str)
-  end
-
-  return (str:gsub("/", "%%"))
+function Lib.escape_session_name(session_name)
+  -- return Lib.legacy_escape_session_name(session_name)
+  return Lib.urlencode(session_name)
 end
 
 ---Returns a string with path characters unescaped. Works with both *nix and Windows
----@param str string The string to unescape, most likely a path to be used as a session_name
+---@param escaped_session_name string The sesion name to unescape
 ---@return string The unescaped string
-function Lib.unescape_path(str)
+function Lib.unescape_session_name(escaped_session_name)
+  -- return Lib.legacy_unescape_session_name(escaped_session_name)
+  return Lib.urldecode(escaped_session_name)
+end
+
+---Returns a string with path characters escaped. Works with both *nix and Windows
+---This string is not escaped for use in Vim commands. For that, call Lib.escape_for_vim
+---@param session_name string The string to escape, most likely a path to be used as a session_name
+---@return string The escaped string
+function Lib.legacy_escape_session_name(session_name)
   if IS_WIN32 then
-    return win32_unescaped_dir(str)
+    return win32_escaped_dir(session_name)
   end
 
-  return (str:gsub("%%", "/"))
+  return (session_name:gsub("/", "%%"))
+end
+
+---Returns a string with path characters unescaped using the legacy mechanism
+---Works with both *nix and Windows
+---@param escaped_session_name string The string to unescape, most likely a path to be used as a session_name
+---@return string The unescaped string
+function Lib.legacy_unescape_session_name(escaped_session_name)
+  if IS_WIN32 then
+    return win32_unescaped_dir(escaped_session_name)
+  end
+
+  return (escaped_session_name:gsub("%%", "/"))
+end
+
+---Returns true if file_name is in the legacy format
+---@param file_name string The filename to look at
+---@return boolean True if file_name is in the legacy format
+function Lib.is_legacy_file_name(file_name)
+  -- print(file_name)
+  if IS_WIN32 then
+    return file_name:match "^[%a]++" ~= nil
+  end
+
+  -- if it's all alphanumeric, it's not
+  if file_name:match "^[%w]+%.vim$" then
+    return false
+  end
+
+  -- print("does it start with %?: " .. file_name)
+
+  -- if it doesn't start with %, it's not
+  if file_name:sub(1, 1) ~= "%" then
+    return false
+  end
+
+  -- print("is it url encoded?: " .. file_name)
+
+  -- check each characters after each % to make sure
+  -- they're hexadecimal
+  for encoded in file_name:gmatch "%%.." do
+    local hex = encoded:sub(2)
+    if not hex:match "^%x%x$" then
+      return true
+    end
+  end
+
+  return false
+end
+
+-- FIXME: probably delete since not used
+
+---Converts all of the session_names in session_dir from the legacy format
+---to the new, url encoded format
+---@param session_dir string The session directory to process
+function Lib.convert_session_dir(session_dir)
+  local old_files = vim.fn.readdir(session_dir, function(file_name)
+    --if it's not a legacy file, return false
+    return Lib.is_legacy_file_name(file_name)
+  end)
+
+  for _, old_file_name in ipairs(old_files) do
+    local session_name = Lib.legacy_unescape_session_name(old_file_name)
+    Lib.logger.debug("Found old session:", { old_file_name = old_file_name, session_name = session_name })
+
+    local new_file_name = Lib.escape_session_name(session_name)
+    Lib.logger.debug("Will rename to: " .. new_file_name)
+
+    local old_file_path = session_dir .. old_file_name
+    local new_file_path = session_dir .. new_file_name
+
+    if vim.fn.filereadable(new_file_path) ~= 0 then
+      Lib.logger.debug("File already exists! ", new_file_path)
+    else
+      ---@diagnostic disable-next-line: undefined-field
+      local ok, err = vim.uv.fs_rename(session_dir .. old_file_name, new_file_path)
+      if not ok then
+        Lib.logger.error("Failed to move old session: " .. old_file_path " to new format. Error: " .. err)
+      else
+        Lib.logger.debug("Renamed to: " .. new_file_name)
+      end
+    end
+  end
 end
 
 ---Returns a sstring with % characters escaped, suitable for use with vim cmds
@@ -201,32 +312,6 @@ end
 ---@return string The string escaped for use with vim.cmd
 function Lib.escape_string_for_vim(str)
   return (str:gsub("%%", "\\%%"))
-end
-
----Returns the session file name from a full path
----@param session_path string The file path, with path and file name components
----@return string The session name component
-function Lib.get_session_name_from_path(session_path)
-  if vim.fn.has "win32" == 1 then
-    -- On windows, the final path separator could be a / or a \
-    return session_path:match ".*[/\\](.+)$" or session_path
-  end
-
-  return session_path:match ".*[/](.+)$" or session_path
-end
-
-local function get_win32_legacy_cwd(cwd)
-  cwd = cwd:gsub(":", "++")
-  if not vim.o.shellslash then
-    cwd = cwd:gsub("\\", "-")
-  end
-
-  return cwd
-end
-
-function Lib.legacy_session_name_from_cwd()
-  local cwd = vim.fn.getcwd()
-  return IS_WIN32 and get_win32_legacy_cwd(cwd) or cwd:gsub("/", "-")
 end
 
 function Lib.is_readable(file_path)
@@ -300,7 +385,7 @@ end
 ---@param session_file_name string The session file name. It should not have a path component
 ---@return string The session name, suitable for display or passing to other cmds
 function Lib.session_file_name_to_session_name(session_file_name)
-  return Lib.unescape_dir(session_file_name):gsub("%.vim$", "")
+  return (Lib.unescape_session_name(session_file_name):gsub("%.vim$", ""))
 end
 
 ---Returns if a session is a named session or not (i.e. from a cwd)
@@ -308,6 +393,7 @@ end
 ---@return boolean Whether the session is a named session (e.g. mysession.vim or one
 ---generated from a directory
 function Lib.is_named_session(session_file_name)
+  Lib.logger.debug("session_file_name: " .. session_file_name)
   if vim.fn.has "win32" == 1 then
     -- Matches any letter followed by a colon
     return not session_file_name:find "^%a:"
@@ -405,9 +491,19 @@ function Lib.complete_session_for_dir(session_dir, ArgLead, _, _)
   local session_files = vim.fn.glob(session_dir .. "*", true, true)
   local session_names = {}
 
-  for _, sf in ipairs(session_files) do
-    local name = Lib.unescape_dir(vim.fn.fnamemodify(sf, ":t:r"))
-    table.insert(session_names, name)
+  for _, path in ipairs(session_files) do
+    -- don't include extra user command files, aka *x.vim
+    local file_name = vim.fn.fnamemodify(path, ":t:r")
+    Lib.logger.debug(file_name)
+    if Lib.is_session_file(session_dir, file_name) then
+      local name
+      if Lib.is_legacy_file_name(file_name) then
+        name = Lib.legacy_unescape_session_name(file_name)
+      else
+        name = Lib.unescape_session_name(file_name)
+      end
+      table.insert(session_names, name)
+    end
   end
 
   return vim.tbl_filter(function(item)

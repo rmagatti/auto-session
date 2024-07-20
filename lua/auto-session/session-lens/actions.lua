@@ -1,18 +1,13 @@
-local Lib = require "auto-session.lib"
+local AutoSession = require "auto-session"
+local Lib = AutoSession.Lib
 
-local M = {
-  conf = {},
-  functions = {},
-}
+local M = {}
 
 ---@private
-function M.setup(config, functions)
-  M.conf = vim.tbl_deep_extend("force", config, M.conf)
-  M.functions = functions
-end
-
 local function get_alternate_session()
-  local filepath = M.conf.session_control.control_dir .. M.conf.session_control.control_filename
+  ---@diagnostic disable-next-line: undefined-field
+  local session_control_conf = AutoSession.conf.session_lens.session_control
+  local filepath = session_control_conf.control_dir .. session_control_conf.control_filename
 
   if vim.fn.filereadable(filepath) == 1 then
     local json = Lib.load_session_control_file(filepath)
@@ -39,7 +34,7 @@ local function source_session(path, prompt_bufnr)
   end
 
   vim.defer_fn(function()
-    M.functions.autosave_and_restore(path)
+    AutoSession.autosave_and_restore(path)
   end, 50)
 end
 
@@ -50,7 +45,9 @@ end
 M.source_session = function(prompt_bufnr)
   local action_state = require "telescope.actions.state"
   local selection = action_state.get_selected_entry()
-  source_session(Lib.unescape_path(selection.filename), prompt_bufnr)
+  if selection then
+    source_session(selection.value, prompt_bufnr)
+  end
 end
 
 ---@private
@@ -61,7 +58,9 @@ M.delete_session = function(prompt_bufnr)
   local action_state = require "telescope.actions.state"
   local current_picker = action_state.get_current_picker(prompt_bufnr)
   current_picker:delete_selection(function(selection)
-    M.functions.DeleteSession(Lib.unescape_path(selection.filename), prompt_bufnr)
+    if selection then
+      AutoSession.DeleteSession(selection.value)
+    end
   end)
 end
 
@@ -75,7 +74,15 @@ M.alternate_session = function(prompt_bufnr)
     return
   end
 
-  source_session(M.functions.Lib.get_session_name_from_path(alternate_session), prompt_bufnr)
+  local file_name = vim.fn.fnamemodify(alternate_session, ":t")
+  local session_name
+  if Lib.is_legacy_file_name(file_name) then
+    session_name = (Lib.legacy_unescape_session_name(file_name):gsub("%.vim$", ""))
+  else
+    session_name = Lib.session_file_name_to_session_name(file_name)
+  end
+
+  source_session(session_name, prompt_bufnr)
 end
 
 return M
