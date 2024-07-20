@@ -80,7 +80,7 @@ M.setup_autocmds = function(config, AutoSession)
         local success = AutoSession.AutoRestoreSession()
 
         if not success then
-          Lib.logger.info("Could not load session. A session file is likely missing for this cwd." .. vim.fn.getcwd())
+          Lib.logger.info("Could not load session for: " .. vim.fn.getcwd())
           -- Don't return, still dispatch the hook below
         end
 

@@ -10,6 +10,7 @@ describe("The default config", function()
   TL.clearSessionFilesAndBuffers()
 
   it("doesn't crash when restoring with no sessions", function()
+    ---@diagnostic disable-next-line: param-type-mismatch
     vim.cmd "SessionRestore"
 
     assert.equals(0, vim.fn.bufexists(TL.test_file))
@@ -25,6 +26,7 @@ describe("The default config", function()
 
     -- Make sure the session has our buffer
     TL.assertSessionHasFile(TL.default_session_path, TL.test_file)
+    assert.True(as.session_exists_for_cwd())
   end)
 
   it("can restore a session for the cwd", function()

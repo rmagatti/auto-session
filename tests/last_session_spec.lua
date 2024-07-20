@@ -72,7 +72,8 @@ describe("The last loaded session config", function()
     -- WARN: this test depends on the cd state above
     -- we're still in tests/ so don't need to cd again
 
-    assert.True(require("auto-session").AutoRestoreSession())
+    -- Last session is only checked for at startup, not even at subsequent calls to AutoRestore
+    assert.True(require("auto-session").auto_restore_session_at_vim_enter())
 
     -- Have file from latest session
     assert.equals(1, vim.fn.bufexists(TL.other_file))
