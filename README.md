@@ -6,18 +6,6 @@ AutoSession takes advantage of Neovim's existing session management capabilities
 
 [<img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/rmagatti/auto-session/tests.yml?style=for-the-badge&label=tests">](https://github.com/rmagatti/auto-session/actions/workflows/tests.yml)
 
-# 💡 Behaviour
-
-1. When starting `nvim` with no arguments, AutoSession will try to restore an existing session for the current `cwd` if one exists.
-2. When starting `nvim .` (or another directory), AutoSession will try to restore the session for that directory.
-3. When starting `nvim some_file.txt` (or multiple files), by default, AutoSession won't do anything. See [argument handling](#argument-handling) for more details.
-4. Even after starting `nvim` with a file argument, a session can still be manually restored by running `:SessionRestore`.
-5. Any session saving and restoration takes into consideration the current working directory `cwd`.
-6. When piping to `nvim`, e.g: `cat myfile | nvim`, AutoSession won't do anything.
-
-:warning: Please note that if there are errors in your config, restoring the session might fail, if that happens, auto session will then disable auto saving for the current session.
-Manually saving a session can still be done by calling `:SessionSave`.
-
 # 📦 Installation
 
 [Lazy.nvim](https://github.com/folke/lazy.nvim):
@@ -50,11 +38,23 @@ use {
 }
 ```
 
+# 💡 Behaviour
+
+1. When starting `nvim` with no arguments, AutoSession will try to restore an existing session for the current `cwd` if one exists.
+2. When starting `nvim .` (or another directory), AutoSession will try to restore the session for that directory.
+3. When starting `nvim some_file.txt` (or multiple files), by default, AutoSession won't do anything. See [argument handling](#argument-handling) for more details.
+4. Even after starting `nvim` with a file argument, a session can still be manually restored by running `:SessionRestore`.
+5. Any session saving and restoration takes into consideration the current working directory `cwd`.
+6. When piping to `nvim`, e.g: `cat myfile | nvim`, AutoSession won't do anything.
+
+:warning: Please note that if there are errors in your config, restoring the session might fail, if that happens, auto session will then disable auto saving for the current session.
+Manually saving a session can still be done by calling `:SessionSave`.
+
 # ⚙️ Configuration
 
 ### Configuration
 
-One can set the auto_session root dir that will be used for auto session saving and restoring.
+You can set the auto_session root dir that will be used for auto session saving and restoring.
 
 ```viml
 let g:auto_session_root_dir = path/to/my/custom/dir
@@ -205,8 +205,8 @@ AutoSession exposes the following commands that can be used or mapped to any key
 :SessionDelete " deletes a session based on the `cwd` from `auto_session_root_dir`
 :SessionDelete my_session " deletes `my_sesion` from `auto_session_root_dir`
 
-:SesssionDisableAutoSave "disables autosave on exit
-:SesssionDisavleAutoSave! "enables autosave on exit, subject to all of the normal filters in the config
+:SesssionDisableAutoSave "disables autosave
+:SesssionDisableAutoSave! "enables autosave (still does all checks in the config)
 :SesssionToggleAutoSave "toggles autosave
 
 :SessionPurgeOrphaned " removes all orphaned sessions with no working directory left.
@@ -376,7 +376,7 @@ Another possibility is to only save the session if there are at least two window
 
 ## Disabling the plugin
 
-One might run into issues with Firenvim or another plugin and want to disable `auto_session` altogether based on some condition.
+You might run into issues with Firenvim or another plugin and want to disable `auto_session` altogether based on some condition.
 For this example, as to not try and save sessions for Firenvim, we disable the plugin if the `started_by_firenvim` variable is set.
 
 ```viml
@@ -390,10 +390,6 @@ One can also disable the plugin by setting the `auto_session_enabled` option to 
 ```sh
 nvim "+let g:auto_session_enabled = v:false"
 ```
-
-## 🚧 Troubleshooting
-
-For troubleshooting refer to the [wiki page](https://github.com/rmagatti/auto-session/wiki/Troubleshooting).
 
 ## 🔭 Session Lens
 
@@ -459,6 +455,10 @@ require('lualine').setup{
 ```
 
 <img width="1904" alt="Screen Shot 2021-10-30 at 3 58 57 PM" src="https://user-images.githubusercontent.com/2881382/139559478-8edefdb8-8254-42e7-a0f3-babd3dfd6ff2.png">
+
+## 🚧 Troubleshooting
+
+For troubleshooting refer to the [wiki page](https://github.com/rmagatti/auto-session/wiki/Troubleshooting).
 
 # Compatibility
 
