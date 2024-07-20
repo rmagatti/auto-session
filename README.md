@@ -188,7 +188,7 @@ A quick workaround for inability to auto create new sessions is to conditionally
 
 ```lua
 require('auto-session').setup {
-    auto_session_enable_last_session = vim.loop.cwd() == vim.loop.os_homedir(),
+    auto_session_enable_last_session = vim.fn.cwd() == vim.uv.os_homedir(),
 }
 ```
 
