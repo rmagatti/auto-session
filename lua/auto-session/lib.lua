@@ -109,8 +109,9 @@ local function legacy_win32_unescaped_dir(dir)
   dir = dir:gsub("++", ":")
   if not vim.o.shellslash then
     dir = dir:gsub("-", "\\")
+  else
+    dir = dir:gsub("-", "/")
   end
-
   return dir
 end
 
@@ -123,9 +124,9 @@ local function legacy_win32_escaped_dir(dir)
   dir = dir:gsub(":", "++")
   if not vim.o.shellslash then
     dir = dir:gsub("\\", "-")
-    -- need to escape forward slash as well for windows, see issue #202
-    dir = dir:gsub("/", "-")
   end
+  -- need to escape forward slash as well for windows, see issue #202
+  dir = dir:gsub("/", "-")
 
   return dir
 end
@@ -174,7 +175,6 @@ end
 ---@param session_name string The sesion name to escape
 ---@return string The escaped string
 function Lib.escape_session_name(session_name)
-  -- return Lib.legacy_escape_session_name(session_name)
   return Lib.urlencode(session_name)
 end
 
@@ -182,7 +182,6 @@ end
 ---@param escaped_session_name string The sesion name to unescape
 ---@return string The unescaped string
 function Lib.unescape_session_name(escaped_session_name)
-  -- return Lib.legacy_unescape_session_name(escaped_session_name)
   return Lib.urldecode(escaped_session_name)
 end
 
