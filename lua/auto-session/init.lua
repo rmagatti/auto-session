@@ -372,17 +372,12 @@ local function suppress_session(session_dir)
   -- session_dir will be set when loading a session from a directory at lauch (i.e. from argv)
   local cwd = session_dir or vim.fn.getcwd()
 
-  for _, s in pairs(dirs) do
-    if s ~= "/" then
-      s = string.gsub(vim.fn.simplify(Lib.expand(s)), "/+$", "")
-    end
-    for path in string.gmatch(s, "[^\r\n]+") do
-      if cwd == path then
-        return true
-      end
-    end
+  if Lib.find_matching_directory(cwd, dirs) then
+    Lib.logger.debug "suppress_session found a match, suppressing"
+    return true
   end
 
+  Lib.logger.debug "suppress_session didn't find a match, returning false"
   return false
 end
 
@@ -393,17 +388,13 @@ local function is_allowed_dir()
 
   local dirs = vim.g.auto_session_allowed_dirs or AutoSession.conf.auto_session_allowed_dirs or {}
   local cwd = vim.fn.getcwd()
-  for _, s in pairs(dirs) do
-    s = string.gsub(vim.fn.simplify(Lib.expand(s)), "/+$", "")
-    for path in string.gmatch(s, "[^\r\n]+") do
-      if cwd == path then
-        Lib.logger.debug("is_allowed_dir", true)
-        return true
-      end
-    end
+
+  if Lib.find_matching_directory(cwd, dirs) then
+    Lib.logger.debug "is_allowed_dir found a match, allowing"
+    return true
   end
 
-  Lib.logger.debug("is_allowed_dir", false)
+  Lib.logger.debug "is_allowed_dir didn't find a match, returning false"
   return false
 end
 

@@ -510,4 +510,30 @@ function Lib.complete_session_for_dir(session_dir, ArgLead, _, _)
   end, session_names)
 end
 
+---Iterates over dirs, looking to see if any of them match dirToFind
+---dirs may contain globs as they will be expanded and checked
+---@param dirs table
+---@param dirToFind string
+function Lib.find_matching_directory(dirToFind, dirs)
+  Lib.logger.debug("find_matching_directory", { dirToFind = dirToFind, dirs = dirs })
+  for _, s in pairs(dirs) do
+    local expanded = Lib.expand(s)
+    Lib.logger.debug("find_matching_directory expanded: " .. s)
+    ---@diagnostic disable-next-line: param-type-mismatch
+    for path in string.gmatch(expanded, "[^\r\n]+") do
+      local simplified_path = vim.fn.simplify(path)
+      local path_without_trailing_slashes = string.gsub(simplified_path, "/+$", "")
+
+      Lib.logger.debug("find_matching_directory simplified: " .. simplified_path)
+
+      if dirToFind == path_without_trailing_slashes then
+        Lib.logger.debug "find find_matching_directory found match!"
+        return true
+      end
+    end
+  end
+
+  return false
+end
+
 return Lib
