@@ -183,10 +183,7 @@ describe("The default config", function()
     vim.cmd "SessionPurgeOrphaned"
     print(TL.default_session_path)
 
-    -- FIXME: This session gets purged because the encoding can't be reversed
-    if vim.fn.has "win32" == 0 then
-      assert.equals(1, vim.fn.filereadable(TL.default_session_path))
-    end
+    assert.equals(1, vim.fn.filereadable(TL.default_session_path))
     assert.equals(1, vim.fn.filereadable(TL.named_session_path))
     assert.equals(0, vim.fn.filereadable(TL.makeSessionPath(session_name)))
   end)

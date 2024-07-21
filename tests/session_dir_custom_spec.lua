@@ -77,6 +77,4 @@ describe("A custom session dir config", function()
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
   end)
-
-  -- FIXME: test ~/ session dir
 end)
