@@ -11,7 +11,6 @@ function M.escapeSessionName(session_name)
 end
 
 function M.legacyEscapeSessionName(session_name)
-  print(session_name)
   if vim.fn.has "win32" == 1 then
     -- Harcoded implementation from Lib
     local temp = session_name:gsub(":", "++")

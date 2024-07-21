@@ -170,4 +170,10 @@ describe("Lib / Helper functions", function()
       (Lib.get_session_display_name "%2FUsers%2Fcam%2Ftmp%2Fa%7Cmain.vim")
     )
   end)
+
+  it("current_session_name() works with no session", function()
+    TL.clearSessionFilesAndBuffers()
+
+    assert.equals("", Lib.current_session_name())
+  end)
 end)
