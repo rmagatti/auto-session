@@ -126,6 +126,12 @@ Lib.conf = {
   log_level = AutoSession.conf.log_level,
 }
 
+local function check_config()
+  if not vim.tbl_contains(vim.split(vim.o.sessionoptions, ","), "localoptions") then
+    Lib.logger.warn "vim.o.sessionoptions is missing localoptions. \nUse `:checkhealth autosession` for more info."
+  end
+end
+
 ---Setup function for AutoSession
 ---@param config defaultConf config for auto session
 function AutoSession.setup(config)
@@ -136,6 +142,8 @@ function AutoSession.setup(config)
   -- Validate the root dir here so AutoSession.conf.auto_session_root_dir is set
   -- correctly in all cases
   AutoSession.get_root_dir()
+
+  check_config()
 
   ---@diagnostic disable-next-line: undefined-field
   if AutoSession.conf.session_lens.load_on_setup then
