@@ -7,7 +7,7 @@ local M = {}
 local function get_alternate_session()
   ---@diagnostic disable-next-line: undefined-field
   local session_control_conf = AutoSession.conf.session_lens.session_control
-  local filepath = session_control_conf.control_dir .. session_control_conf.control_filename
+  local filepath = vim.fn.expand(session_control_conf.control_dir) .. session_control_conf.control_filename
 
   if vim.fn.filereadable(filepath) == 1 then
     local json = Lib.load_session_control_file(filepath)

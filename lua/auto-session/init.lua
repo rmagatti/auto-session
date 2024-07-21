@@ -473,9 +473,8 @@ end
 ---unless a session for the current working directory exists.
 ---@return boolean True if a session exists for the cwd
 function AutoSession.session_exists_for_cwd()
-  -- TEST: add test for this
   local session_file = get_session_file_name(vim.fn.getcwd())
-  return Lib.is_readable(session_file)
+  return vim.fn.filereadable(AutoSession.get_root_dir() .. session_file) ~= 0
 end
 
 ---AutoSaveSession
@@ -489,7 +488,7 @@ function AutoSession.AutoSaveSession()
 
   if not is_auto_create_enabled() then
     local session_file_name = get_session_file_name()
-    if not Lib.is_readable(AutoSession.get_root_dir() .. session_file_name) then
+    if vim.fn.filereadable(AutoSession.get_root_dir() .. session_file_name) == 0 then
       Lib.logger.debug "Create not enabled and no existing session, not creating session"
       return false
     end
@@ -510,7 +509,7 @@ end
 ---@private
 ---Gets the root directory of where to save the sessions.
 ---By default this resolves to `vim.fn.stdpath "data" .. "/sessions/"`
----@param with_trailing_separator? boolean whether to incude the trailing separator. A few places (telescope picker don't expect a trailing separator)
+---@param with_trailing_separator? boolean whether to incude the trailing separator. A few places (telescope picker don't expect a trailing separator) (Defaults to true)
 ---@return string
 function AutoSession.get_root_dir(with_trailing_separator)
   if with_trailing_separator == nil then
@@ -650,6 +649,8 @@ local function write_to_session_control_json(session_file_name)
   local control_file = AutoSession.conf.session_lens.session_control.control_filename
   session_file_name = Lib.expand(session_file_name)
 
+  -- expand the path
+  control_dir = vim.fn.expand(control_dir)
   Lib.init_dir(control_dir)
 
   -- Get the full path

@@ -41,9 +41,9 @@ end
 ---@param root_dir string The session root directory
 ---@return string The validated session root directory with a trailing path separator
 function Lib.validate_root_dir(root_dir)
-  root_dir = Lib.ensure_trailing_separator(root_dir)
+  root_dir = Lib.ensure_trailing_separator(Lib.expand(root_dir))
 
-  if vim.fn.isdirectory(Lib.expand(root_dir)) == Lib._VIM_FALSE then
+  if vim.fn.isdirectory(root_dir) == Lib._VIM_FALSE then
     vim.fn.mkdir(root_dir, "p")
 
     -- NOTE: I don't think the code below will ever be triggered because the call to mkdir
@@ -346,7 +346,7 @@ function Lib.close_unsupported_windows()
       end
       local buffer = vim.api.nvim_win_get_buf(window)
       local file_name = vim.api.nvim_buf_get_name(buffer)
-      if not Lib.is_readable(file_name) then
+      if vim.fn.filereadable(file_name) == 0 then
         vim.api.nvim_win_close(window, true)
       end
     end
