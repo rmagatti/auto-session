@@ -12,7 +12,13 @@ describe("Lib / Helper functions", function()
   it("get_root_dir works", function()
     assert.equals(TL.session_dir, as.get_root_dir())
 
-    assert.equals(TL.session_dir:gsub("/$", ""), as.get_root_dir(false))
+    local session_dir_no_slash = TL.session_dir:gsub("/$", "")
+
+    if vim.fn.has "win32" then
+      session_dir_no_slash = session_dir_no_slash:gsub("\\$", "")
+    end
+
+    assert.equals(session_dir_no_slash, as.get_root_dir(false))
   end)
 
   it("remove_trailing_separator works", function()
@@ -97,7 +103,11 @@ describe("Lib / Helper functions", function()
 
   it("legacy_escape_session_name() works", function()
     if vim.fn.has "win32" == 1 then
-      assert.equals("c++-some-dir-", Lib.legacy_escape_session_name "c:\\some\\dir\\")
+      if vim.o.shellslash then
+        assert.equals("c++-some-dir-", Lib.legacy_escape_session_name "c:/some/dir/")
+      else
+        assert.equals("c++-some-dir-", Lib.legacy_escape_session_name "c:\\some\\dir\\")
+      end
     else
       assert.equals("%some%dir%", Lib.legacy_escape_session_name "/some/dir/")
     end
@@ -105,7 +115,11 @@ describe("Lib / Helper functions", function()
 
   it("legacy_escape_session_name() works", function()
     if vim.fn.has "win32" == 1 then
-      assert.equals("c:\\some\\dir\\", Lib.legacy_unescape_session_name "c++-some-dir-")
+      if vim.o.shellslash then
+        assert.equals("c:/some/dir/", Lib.legacy_unescape_session_name "c++-some-dir-")
+      else
+        assert.equals("c:\\some\\dir\\", Lib.legacy_unescape_session_name "c++-some-dir-")
+      end
     else
       assert.equals("/some/dir/", Lib.legacy_unescape_session_name "%some%dir%")
     end
@@ -122,7 +136,6 @@ describe("Lib / Helper functions", function()
     assert.False(Lib.is_legacy_file_name(Lib.urlencode "c:\\some\\dir\\with spaces\\and-dashes" .. ".vim"))
     assert.False(Lib.is_legacy_file_name(Lib.urlencode "c:\\some\\dir\\with spaces\\and-dashes\\" .. ".vim"))
 
-    assert.True(Lib.is_legacy_file_name(TL.legacyEscapeSessionName "/some/dir" .. ".vim"))
     assert.False(Lib.is_legacy_file_name(TL.legacyEscapeSessionName "mysession" .. ".vim"))
 
     if vim.fn.has "win32" == 1 then
@@ -130,6 +143,8 @@ describe("Lib / Helper functions", function()
       assert.True(Lib.is_legacy_file_name(TL.legacyEscapeSessionName "c:\\some\\other\\dir" .. ".vim"))
       assert.True(Lib.is_legacy_file_name(TL.legacyEscapeSessionName "c:\\some\\dir-with-dashes" .. ".vim"))
       assert.True(Lib.is_legacy_file_name(TL.legacyEscapeSessionName "c:/some/dir-with-dashes" .. ".vim"))
+    else
+      assert.True(Lib.is_legacy_file_name(TL.legacyEscapeSessionName "/some/dir" .. ".vim"))
     end
   end)
 

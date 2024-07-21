@@ -1,3 +1,4 @@
+local asLib = require "auto-session.lib"
 M = {}
 
 -- This disables the headless check inside autosession
@@ -6,17 +7,18 @@ M = {}
 vim.fn.setenv("AUTOSESSION_UNIT_TESTING", 1)
 
 function M.escapeSessionName(session_name)
-  return require("auto-session.lib").urlencode(session_name)
-  -- return M.legacyEscapeSessionName(session_name)
+  return asLib.urlencode(session_name)
 end
 
 function M.legacyEscapeSessionName(session_name)
+  print(session_name)
   if vim.fn.has "win32" == 1 then
     -- Harcoded implementation from Lib
     local temp = session_name:gsub(":", "++")
     if not vim.o.shellslash then
-      return temp:gsub("\\", "-"):gsub("/", "-")
+      temp = temp:gsub("\\", "-")
     end
+    return temp:gsub("/", "-")
   else
     return session_name:gsub("/", "%%")
   end
@@ -32,7 +34,8 @@ M.test_file = M.tests_base_dir .. "/test_files/test.txt"
 M.other_file = M.tests_base_dir .. "/test_files/other.txt"
 
 -- This is set in minimal.lua to be auto-session/.test/...
-M.session_dir = vim.fn.stdpath "data" .. "/sessions/"
+M.session_dir = vim.fn.expand(vim.fn.stdpath "data" .. "/sessions/")
+
 M.session_control_dir = vim.fn.stdpath "data" .. "/auto_session/"
 
 -- Construct the session name for the current directory

@@ -19,15 +19,28 @@ describe("Legacy file name support", function()
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
     assert.equals(1, vim.fn.filereadable(TL.named_session_path))
 
-    local old_sessions = {
-      "%Users%home%a.vim",
-      "%Users%home%b.vim",
-      "%Users%home%c.vim",
-      "%Users%home%123.vim",
-      "%Users%homw%dash-tiest.vim",
-      "%Users%home%123%otherdir.vim",
-      "%Users%home%dash-test%otherdir.vim",
-    }
+    local old_sessions
+    if vim.fn.has "win32" then
+      old_sessions = {
+        "C++-Users-home-a.vim",
+        "C++-Users-home-b.vim",
+        "C++-Users-home-c.vim",
+        "C++-Users-home-123.vim",
+        "C++-Users-home-dash-tiest.vim",
+        "C++-Users-home-123-otherdir.vim",
+        "C++-Users-home-dash-test-otherdir.vim",
+      }
+    else
+      old_sessions = {
+        "%Users%home%a.vim",
+        "%Users%home%b.vim",
+        "%Users%home%c.vim",
+        "%Users%home%123.vim",
+        "%Users%home%dash-tiest.vim",
+        "%Users%home%123%otherdir.vim",
+        "%Users%home%dash-test%otherdir.vim",
+      }
+    end
 
     for _, file_name in ipairs(old_sessions) do
       TL.createFile(TL.session_dir .. file_name)
@@ -37,6 +50,7 @@ describe("Legacy file name support", function()
     Lib.convert_session_dir(TL.session_dir)
 
     for _, old_file_name in ipairs(old_sessions) do
+      print(old_file_name)
       assert.equals(0, vim.fn.filereadable(TL.session_dir .. old_file_name))
     end
 
@@ -57,6 +71,7 @@ describe("Legacy file name support", function()
 
     vim.loop.fs_rename(TL.default_session_path, TL.default_session_path_legacy)
 
+    print(TL.default_session_path_legacy)
     assert.equals(1, vim.fn.filereadable(TL.default_session_path_legacy))
     assert.equals(0, vim.fn.filereadable(TL.default_session_path))
 
