@@ -411,7 +411,6 @@ You can use Telescope to see, load, and delete your sessions. It's enabled by de
   },
   config = function()
     require('auto-session').setup({
-      log_level = 'debug',
       -- ⚠️ This will only work if Telescope.nvim is installed
       -- The following are already the default values, no need to provide them if these are already the settings you want.
       session_lens = {
