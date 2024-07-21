@@ -482,13 +482,13 @@ function Lib.find_matching_directory(dirToFind, dirs)
   Lib.logger.debug("find_matching_directory", { dirToFind = dirToFind, dirs = dirs })
   for _, s in pairs(dirs) do
     local expanded = Lib.expand(s)
-    Lib.logger.debug("find_matching_directory expanded: " .. s)
+    -- Lib.logger.debug("find_matching_directory expanded: " .. s)
     ---@diagnostic disable-next-line: param-type-mismatch
     for path in string.gmatch(expanded, "[^\r\n]+") do
       local simplified_path = vim.fn.simplify(path)
       local path_without_trailing_slashes = string.gsub(simplified_path, "/+$", "")
 
-      Lib.logger.debug("find_matching_directory simplified: " .. simplified_path)
+      -- Lib.logger.debug("find_matching_directory simplified: " .. simplified_path)
 
       if dirToFind == path_without_trailing_slashes then
         Lib.logger.debug "find find_matching_directory found match!"
