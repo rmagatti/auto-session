@@ -100,9 +100,7 @@ describe("The default config", function()
     -- print(vim.inspect(sessions))
 
     if vim.fn.has "win32" == 1 then
-      --- FIXME: This fails on windows because of the - escaping problem
-      ----Modify the data for now, remove it when the bug is fixed
-      assert.True(vim.tbl_contains(sessions, (TL.default_session_name:gsub("-", "\\"))))
+      assert.True(vim.tbl_contains(sessions, TL.default_session_name))
     else
       assert.True(vim.tbl_contains(sessions, TL.default_session_name))
     end
