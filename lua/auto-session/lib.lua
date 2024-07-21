@@ -32,6 +32,9 @@ end
 -- because they have dashes in the name
 function Lib.current_session_name()
   local fname = Lib.get_file_name(vim.v.this_session)
+  if fname == nil or fname == '' then
+    return ""
+  end
   local extension = Lib.get_file_extension(fname)
   local fname_without_extension = fname:gsub(extension:gsub("%.", "%%%.") .. "$", "")
   local fname_split = vim.split(fname_without_extension, "%%")
