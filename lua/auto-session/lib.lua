@@ -141,16 +141,20 @@ local char_to_hex = function(c)
   return string.format("%%%02X", string.byte(c))
 end
 
----Returns the url encoded version of str
+---Returns the percent encoded version of str, similar to URI encoding
 ---@param str string The string to encode
----@return string The url encoded string
-function Lib.urlencode(str)
+---@return string The percent encoded string
+function Lib.percent_encode(str)
   if str == nil then
     return ""
   end
   str = str:gsub("\n", "\r\n")
-  -- Encode for URIs not for form data, so ' ' is converted to %20 rather than +
-  return (str:gsub("([^%w_%%%-%.~])", char_to_hex))
+
+  -- Have to encode path separators for both unix and windows. also
+  -- encode the invalid windows characters and a few others for portabiltiy
+  -- This also works correctly with unicode characters (i.e. they are
+  -- not encoded)
+  return (str:gsub("([/\\:*?\"'<>+ |])", char_to_hex))
 end
 
 ---Convers a hex representation to a single character
@@ -160,10 +164,10 @@ local hex_to_char = function(x)
   return string.char(tonumber(x, 16))
 end
 
----Returns the url decoded version of str.
+---Returns the percent decoded version of str
 ---@param str string The string to decode
----@return string The encoded string
-Lib.urldecode = function(str)
+---@return string The decoded string
+Lib.percent_decode = function(str)
   if str == nil then
     return ""
   end
@@ -175,14 +179,14 @@ end
 ---@param session_name string The sesion name to escape
 ---@return string The escaped string
 function Lib.escape_session_name(session_name)
-  return Lib.urlencode(session_name)
+  return Lib.percent_encode(session_name)
 end
 
 ---Returns a string with path characters unescaped. Works with both *nix and Windows
 ---@param escaped_session_name string The sesion name to unescape
 ---@return string The unescaped string
 function Lib.unescape_session_name(escaped_session_name)
-  return Lib.urldecode(escaped_session_name)
+  return Lib.percent_decode(escaped_session_name)
 end
 
 ---Returns a string with path characters escaped. Works with both *nix and Windows

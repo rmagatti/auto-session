@@ -50,25 +50,28 @@ describe("Lib / Helper functions", function()
   end)
 
   it("can urlencode/urldecode", function()
-    assert.equals("%2Fsome%2Fdir%2Fwith%20spaces%2Fand-dashes", Lib.urlencode "/some/dir/with spaces/and-dashes")
-    assert.equals("/some/dir/with spaces/and-dashes", Lib.urldecode(Lib.urlencode "/some/dir/with spaces/and-dashes"))
+    assert.equals("%2Fsome%2Fdir%2Fwith%20spaces%2Fand-dashes", Lib.percent_encode "/some/dir/with spaces/and-dashes")
+    assert.equals(
+      "/some/dir/with spaces/and-dashes",
+      Lib.percent_decode(Lib.percent_encode "/some/dir/with spaces/and-dashes")
+    )
 
     assert.equals(
       "c%3A%5Csome%5Cdir%5Cwith%20space%5Cand-dashes%5C",
-      Lib.urlencode "c:\\some\\dir\\with space\\and-dashes\\"
+      Lib.percent_encode "c:\\some\\dir\\with space\\and-dashes\\"
     )
     assert.equals(
       "c:\\some\\dir\\with space\\and-dashes\\",
-      Lib.urldecode(Lib.urlencode "c:\\some\\dir\\with space\\and-dashes\\")
+      Lib.percent_decode(Lib.percent_encode "c:\\some\\dir\\with space\\and-dashes\\")
     )
 
     -- round trip should be stable
-    assert.equals(TL.default_session_name, Lib.urldecode(Lib.urlencode(TL.default_session_name)))
-    assert.equals(TL.named_session_name, Lib.urldecode(Lib.urlencode(TL.named_session_name)))
+    assert.equals(TL.default_session_name, Lib.percent_decode(Lib.percent_encode(TL.default_session_name)))
+    assert.equals(TL.named_session_name, Lib.percent_decode(Lib.percent_encode(TL.named_session_name)))
 
     -- Should not encode anything
-    assert.equals(TL.named_session_name, Lib.urldecode(TL.named_session_name))
-    assert.equals(TL.named_session_name, Lib.urlencode(TL.named_session_name))
+    assert.equals(TL.named_session_name, Lib.percent_decode(TL.named_session_name))
+    assert.equals(TL.named_session_name, Lib.percent_encode(TL.named_session_name))
   end)
 
   it("session_file_name_to_session_name() works", function()
@@ -130,11 +133,11 @@ describe("Lib / Helper functions", function()
   end)
 
   it("can identify new and old sessions", function()
-    assert.False(Lib.is_legacy_file_name(Lib.urlencode "mysession" .. ".vim"))
-    assert.False(Lib.is_legacy_file_name(Lib.urlencode "/some/dir/" .. ".vim"))
-    assert.False(Lib.is_legacy_file_name(Lib.urlencode "/some/dir/with spaces/and-dashes" .. ".vim"))
-    assert.False(Lib.is_legacy_file_name(Lib.urlencode "c:\\some\\dir\\with spaces\\and-dashes" .. ".vim"))
-    assert.False(Lib.is_legacy_file_name(Lib.urlencode "c:\\some\\dir\\with spaces\\and-dashes\\" .. ".vim"))
+    assert.False(Lib.is_legacy_file_name(Lib.percent_encode "mysession" .. ".vim"))
+    assert.False(Lib.is_legacy_file_name(Lib.percent_encode "/some/dir/" .. ".vim"))
+    assert.False(Lib.is_legacy_file_name(Lib.percent_encode "/some/dir/with spaces/and-dashes" .. ".vim"))
+    assert.False(Lib.is_legacy_file_name(Lib.percent_encode "c:\\some\\dir\\with spaces\\and-dashes" .. ".vim"))
+    assert.False(Lib.is_legacy_file_name(Lib.percent_encode "c:\\some\\dir\\with spaces\\and-dashes\\" .. ".vim"))
 
     assert.False(Lib.is_legacy_file_name(TL.legacyEscapeSessionName "mysession" .. ".vim"))
 

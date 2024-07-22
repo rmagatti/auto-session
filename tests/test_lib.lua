@@ -7,7 +7,7 @@ M = {}
 vim.fn.setenv("AUTOSESSION_UNIT_TESTING", 1)
 
 function M.escapeSessionName(session_name)
-  return asLib.urlencode(session_name)
+  return asLib.percent_encode(session_name)
 end
 
 function M.legacyEscapeSessionName(session_name)
