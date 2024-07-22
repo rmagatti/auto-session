@@ -916,10 +916,12 @@ function AutoSession.RestoreSessionFromDir(session_dir, session_name, show_messa
 
   -- Set restore_in_progress here so we won't also try to save/load the session if
   -- cwd_change_handling = true and the session contains a cd command
+  -- The session file will also set SessionLoad so we'll check that too but feels
+  -- safer to have our own flag as well, in case the vim flag changes
   AutoSession.restore_in_progress = true
 
-  -- Clear the buffers and jumps just in case
-  vim.cmd "%bd!"
+  -- Clear the buffers and jumps
+  vim.cmd "%bw!"
   vim.cmd "clearjumps"
 
   ---@diagnostic disable-next-line: param-type-mismatch
