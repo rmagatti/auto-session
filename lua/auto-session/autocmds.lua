@@ -31,8 +31,8 @@ M.setup_autocmds = function(config, AutoSession)
         return
       end
 
-      if AutoSession.restore_in_progress then
-        Lib.logger.debug "DirChangedPre: restore_in_progress is true, ignoring this event"
+      if AutoSession.restore_in_progress or vim.g.SessionLoad then
+        Lib.logger.debug "DirChangedPre: restore_in_progress/vim.g.SessionLoad is true, ignoring this event"
         -- NOTE: We don't call the cwd_changed_hook here
         -- I think that's probably the right choice because I assume that event is mostly
         -- for preparing sessions for save/restoring but we don't want to do that when we're
@@ -62,12 +62,12 @@ M.setup_autocmds = function(config, AutoSession)
           return
         end
 
-        if AutoSession.restore_in_progress then
+        if AutoSession.restore_in_progress or vim.g.SessionLoad then
           -- NOTE: We don't call the cwd_changed_hook here (or in the other case below)
           -- I think that's probably the right choice because I assume that event is mostly
           -- for preparing sessions for save/restoring but we don't want to do that when we're
           -- already restoring a session
-          Lib.logger.debug "DirChanged: restore_in_progress is true, ignoring this event"
+          Lib.logger.debug "DirChangedPre: restore_in_progress/vim.g.SessionLoad is true, ignoring this event"
           return
         end
 
