@@ -419,7 +419,20 @@ local function get_session_file_name(session_name, legacy)
 
     local git_branch_name = get_git_branch_name()
     if git_branch_name and git_branch_name ~= "" then
-      session_name = session_name .. "|" .. git_branch_name
+      -- NOTE: By including it in the session name, there's the possibility of a collision
+      -- with an actual directory named session_name|branch_name. Meaning, that if someone
+      -- created a session in session_name (while branch_name is checked out) and then also
+      -- went to edit in a directory literally called session_name|branch_name. the sessions
+      -- would collide. Obviously, that's not perfect but I think it's an ok price to pay to
+      -- get branch specific sessions and still have a cwd derived text key to identify sessions
+      -- that can be used everywhere, incuding :SessionRestore
+      if legacy then
+        session_name = session_name .. "_" .. git_branch_name
+      else
+        -- now that we're percent encoding, we can pick a less likely character, even if it doesn't
+        -- avoid the problem entirely
+        session_name = session_name .. "|" .. git_branch_name
+      end
     end
   end
 

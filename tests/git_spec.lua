@@ -2,8 +2,10 @@
 local TL = require "tests/test_lib"
 
 describe("The git config", function()
-  require("auto-session").setup {
+  local as = require "auto-session"
+  as.setup {
     auto_session_use_git_branch = true,
+    -- log_level = "debug",
   }
 
   TL.clearSessionFilesAndBuffers()
@@ -47,17 +49,52 @@ describe("The git config", function()
   -- open a file so we have something to save
   vim.cmd "e test.txt"
 
+  local branch_session_path = TL.session_dir .. TL.escapeSessionName(vim.fn.getcwd() .. "|main.vim")
+
   it("saves a session with the branch name", function()
     -- vim.cmd ":SessionSave"
-    local as = require "auto-session"
 
     as.AutoSaveSession()
 
-    local session_path = TL.session_dir .. TL.escapeSessionName(vim.fn.getcwd() .. "|main.vim")
+    assert.equals(1, vim.fn.bufexists "test.txt")
 
-    print(session_path)
+    -- print(session_path)
+    assert.equals(1, vim.fn.filereadable(branch_session_path))
 
-    assert.equals(1, vim.fn.filereadable(session_path))
+    assert.equals(vim.fn.getcwd() .. " (branch: main)", as.Lib.current_session_name())
+  end)
+
+  it("Autorestores a session with the branch name", function()
+    vim.cmd "%bw!"
+    assert.equals(0, vim.fn.bufexists "test.txt")
+
+    as.AutoRestoreSession()
+
+    assert.equals(1, vim.fn.bufexists "test.txt")
+
+    assert.equals(1, vim.fn.filereadable(branch_session_path))
+
+    assert.equals(vim.fn.getcwd() .. " (branch: main)", as.Lib.current_session_name())
+  end)
+
+  it("can migrate an old git session", function()
+    assert.equals(1, vim.fn.filereadable(branch_session_path))
+    local legacy_branch_session_path = TL.session_dir .. TL.legacyEscapeSessionName(vim.fn.getcwd() .. "_main.vim")
+
+    vim.loop.fs_rename(branch_session_path, legacy_branch_session_path)
+
+    assert.equals(1, vim.fn.filereadable(legacy_branch_session_path))
+    assert.equals(0, vim.fn.filereadable(branch_session_path))
+
+    vim.cmd "%bw!"
+    assert.equals(0, vim.fn.bufexists "test.txt")
+
+    as.AutoRestoreSession()
+
+    assert.equals(1, vim.fn.bufexists "test.txt")
+
+    assert.equals(1, vim.fn.filereadable(branch_session_path))
+    assert.equals(0, vim.fn.filereadable(legacy_branch_session_path))
 
     assert.equals(vim.fn.getcwd() .. " (branch: main)", as.Lib.current_session_name())
   end)
