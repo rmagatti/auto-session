@@ -255,16 +255,6 @@ function Lib.escape_string_for_vim(str)
   return (str:gsub("%%", "\\%%"))
 end
 
-function Lib.is_readable(file_path)
-  local path, _ = file_path:gsub("\\%%", "%%")
-  path = Lib.expand(path)
-  local readable = vim.fn.filereadable(path) == Lib._VIM_TRUE
-
-  Lib.logger.debug { path = path, readable = readable }
-
-  return readable
-end
-
 -- NOTE: expand has the side effect of canonicalizing the path
 -- separators on windows, meaning if it's a mix of \ and /, it
 -- will come out of expand with all \ (or, if shellslash is on,
