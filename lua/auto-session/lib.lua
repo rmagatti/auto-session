@@ -311,7 +311,7 @@ function Lib.close_unsupported_windows()
   end
 end
 
----Convert a session file name to a session_name that passed to SessionRestore/Delete.
+---Convert a session file name to a session_name that can be passed to SessionRestore/Delete.
 ---Although, those commands should also take a session name ending in .vim
 ---@param escaped_session_name string The session file name. It should not have a path component
 ---@return string The session name, suitable for display or passing to other cmds

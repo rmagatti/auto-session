@@ -27,14 +27,14 @@ local function get_alternate_session()
   end
 end
 
-local function source_session(path, prompt_bufnr)
+local function source_session(session_name, prompt_bufnr)
   if prompt_bufnr then
     local actions = require "telescope.actions"
     actions.close(prompt_bufnr)
   end
 
   vim.defer_fn(function()
-    AutoSession.autosave_and_restore(path)
+    AutoSession.autosave_and_restore(session_name)
   end, 50)
 end
 
@@ -59,7 +59,7 @@ M.delete_session = function(prompt_bufnr)
   local current_picker = action_state.get_current_picker(prompt_bufnr)
   current_picker:delete_selection(function(selection)
     if selection then
-      AutoSession.DeleteSession(selection.value)
+      AutoSession.DeleteSessionFile(selection.path, selection.display)
     end
   end)
 end

@@ -638,7 +638,7 @@ local function handle_autosession_command(data)
     end)
   elseif data.args:match "delete" then
     open_picker(files, "Delete a session:", function(choice)
-      AutoSession.DeleteSession(choice.session_name)
+      AutoSession.DeleteSessionFile(choice.path, choice.display_name)
     end)
   end
 end
@@ -899,10 +899,18 @@ function AutoSession.RestoreSessionFromDir(session_dir, session_name, show_messa
     end
   end
 
+  return AutoSession.RestoreSessionFile(session_path, show_message)
+end
+
+---Restores a session from a specific file
+---@param session_path string The session file to load
+---@param show_message? boolean Optional, whether to show a message on restore (true by default)
+---@return boolean Was a session restored
+function AutoSession.RestoreSessionFile(session_path, show_message)
   local pre_cmds = AutoSession.get_cmds "pre_restore"
   run_hook_cmds(pre_cmds, "pre-restore")
 
-  Lib.logger.debug("RestoreSessionFromDir restoring session from: " .. session_path)
+  Lib.logger.debug("RestoreSessionFile restoring session from: " .. session_path)
 
   -- Vim cmds require escaping any % with a \ but we don't want to do that
   -- for direct filesystem operations (like in save_extra_cmds_new) so we
@@ -940,10 +948,10 @@ Disabling auto save. Please check for errors in your config. Error:
     return false
   end
 
-  -- session_name might be nil (e.g. when using cwd), unescape escaped_session_name instead
-  Lib.logger.debug("Restored session: " .. Lib.unescape_session_name(escaped_session_name))
+  local session_name = Lib.escaped_session_name_to_session_name(vim.fn.fnamemodify(session_path, ":t"))
+  Lib.logger.debug("Restored session: " .. session_name)
   if show_message == nil or show_message then
-    vim.notify("Restored session: " .. Lib.get_session_display_name(escaped_session_name))
+    vim.notify("Restored session: " .. session_name)
   end
 
   local post_cmds = AutoSession.get_cmds "post_restore"
@@ -985,36 +993,44 @@ function AutoSession.DeleteSessionFromDir(session_dir, session_name)
     local legacy_session_path = session_dir .. legacy_escaped_session_name
 
     if vim.fn.filereadable(legacy_session_path) ~= 1 then
-      vim.notify("Could not session to delete: " .. Lib.get_session_display_name(escaped_session_name))
+      vim.notify("Session does not exist: " .. Lib.get_session_display_name(escaped_session_name))
       return false
     end
     Lib.logger.debug("DeleteSessionFromDir using legacy session: " .. legacy_escaped_session_name)
     session_path = legacy_session_path
   end
 
+  -- session_name could be nil, so get name from escaped_session_name
+  return AutoSession.DeleteSessionFile(session_path, Lib.get_session_display_name(escaped_session_name))
+end
+
+---Delete a session file
+---@param session_path string The filename to delete
+---@param session_name string Session name being deleted, just use to display messages
+---@return boolean Was the session file delted
+function AutoSession.DeleteSessionFile(session_path, session_name)
   local pre_cmds = AutoSession.get_cmds "pre_delete"
   run_hook_cmds(pre_cmds, "pre-delete")
 
-  if vim.fn.delete(Lib.expand(session_path)) ~= 0 then
-    Lib.logger.error("Failed to delete session: " .. session_name)
-    return false
-  end
+  Lib.logger.debug("DeleteSessionFile deleting: " .. session_path)
 
-  if vim.fn.fnamemodify(vim.v.this_session, ":t") == escaped_session_name then
-    -- session_name might be nil (e.g. when using cwd), unescape escaped_session_name instead
-    Lib.logger.info(
-      "Auto saving disabled because the current session was deleted: "
-        .. Lib.unescape_session_name(escaped_session_name)
-    )
-    AutoSession.conf.auto_save_enabled = false
+  local result = vim.fn.delete(Lib.expand(session_path)) == 0
+  if not result then
+    Lib.logger.error("Failed to delete session: " .. session_name)
   else
-    Lib.logger.debug("Session deleted: " .. session_name)
-    vim.notify("Session deleted: " .. session_name)
+    if vim.fn.fnamemodify(vim.v.this_session, ":t") == vim.fn.fnamemodify(session_path, ":t") then
+      -- session_name might be nil (e.g. when using cwd), unescape escaped_session_name instead
+      Lib.logger.info("Auto saving disabled because the current session was deleted: " .. session_name)
+      AutoSession.conf.auto_save_enabled = false
+    else
+      Lib.logger.debug("Session deleted: " .. session_name)
+      vim.notify("Session deleted: " .. session_name)
+    end
   end
 
   local post_cmds = AutoSession.get_cmds "post_delete"
   run_hook_cmds(post_cmds, "post-delete")
-  return true
+  return result
 end
 
 ---Disables autosave. Enables autosave if enable is true
