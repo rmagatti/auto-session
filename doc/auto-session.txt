@@ -143,6 +143,18 @@ AutoSession.RestoreSessionFromDir({session_dir}, {session_name?}, {show_message?
         {show_message?}  (boolean)     Optional, whether to show a message on restore (true by default)
 
 
+                                                *AutoSession.RestoreSessionFile*
+AutoSession.RestoreSessionFile({session_path}, {show_message?})
+    Restores a session from a specific file
+
+    Parameters: ~
+        {session_path}   (string)   The session file to load
+        {show_message?}  (boolean)  Optional, whether to show a message on restore (true by default)
+
+    Returns: ~
+        (boolean)  a session restored
+
+
                                                      *AutoSession.DeleteSession*
 AutoSession.DeleteSession({session_name?})
     Deletes a session from the config session dir. If no optional session name
@@ -160,6 +172,18 @@ AutoSession.DeleteSessionFromDir({session_dir}, {session_name?})
     Parameters: ~
         {session_dir}    (string)      Directory to delete the session from
         {session_name?}  (string|nil)  Optional session name
+
+
+                                                 *AutoSession.DeleteSessionFile*
+AutoSession.DeleteSessionFile({session_path}, {session_name})
+    Delete a session file
+
+    Parameters: ~
+        {session_path}  (string)  The filename to delete
+        {session_name}  (string)  Session name being deleted, just use to display messages
+
+    Returns: ~
+        (boolean)  the session file delted
 
 
 AutoSession.DisableAutoSave({enable?})             *AutoSession.DisableAutoSave*
