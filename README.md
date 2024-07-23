@@ -275,13 +275,14 @@ For example to update the directory of the session in nvim-tree:
 
 ```lua
 local function restore_nvim_tree()
-    local nvim_tree = require('nvim-tree')
-    nvim_tree.change_dir(vim.fn.getcwd())
-    nvim_tree.refresh()
+  local nvim_tree_api = require('nvim-tree.api')
+  nvim_tree_api.tree.open()
+  nvim_tree_api.tree.change_root(vim.fn.getcwd())
+  nvim_tree_api.tree.reload()
 end
 
 require('auto-session').setup {
-    {hook_name}_cmds = {"{vim_cmd_1}", restore_nvim_tree, "{vim_cmd_2}"}
+    post_restore_cmds = {"{vim_cmd_1}", restore_nvim_tree, "{vim_cmd_2}"}
 }
 ```
 
