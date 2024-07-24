@@ -125,8 +125,15 @@ describe("The default config", function()
   it("can delete a named session", function()
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.named_session_path))
+    assert.True(vim.v.this_session ~= "")
 
     vim.cmd("SessionDelete " .. TL.named_session_name)
+
+    -- Auto save should be disabled when deleting the current session
+    assert.False(as.conf.auto_save_enabled)
+
+    -- Deleting current session should set vim.v.this_session = ""
+    assert.True(vim.v.this_session == "")
 
     assert.equals(0, vim.fn.filereadable(TL.named_session_path))
   end)
