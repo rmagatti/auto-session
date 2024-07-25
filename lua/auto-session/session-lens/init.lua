@@ -43,7 +43,7 @@ local function make_telescope_callback(opts)
   return function(file_name)
     -- Don't include <session>x.vim files that nvim makes for custom user
     -- commands
-    if not Lib.is_session_file(session_root_dir, file_name) then
+    if not Lib.is_session_file(session_root_dir .. file_name) then
       return nil
     end
 

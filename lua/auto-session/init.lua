@@ -589,7 +589,7 @@ local function get_session_files()
   end
 
   local entries = vim.fn.readdir(sessions_dir, function(item)
-    return Lib.is_session_file(sessions_dir, item)
+    return Lib.is_session_file(sessions_dir .. item)
   end)
 
   return vim.tbl_map(function(file_name)
@@ -897,6 +897,19 @@ function AutoSession.RestoreSessionFromDir(session_dir, session_name, show_messa
       )
       return false
     end
+
+    -- Check for user commands
+    local legacy_user_commands_path = legacy_session_path:gsub("%.vim", "x.vim")
+    local user_commands_path = session_path:gsub("%.vim", "x.vim")
+
+    -- If there is a legacy commands file and it's not actually a session and there is already a user commands file,
+    -- then migrate
+    if vim.fn.filereadable(legacy_user_commands_path) == 1 and not Lib.is_session_file(legacy_user_commands_path) then
+      if vim.fn.filereadable(user_commands_path) == 0 then
+        Lib.logger.debug("RestoreSessionFromDir Renaming legacy user commands" .. legacy_user_commands_path)
+        vim.loop.fs_rename(legacy_user_commands_path, user_commands_path)
+      end
+    end
   end
 
   return AutoSession.RestoreSessionFile(session_path, show_message)
@@ -1015,8 +1028,9 @@ function AutoSession.DeleteSessionFile(session_path, session_name)
   Lib.logger.debug("DeleteSessionFile deleting: " .. session_path)
 
   local result = vim.fn.delete(Lib.expand(session_path)) == 0
+
   if not result then
-    Lib.logger.error("Failed to delete session: " .. session_name)
+    Lib.logger.error("DeleteSessionFile Failed to delete session: " .. session_name)
   else
     if vim.fn.fnamemodify(vim.v.this_session, ":t") == vim.fn.fnamemodify(session_path, ":t") then
       -- session_name might be nil (e.g. when using cwd), unescape escaped_session_name instead
@@ -1024,9 +1038,16 @@ function AutoSession.DeleteSessionFile(session_path, session_name)
       vim.v.this_session = ""
       AutoSession.conf.auto_save_enabled = false
     else
-      Lib.logger.debug("Session deleted: " .. session_name)
+      Lib.logger.debug("DeleteSessionFile Session deleted: " .. session_name)
       vim.notify("Session deleted: " .. session_name)
     end
+  end
+
+  -- check for extra user commands
+  local extra_commands_path = session_path:gsub("%.vim$", "x.vim")
+  if vim.fn.filereadable(extra_commands_path) == 1 and not Lib.is_session_file(extra_commands_path) then
+    vim.fn.delete(extra_commands_path)
+    Lib.logger.debug("DeleteSessionFile deleting extra user commands: " .. extra_commands_path)
   end
 
   local post_cmds = AutoSession.get_cmds "post_delete"

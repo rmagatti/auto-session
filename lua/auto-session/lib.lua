@@ -362,25 +362,23 @@ end
 
 ---When saving a session file, we may save an additional <filename>x.vim file
 ---with custom user commands. This function returns false if it's one of those files
----@param session_dir string The session directory
----@param file_name string The file being considered
+---@param session_path string The file (full path) being considered
 ---@return boolean True if the file is a session file, false otherwise
-function Lib.is_session_file(session_dir, file_name)
+function Lib.is_session_file(session_path)
   -- if it's a directory, don't include
-  if vim.fn.isdirectory(file_name) ~= 0 then
+  if vim.fn.isdirectory(session_path) ~= 0 then
     return false
   end
 
   -- if it's a file that doesn't end in x.vim, include
-  if not string.find(file_name, "x.vim$") then
+  if not string.find(session_path, "x.vim$") then
     return true
   end
 
   -- the file ends in x.vim, make sure it has SessionLoad on the first line
-  local file_path = session_dir .. "/" .. file_name
-  local file = io.open(file_path, "r")
+  local file = io.open(session_path, "r")
   if not file then
-    Lib.logger.debug("Could not open file: " .. file_path)
+    Lib.logger.debug("Could not open file: " .. session_path)
     return false
   end
 
@@ -452,7 +450,7 @@ function Lib.complete_session_for_dir(session_dir, ArgLead, _, _)
     -- don't include extra user command files, aka *x.vim
     local file_name = vim.fn.fnamemodify(path, ":t:r")
     Lib.logger.debug(file_name)
-    if Lib.is_session_file(session_dir, file_name) then
+    if Lib.is_session_file(session_dir .. file_name) then
       local name
       if Lib.is_legacy_file_name(file_name) then
         name = Lib.legacy_unescape_session_name(file_name)
