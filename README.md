@@ -454,5 +454,5 @@ Neovim > 0.7
 Tested with:
 
 ```
-NVIM v0.7.2 - NVIM 0.10.0
+NVIM v0.7.2 - NVIM 0.10.1
 ```
