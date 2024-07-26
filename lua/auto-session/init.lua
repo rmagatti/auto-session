@@ -62,8 +62,8 @@ local defaultConf = {
   auto_session_root_dir = vim.fn.stdpath "data" .. "/sessions/", -- Root dir where sessions will be stored
   auto_session_enabled = true, -- Enables/disables auto creating, saving and restoring
   auto_session_create_enabled = nil, -- Enables/disables auto creating new sessions. Can take a function that should return true/false if a session should be created or not
-  auto_save_enabled = nil, -- Enables/disables auto save feature
-  auto_restore_enabled = nil, -- Enables/disables auto restore feature
+  auto_save_enabled = true, -- Enables/disables auto save feature
+  auto_restore_enabled = true, -- Enables/disables auto restore feature
   auto_restore_lazy_delay_enabled = true, -- Enables/disables Lazy delay feature
   auto_session_suppress_dirs = nil, -- Suppress session restore/create in certain directories
   auto_session_allowed_dirs = nil, -- Allow session restore/create in certain directories
@@ -326,11 +326,9 @@ local auto_save = function()
 
   if vim.g.auto_save_enabled ~= nil then
     return vim.g.auto_save_enabled == Lib._VIM_TRUE
-  elseif AutoSession.conf.auto_save_enabled ~= nil then
-    return AutoSession.conf.auto_save_enabled
   end
 
-  return true
+  return AutoSession.conf.auto_save_enabled
 end
 
 local auto_restore = function()
@@ -340,11 +338,9 @@ local auto_restore = function()
 
   if vim.g.auto_restore_enabled ~= nil then
     return vim.g.auto_restore_enabled == Lib._VIM_TRUE
-  elseif AutoSession.conf.auto_restore_enabled ~= nil then
-    return AutoSession.conf.auto_restore_enabled
   end
 
-  return true
+  return AutoSession.conf.auto_restore_enabled
 end
 
 local function bypass_save_by_filetype()
