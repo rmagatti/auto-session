@@ -217,19 +217,6 @@ AutoSession exposes the following commands that can be used or mapped to any key
 :Autosession delete " open a vim.ui.select picker to choose a session to delete.
 ```
 
-There are also versions of Save/Restore/Delete that take a session directory and an optional session name:
-
-```viml
-:SessionSaveToDir /some/dir " saves a session based on the `cwd` to `/some/dir`
-:SessionSaveToDir /some/dir my_session " saves `my_session` to `/some/dir`
-
-:SessionRestoreFromDir /some/dir " restores a session based on the `cwd` from `/some/dir`
-:SessionRestoreFromDir /some/dir my_session " restores `my_session` from `/some/dir`
-
-:SessionDeleteFromDir /some/dir " deletes a session based on the `cwd` from `/some/dir`
-:SessionDeleteFromDir /some/dir my_session " deletes `my_session` from `/some/dir`
-```
-
 ## 🪝 Command Hooks
 
 #### Command hooks are a list of commands that get executed at different stages of the session management lifecycle.

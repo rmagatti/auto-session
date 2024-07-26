@@ -1077,30 +1077,6 @@ function SetupAutocmds()
     return AutoSession.PurgeOrphanedSessions()
   end
 
-  vim.api.nvim_create_user_command("SessionSaveToDir", function(args)
-    return AutoSession.SaveSessionToDir(args.fargs[1], args.fargs[2])
-  end, {
-    bang = true,
-    nargs = "+",
-    desc = "Save session to passed in directory for the current working directory or an optional session name",
-  })
-
-  vim.api.nvim_create_user_command("SessionRestoreFromDir", function(args)
-    return AutoSession.RestoreSessionFromDir(args.fargs[1], args.fargs[2])
-  end, {
-    bang = true,
-    nargs = "+",
-    desc = "Restore session from passed in directory for the current working directory or an optional session name",
-  })
-
-  vim.api.nvim_create_user_command("SessionDeleteFromDir", function(args)
-    return AutoSession.DeleteSessionFromDir(args.fargs[1], args.fargs[2])
-  end, {
-    bang = true,
-    nargs = "+",
-    desc = "Delete session from passed in directory for the current working directory or an optional session name",
-  })
-
   vim.api.nvim_create_user_command("SessionSave", function(args)
     return AutoSession.SaveSession(args.args)
   end, {
