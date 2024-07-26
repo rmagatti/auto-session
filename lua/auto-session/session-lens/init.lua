@@ -113,14 +113,6 @@ SessionLens.search_session = function(custom_opts)
 
   local theme_opts = themes.get_dropdown(custom_opts.theme_conf)
 
-  -- -- Ignore last session dir on finder if feature is enabled
-  -- if AutoSession.conf.auto_session_enable_last_session then
-  --   if AutoSession.conf.auto_session_last_session_dir then
-  --     local last_session_dir = AutoSession.conf.auto_session_last_session_dir:gsub(cwd, "")
-  --     custom_opts["file_ignore_patterns"] = { last_session_dir }
-  --   end
-  -- end
-
   -- Use default previewer config by setting the value to nil if some sets previewer to true in the custom config.
   -- Passing in the boolean value errors out in the telescope code with the picker trying to index a boolean instead of a table.
   -- This fixes it but also allows for someone to pass in a table with the actual preview configs if they want to.
