@@ -69,17 +69,6 @@ AutoSession.AutoSaveSession()                      *AutoSession.AutoSaveSession*
         (boolean)  if a session was saved
 
 
-AutoSession.get_cmds({typ})                               *AutoSession.get_cmds*
-    Get the hook commands to run
-    This function gets cmds from both lua and vimscript configs
-
-    Parameters: ~
-        {typ}  (string)
-
-    Returns: ~
-        (function[]|string[])
-
-
                                                 *AutoSession.AutoRestoreSession*
 AutoSession.AutoRestoreSession({session_name?})
     Function called by AutoSession when automatically restoring a session.
