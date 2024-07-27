@@ -2,17 +2,17 @@ defaultConf                                                        *defaultConf*
     table default config for auto session
 
     Fields: ~
-        {log_level?}                         (string|integer)        "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
-        {auto_session_enable_last_session?}  (boolean)               On startup, loads the last saved session if session for cwd does not exist
-        {auto_session_root_dir?}             (string)                root directory for session files, by default is `vim.fn.stdpath('data') .. '/sessions/'`
-        {auto_session_enabled?}              (boolean)               enable auto session
-        {auto_session_create_enabled}        (boolean|function|nil)  Enables/disables auto creating new sessions. Can take a function that should return true/false if a session should be created or not
-        {auto_save_enabled?}                 (boolean)               Enables/disables auto saving session
-        {auto_restore_enabled?}              (boolean)               Enables/disables auto restoring session
-        {auto_restore_lazy_delay_enabled?}   (boolean)               Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used. Can be disabled if a problem is suspected or for debugging
-        {auto_session_suppress_dirs?}        (table)                 Suppress auto session for directories
-        {auto_session_allowed_dirs?}         (table)                 Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
-        {auto_session_use_git_branch?}       (boolean)               Include git branch name in session name to differentiate between sessions for different git branches
+        {auto_session_enabled?}              (boolean)           Enables/disables auto saving and restoring
+        {auto_session_root_dir?}             (string)            root directory for session files, by default is `vim.fn.stdpath('data') .. '/sessions/'`
+        {auto_save_enabled?}                 (boolean)           Enables/disables auto saving session on exit
+        {auto_restore_enabled?}              (boolean)           Enables/disables auto restoring session on start
+        {auto_session_suppress_dirs?}        (table)             Suppress auto session for directories
+        {auto_session_allowed_dirs?}         (table)             Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
+        {auto_session_create_enabled}        (boolean|function)  Enables/disables auto creating new sessions. Can take a function that should return true/false if a session should be created or not
+        {auto_session_enable_last_session?}  (boolean)           On startup, loads the last saved session if session for cwd does not exist
+        {auto_session_use_git_branch?}       (boolean)           Include git branch name in session name to differentiate between sessions for different git branches
+        {auto_restore_lazy_delay_enabled?}   (boolean)           Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used. Can be disabled if a problem is suspected or for debugging
+        {log_level?}                         (string|integer)    "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
 
 
 luaOnlyConf                                                        *luaOnlyConf*
