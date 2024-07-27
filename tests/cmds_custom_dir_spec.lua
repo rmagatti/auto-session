@@ -62,21 +62,6 @@ describe("The default config", function()
     TL.assertSessionHasFile(named_session_path, TL.test_file)
   end)
 
-  TL.clearSessionFilesAndBuffers()
-  TL.clearSessionFiles(custom_sessions_dir)
-
-  it("can save a named session ending in .vim to a custom directory", function()
-    vim.cmd("e " .. TL.test_file)
-
-    as.SaveSessionToDir(custom_sessions_dir, TL.named_session_name .. ".vim")
-
-    -- Make sure the session was created
-    assert.equals(1, vim.fn.filereadable(named_session_path))
-
-    -- Make sure the session has our buffer
-    TL.assertSessionHasFile(named_session_path, TL.test_file)
-  end)
-
   it("can restore a named session from a custom directory", function()
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 

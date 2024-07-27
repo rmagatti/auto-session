@@ -49,7 +49,7 @@ describe("The git config", function()
   -- open a file so we have something to save
   vim.cmd "e test.txt"
 
-  local branch_session_path = TL.session_dir .. TL.escapeSessionName(vim.fn.getcwd() .. "|main.vim")
+  local branch_session_path = TL.session_dir .. TL.escapeSessionName(vim.fn.getcwd() .. "|main") .. ".vim"
 
   it("saves a session with the branch name", function()
     -- vim.cmd ":SessionSave"

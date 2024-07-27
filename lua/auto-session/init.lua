@@ -439,9 +439,8 @@ local function get_session_file_name(session_name, legacy)
     escaped_session_name = Lib.escape_session_name(session_name)
   end
 
-  if not escaped_session_name:match "%.vim$" then
-    escaped_session_name = escaped_session_name .. ".vim"
-  end
+  -- Always add extension to session name
+  escaped_session_name = escaped_session_name .. ".vim"
 
   return escaped_session_name
 end

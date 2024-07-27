@@ -154,7 +154,7 @@ function Lib.percent_encode(str)
   -- encode the invalid windows characters and a few others for portabiltiy
   -- This also works correctly with unicode characters (i.e. they are
   -- not encoded)
-  return (str:gsub("([/\\:*?\"'<>+ |%%])", char_to_hex))
+  return (str:gsub("([/\\:*?\"'<>+ |%.%%])", char_to_hex))
 end
 
 ---Convers a hex representation to a single character
@@ -411,9 +411,10 @@ function Lib.load_session_control_file(session_control_file_path)
   return json
 end
 
----Get latest session for the "last session" feature
+---Returns the name of the latest session. Uses session name instead of filename
+---to handle conversion from legacy sessions
 ---@param session_dir string The session directory to look for sessions in
----@return string|nil
+---@return string|nil the name of the latest session, if there is one
 function Lib.get_latest_session(session_dir)
   if not session_dir then
     return nil
@@ -435,7 +436,7 @@ function Lib.get_latest_session(session_dir)
     return nil
   end
 
-  return latest_session.session_name
+  return Lib.escaped_session_name_to_session_name(latest_session.session_name)
 end
 
 ---complete_session is used by the vimscript command for session name/path completion.

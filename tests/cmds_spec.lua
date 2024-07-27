@@ -82,28 +82,11 @@ describe("The default config", function()
     assert.equals(TL.named_session_name, require("auto-session").Lib.current_session_name())
   end)
 
-  it("can restore a named session that already has .vim", function()
-    assert.equals(1, vim.fn.bufexists(TL.test_file))
-
-    vim.cmd "silent %bw"
-
-    -- Make sure the buffer is gone
-    assert.equals(0, vim.fn.bufexists(TL.test_file))
-
-    vim.cmd("SessionRestore " .. TL.named_session_name .. ".vim")
-
-    assert.equals(1, vim.fn.bufexists(TL.test_file))
-  end)
-
   it("can complete session names", function()
     local sessions = as.Lib.complete_session_for_dir(TL.session_dir, "")
     -- print(vim.inspect(sessions))
 
-    if vim.fn.has "win32" == 1 then
-      assert.True(vim.tbl_contains(sessions, TL.default_session_name))
-    else
-      assert.True(vim.tbl_contains(sessions, TL.default_session_name))
-    end
+    assert.True(vim.tbl_contains(sessions, TL.default_session_name))
     assert.True(vim.tbl_contains(sessions, TL.named_session_name))
 
     print(vim.inspect(sessions))
