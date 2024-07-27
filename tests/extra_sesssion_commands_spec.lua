@@ -5,7 +5,6 @@ TL.clearSessionFilesAndBuffers()
 describe("Config with extra session commands", function()
   local save_extra_cmds_called = false
   require("auto-session").setup {
-    auto_session_root_dir = TL.session_dir,
     save_extra_cmds = {
       function()
         save_extra_cmds_called = true

@@ -2,17 +2,17 @@ defaultConf                                                        *defaultConf*
     table default config for auto session
 
     Fields: ~
-        {log_level?}                         (string|integer)  "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
+        {log_level?}                         (string|integer)        "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
         {auto_session_enable_last_session?}  (boolean)
-        {auto_session_root_dir?}             (string)          root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
-        {auto_session_enabled?}              (boolean)         enable auto session
-        {auto_session_create_enabled}        (boolean|nil)     Enables/disables auto creating new sessions
-        {auto_save_enabled?}                 (boolean)         Enables/disables auto saving session
-        {auto_restore_enabled?}              (boolean)         Enables/disables auto restoring session
-        {auto_restore_lazy_delay_enabled?}   (boolean)         Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used. Can be disabled if a problem is suspected or for debugging
-        {auto_session_suppress_dirs?}        (table)           Suppress auto session for directories
-        {auto_session_allowed_dirs?}         (table)           Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
-        {auto_session_use_git_branch?}       (boolean)         Include git branch name in session name to differentiate between sessions for different git branches
+        {auto_session_root_dir?}             (string)                root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
+        {auto_session_enabled?}              (boolean)               enable auto session
+        {auto_session_create_enabled}        (boolean|function|nil)  Enables/disables auto creating new sessions. Can take a function that should return true/false if a session should be created or not
+        {auto_save_enabled?}                 (boolean)               Enables/disables auto saving session
+        {auto_restore_enabled?}              (boolean)               Enables/disables auto restoring session
+        {auto_restore_lazy_delay_enabled?}   (boolean)               Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used. Can be disabled if a problem is suspected or for debugging
+        {auto_session_suppress_dirs?}        (table)                 Suppress auto session for directories
+        {auto_session_allowed_dirs?}         (table)                 Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
+        {auto_session_use_git_branch?}       (boolean)               Include git branch name in session name to differentiate between sessions for different git branches
 
 
 luaOnlyConf                                                        *luaOnlyConf*
@@ -24,6 +24,9 @@ luaOnlyConf                                                        *luaOnlyConf*
         {close_unsupported_windows?}       (boolean)            Whether to close windows that aren't backed by a real file
         {silent_restore}                   (boolean)            Whether to restore sessions silently or not
         {log_level?}                       (string|integer)     "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
+        {args_allow_single_directory?}     (boolean)            Follow normal sesion save/load logic if launched with a single directory as the only argument
+                                                                Argv Handling
+        {args_allow_files_auto_save?}      (boolean|function)   Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. While you can just set this to true, you probably want to set it to a function that decides when to save a session when launched with file args. See documentation for more detail
 
 
 CwdChangeHandling                                            *CwdChangeHandling*
@@ -71,9 +74,13 @@ AutoSession.AutoSaveSession({sessions_dir?})
         {sessions_dir?}  (string)  the session directory to auto_save a session for. If empty this function will end up using the cwd to infer what session to save for.
 
 
-AutoSession.get_root_dir()                            *AutoSession.get_root_dir*
+                                                      *AutoSession.get_root_dir*
+AutoSession.get_root_dir({with_trailing_separator?})
     Gets the root directory of where to save the sessions.
     By default this resolves to `vim.fn.stdpath "data" .. "/sessions/"`
+
+    Parameters: ~
+        {with_trailing_separator?}  (boolean)  whether to incude the trailing separator. A few places (telescope picker don't expect a trailing separator)
 
     Returns: ~
         (string)
@@ -124,7 +131,6 @@ AutoSession.SaveSession({sessions_dir?}, {auto})
                                                 *AutoSession.AutoRestoreSession*
 AutoSession.AutoRestoreSession({session_dir})
     Function called by AutoSession when automatically restoring a session.
-    This function avoids calling RestoreSession automatically when argv is not nil.
 
     Parameters: ~
         {session_dir}  (any)
@@ -135,7 +141,6 @@ AutoSession.AutoRestoreSession({session_dir})
 
                                             *AutoSession.RestoreSessionFromFile*
 AutoSession.RestoreSessionFromFile({session_file})
-    RestoreSessionFromFile takes a session_file and calls RestoreSession after parsing the provided parameter.
 
     Parameters: ~
         {session_file}  (string)
@@ -196,9 +201,10 @@ session_lens_config                                        *session_lens_config*
     Session Lens Config
 
     Fields: ~
-        {shorten_path}        (boolean)
+        {shorten_path}        (boolean)          Deprecated, pass { 'shorten' } to path_display
+        {path_display}        (table)            An array that specifies how to handle paths. Read :h telescope.defaults.path_display
         {theme_conf}          (table)
-        {buftypes_to_ignore}  (table)
+        {buftypes_to_ignore}  (table)            Deprecated, if you're using this please report your usage on github
         {previewer}           (boolean)
         {session_control}     (session_control)
         {load_on_setup}       (boolean)

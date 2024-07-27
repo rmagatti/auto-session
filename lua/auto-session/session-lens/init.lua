@@ -39,7 +39,7 @@ function SessionLens.setup(auto_session)
   logger.log_level = auto_session.conf.log_level
 
   if SessionLens.conf.buftypes_to_ignore ~= nil and not vim.tbl_isempty(SessionLens.conf.buftypes_to_ignore) then
-    logger.warn('buftypes_to_ignore is deprecated. If you think you need this option, please file a bug on GitHub. If not, please remove it from your config')
+    logger.warn "buftypes_to_ignore is deprecated. If you think you need this option, please file a bug on GitHub. If not, please remove it from your config"
   end
 end
 
@@ -87,11 +87,13 @@ SessionLens.search_session = function(custom_opts)
     prompt_title = "Sessions",
     entry_maker = Lib.make_entry.gen_from_file(custom_opts),
     cwd = cwd,
-    -- TOOD: support custom mappings?
+    -- TODO: Document mappings. At least <C-/> in Telescope shows the current mappings for the picker
+    -- Possible future feature: custom mappings?
     attach_mappings = function(_, map)
       telescope_actions.select_default:replace(Actions.source_session)
       map("i", "<c-d>", Actions.delete_session)
       map("i", "<c-s>", Actions.alternate_session)
+      map("i", "<c-a>", Actions.alternate_session)
       return true
     end,
   }
@@ -118,11 +120,13 @@ SessionLens.search_session = function(custom_opts)
 
   local finders = require "telescope.finders"
   local conf = require("telescope.config").values
-  require("telescope.pickers").new(opts, {
-    finder = finders.new_oneshot_job(find_command, opts),
-    previewer = conf.grep_previewer(opts),
-    sorter = conf.file_sorter(opts),
-  }):find()
+  require("telescope.pickers")
+    .new(opts, {
+      finder = finders.new_oneshot_job(find_command, opts),
+      previewer = conf.grep_previewer(opts),
+      sorter = conf.file_sorter(opts),
+    })
+    :find()
 end
 
 return SessionLens

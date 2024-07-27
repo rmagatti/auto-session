@@ -6,7 +6,6 @@ describe("The cwd_change_handling config", function()
   local post_cwd_changed_hook_called = false
   require("auto-session").setup {
     -- log_level = "debug",
-    auto_session_root_dir = TL.session_dir,
     cwd_change_handling = {
       restore_upcoming_session = true,
       pre_cwd_changed_hook = function()

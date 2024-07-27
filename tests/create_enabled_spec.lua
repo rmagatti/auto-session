@@ -3,7 +3,6 @@ local TL = require "tests/test_lib"
 
 describe("The create_enabled=false config", function()
   require("auto-session").setup {
-    auto_session_root_dir = TL.session_dir,
     auto_session_create_enabled = false,
   }
 
@@ -75,7 +74,6 @@ describe("The create_enabled=function config", function()
   -- so it doesn't re-initialize the config to the default values so be
   -- careful of values set up in the first call
   require("auto-session").setup {
-    auto_session_root_dir = TL.session_dir,
     auto_session_create_enabled = function()
       callback_called = true
       return allow_create

@@ -4,7 +4,6 @@ TL.clearSessionFilesAndBuffers()
 
 describe("The allowed dirs config", function()
   require("auto-session").setup {
-    auto_session_root_dir = TL.session_dir,
     auto_session_allowed_dirs = { "/dummy" },
   }
 
@@ -20,7 +19,6 @@ describe("The allowed dirs config", function()
   end)
 
   require("auto-session").setup {
-    auto_session_root_dir = TL.session_dir,
     auto_session_allowed_dirs = { vim.fn.getcwd() },
   }
 

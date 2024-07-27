@@ -10,7 +10,6 @@ local Lib = {
   Config = Config,
   _VIM_FALSE = 0,
   _VIM_TRUE = 1,
-  ROOT_DIR = nil,
 }
 
 function Lib.setup(config)
@@ -21,6 +20,7 @@ function Lib.setup(config)
 end
 
 function Lib.get_file_name(url)
+  -- BUG: This is broken on windows when the path is only using blackslashes
   return url:match "^.+/(.+)$"
 end
 
@@ -29,7 +29,8 @@ function Lib.get_file_extension(url)
 end
 
 -- BUG: This doesn't work correctly for automatically created sessions on windows
--- because they have dashes in the name
+-- because they have dashes in the name. Can also be broken for paths that only
+-- have backslahes (see bug above)
 function Lib.current_session_name()
   local fname = Lib.get_file_name(vim.v.this_session)
   local extension = Lib.get_file_extension(fname)
@@ -66,9 +67,7 @@ end
 -- Also creates it if necessary
 -- Falls back to vim.fn.stdpath "data" .. "/sessions/" if the directory is invalid for some reason
 function Lib.validate_root_dir(root_dir)
-  if not vim.endswith(root_dir, "/") then
-    root_dir = root_dir .. "/"
-  end
+  root_dir = Lib.ensure_trailing_separator(root_dir)
 
   if vim.fn.isdirectory(Lib.expand(root_dir)) == Lib._VIM_FALSE then
     vim.fn.mkdir(root_dir, "p")
@@ -92,6 +91,39 @@ function Lib.init_dir(dir)
   if vim.fn.isdirectory(Lib.expand(dir)) == Lib._VIM_FALSE then
     vim.fn.mkdir(dir, "p")
   end
+end
+
+---Returns a string that's guaranteed to end in a path separator
+---@param dir string
+---@return string
+function Lib.ensure_trailing_separator(dir)
+  if vim.endswith(dir, "/") then
+    return dir
+  end
+
+  -- For windows, have to also check if it ends in a \
+  if vim.fn.has "win32" == 1 then
+    if vim.endswith(dir, "\\") then
+      return dir
+    end
+  end
+
+  -- If not, a / will work for both systems
+  return dir .. "/"
+end
+
+---Removes the trailing separator (if any) from a directory, for both unix and windows
+---This is needed in some places to avoid duplicate separators that complicate
+---the path and make equality checks fail (e.g. session control alternate)
+---@param dir string
+---@return string
+function Lib.remove_trailing_separator(dir)
+  -- For windows, have to check for both as either could be used
+  if vim.fn.has "win32" == 1 then
+    dir = dir:gsub("\\$", "")
+  end
+
+  return (dir:gsub("/$", ""))
 end
 
 function Lib.init_file(file_path)
@@ -162,6 +194,14 @@ function Lib.is_readable(file_path)
   return readable
 end
 
+-- NOTE: expand has the side effect of canonicalizing the path
+-- separators on windows, meaning if it's a mix of \ and /, it
+-- will come out of expand with all \ (or, if shellslash is on,
+-- all /)
+
+---Get the full path for the passed in path
+--@param string
+--@return string
 function Lib.expand(file_or_dir)
   local saved_wildignore = vim.api.nvim_get_option "wildignore"
   vim.api.nvim_set_option("wildignore", "")
@@ -261,6 +301,29 @@ function Lib.is_session_file(session_dir, file_path)
   file:close()
 
   return first_line and string.find(first_line, "SessionLoad") ~= nil
+end
+
+---Decodes the contents of session_control_file_path as a JSON object and returns it.
+---Returns an empty table if the file doesn't exist or if the contents couldn't be decoded
+--@param session_control_file_path string
+--@return table
+function Lib.load_session_control_file(session_control_file_path)
+  -- No file, return empty table
+  if vim.fn.filereadable(session_control_file_path) ~= 1 then
+    return {}
+  end
+
+  local file_lines = vim.fn.readfile(session_control_file_path)
+  local content = table.concat(file_lines, " ")
+
+  local success, json = pcall(vim.json.decode, content)
+
+  -- Failed to decode, return an empty table
+  if not success or not json then
+    return {}
+  end
+
+  return json
 end
 
 return Lib
