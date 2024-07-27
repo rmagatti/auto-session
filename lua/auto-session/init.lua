@@ -539,6 +539,7 @@ function AutoSession.get_root_dir(with_trailing_separator)
   return Lib.remove_trailing_separator(AutoSession.conf.auto_session_root_dir)
 end
 
+---@private
 ---Get the hook commands to run
 ---This function gets cmds from both lua and vimscript configs
 ---@param typ string
