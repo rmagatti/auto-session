@@ -49,7 +49,7 @@ describe("Lib / Helper functions", function()
     assert.equals(nil, as.Lib.get_latest_session(TL.session_dir))
   end)
 
-  it("can urlencode/urldecode", function()
+  it("can percent encode/decode", function()
     assert.equals("%2Fsome%2Fdir%2Fwith%20spaces%2Fand-dashes", Lib.percent_encode "/some/dir/with spaces/and-dashes")
     assert.equals(
       "/some/dir/with spaces/and-dashes",
@@ -64,6 +64,9 @@ describe("Lib / Helper functions", function()
       "c:\\some\\dir\\with space\\and-dashes\\",
       Lib.percent_decode(Lib.percent_encode "c:\\some\\dir\\with space\\and-dashes\\")
     )
+
+    assert.equals("percent%25test", Lib.percent_encode "percent%test")
+    assert.equals("percent%test", Lib.percent_decode "percent%25test")
 
     -- round trip should be stable
     assert.equals(TL.default_session_name, Lib.percent_decode(Lib.percent_encode(TL.default_session_name)))

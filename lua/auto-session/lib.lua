@@ -154,7 +154,7 @@ function Lib.percent_encode(str)
   -- encode the invalid windows characters and a few others for portabiltiy
   -- This also works correctly with unicode characters (i.e. they are
   -- not encoded)
-  return (str:gsub("([/\\:*?\"'<>+ |])", char_to_hex))
+  return (str:gsub("([/\\:*?\"'<>+ |%%])", char_to_hex))
 end
 
 ---Convers a hex representation to a single character
