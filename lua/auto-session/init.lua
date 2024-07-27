@@ -42,32 +42,32 @@ end
 
 ---table default config for auto session
 ---@class defaultConf
----@field log_level? string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
----@field auto_session_enable_last_session? boolean On startup, loads the last saved session if session for cwd does not exist
+---@field auto_session_enabled? boolean Enables/disables auto saving and restoring
 ---@field auto_session_root_dir? string root directory for session files, by default is `vim.fn.stdpath('data') .. '/sessions/'`
----@field auto_session_enabled? boolean enable auto session
----@field auto_session_create_enabled boolean|function|nil Enables/disables auto creating new sessions. Can take a function that should return true/false if a session should be created or not
----@field auto_save_enabled? boolean Enables/disables auto saving session
----@field auto_restore_enabled? boolean Enables/disables auto restoring session
----@field auto_restore_lazy_delay_enabled? boolean Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used. Can be disabled if a problem is suspected or for debugging
+---@field auto_save_enabled? boolean Enables/disables auto saving session on exit
+---@field auto_restore_enabled? boolean Enables/disables auto restoring session on start
 ---@field auto_session_suppress_dirs? table Suppress auto session for directories
 ---@field auto_session_allowed_dirs? table Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
+---@field auto_session_create_enabled boolean|function Enables/disables auto creating new sessions. Can take a function that should return true/false if a session should be created or not
+---@field auto_session_enable_last_session? boolean On startup, loads the last saved session if session for cwd does not exist
 ---@field auto_session_use_git_branch? boolean Include git branch name in session name to differentiate between sessions for different git branches
+---@field auto_restore_lazy_delay_enabled? boolean Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used. Can be disabled if a problem is suspected or for debugging
+---@field log_level? string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
 
 ---Default config for auto session
 ---@type defaultConf
 local defaultConf = {
-  log_level = vim.g.auto_session_log_level or AutoSession.conf.log_level or AutoSession.conf.log_level or "error", -- Sets the log level of the plugin (debug, info, error). camelCase logLevel for compatibility.
-  auto_session_enable_last_session = vim.g.auto_session_enable_last_session or false, -- Enables/disables the "last session" feature
-  auto_session_root_dir = vim.fn.stdpath "data" .. "/sessions/", -- Root dir where sessions will be stored
   auto_session_enabled = true, -- Enables/disables auto creating, saving and restoring
-  auto_session_create_enabled = nil, -- Enables/disables auto creating new sessions. Can take a function that should return true/false if a session should be created or not
+  auto_session_root_dir = vim.fn.stdpath "data" .. "/sessions/", -- Root dir where sessions will be stored
   auto_save_enabled = true, -- Enables/disables auto save feature
   auto_restore_enabled = true, -- Enables/disables auto restore feature
-  auto_restore_lazy_delay_enabled = true, -- Enables/disables Lazy delay feature
   auto_session_suppress_dirs = nil, -- Suppress session restore/create in certain directories
   auto_session_allowed_dirs = nil, -- Allow session restore/create in certain directories
+  auto_session_create_enabled = true, -- Enables/disables auto creating new sessions. Can take a function that should return true/false if a session should be created or not
+  auto_session_enable_last_session = vim.g.auto_session_enable_last_session or false, -- Enables/disables the "last session" feature
   auto_session_use_git_branch = vim.g.auto_session_use_git_branch or false, -- Include git branch name in session name
+  auto_restore_lazy_delay_enabled = true, -- Enables/disables Lazy delay feature
+  log_level = vim.g.auto_session_log_level or AutoSession.conf.log_level or AutoSession.conf.log_level or "error", -- Sets the log level of the plugin (debug, info, error). camelCase logLevel for compatibility.
 }
 
 ---Lua Only Configs for Auto Session

@@ -62,16 +62,17 @@ let g:auto_session_root_dir = path/to/my/custom/dir
 " or use Lua
 lua << EOF
 local opts = {
-  log_level = 'error',
-  auto_session_enable_last_session = false,
-  auto_session_root_dir = vim.fn.stdpath('data') .. "/sessions/",
   auto_session_enabled = true,
-  auto_save_enabled = nil,
-  auto_restore_enabled = nil,
+  auto_session_root_dir = vim.fn.stdpath('data') .. "/sessions/",
+  auto_save_enabled = true,
+  auto_restore_enabled = true,
   auto_session_suppress_dirs = nil,
-  auto_session_use_git_branch = nil,
-  -- the configs below are lua only
-  bypass_session_save_file_types = nil
+  auto_session_allowed_dirs = nil,
+  auto_session_create_enabled = true,
+  auto_session_enable_last_session = false,
+  auto_session_use_git_branch = false,
+  auto_restore_lazy_delay_enabled = true,
+  log_level = 'error',
 }
 
 require('auto-session').setup(opts)
@@ -82,17 +83,17 @@ EOF
 
 | Config                           | Options                  | Default                              | Description                                                                                                                                          |
 | -------------------------------- | ------------------------ | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| log_level                        | 'debug', 'info', 'error' | 'error'                              | Sets the log level of the plugin. Set to info for more feedback on what's happening                                                                  |
-| auto_session_enable_last_session | false, true              | false                                | On startup, loads the last loaded session if session for cwd does not exist                                                                          |
-| auto_session_root_dir            | "/some/path/you/want"    | vim.fn.stdpath('data').."/sessions/" | Changes the root dir for sessions                                                                                                                    |
 | auto_session_enabled             | false, true              | true                                 | Enables/disables the plugin's auto save _and_ restore features                                                                                       |
-| auto_session_create_enabled      | false, true, function    | true                                 | Enables/disables the plugin's session auto creation. Can also be a Lua function that returns true if a session should be created and false otherwise |
-| auto_save_enabled                | false, true, nil         | nil                                  | Enables/disables auto saving                                                                                                                         |
-| auto_restore_enabled             | false, true, nil         | nil                                  | Enables/disables auto restoring                                                                                                                      |
-| auto_restore_lazy_delay_enabled  | false, true, nil         | true                                 | Enables/disables delaying auto-restore if Lazy.nvim is used                                                                                          |
+| auto_session_root_dir            | "/some/path/you/want"    | vim.fn.stdpath('data').."/sessions/" | Changes the root dir for sessions                                                                                                                    |
+| auto_save_enabled                | false, true              | true                                 | Enables/disables auto saving                                                                                                                         |
+| auto_restore_enabled             | false, true              | true                                 | Enables/disables auto restoring                                                                                                                      |
 | auto_session_suppress_dirs       | ["list", "of paths"]     | nil                                  | Suppress session create/restore if in one of the list of dirs                                                                                        |
 | auto_session_allowed_dirs        | ["list", "of paths"]     | nil                                  | Allow session create/restore if in one of the list of dirs                                                                                           |
-| auto_session_use_git_branch      | false, true, nil         | nil                                  | Use the git branch to differentiate the session name                                                                                                 |
+| auto_session_create_enabled      | false, true, function    | true                                 | Enables/disables the plugin's session auto creation. Can also be a Lua function that returns true if a session should be created and false otherwise |
+| auto_session_enable_last_session | false, true              | false                                | On startup, loads the last loaded session if session for cwd does not exist                                                                          |
+| auto_session_use_git_branch      | false, true              | false                                | Use the git branch to differentiate the session name                                                                                                 |
+| auto_restore_lazy_delay_enabled  | false, true              | true                                 | Enables/disables delaying auto-restore if Lazy.nvim is used                                                                                          |
+| log_level                        | 'debug', 'info', 'error' | 'error'                              | Sets the log level of the plugin. Set to info for more feedback on what's happening                                                                  |
 
 #### Notes
 
