@@ -132,8 +132,9 @@ local function check_config()
   end
 end
 
----Setup function for AutoSession
----@param config defaultConf config for auto session
+---Setup function for AutoSession. Config is not marked as defaultConf so it doesn't
+---create a diagnostic about missing fields.
+---@param config table|nil Config for auto session
 function AutoSession.setup(config)
   AutoSession.conf = vim.tbl_deep_extend("force", AutoSession.conf, config or {})
   Lib.setup(AutoSession.conf)
