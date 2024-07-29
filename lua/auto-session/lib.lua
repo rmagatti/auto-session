@@ -21,11 +21,19 @@ end
 ---Returns the current session name. For an automatically generated session name, it
 ---will just be the same as vim.fn.getcwd(). For a named session, it will be the name
 ---without .vim
+---@param tail_only? boolean Only return the last part of a path based session name
 ---@return string The current session name
-function Lib.current_session_name()
+function Lib.current_session_name(tail_only)
+  tail_only = tail_only or false
   -- get the filename without the extension
   local file_name = vim.fn.fnamemodify(vim.v.this_session, ":t:r")
-  return Lib.get_session_display_name(file_name)
+  local session_name = Lib.get_session_display_name(file_name)
+
+  if not tail_only then
+    return session_name
+  end
+
+  return vim.fn.fnamemodify(session_name, ":t")
 end
 
 function Lib.is_empty_table(t)

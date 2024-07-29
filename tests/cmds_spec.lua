@@ -80,6 +80,7 @@ describe("The default config", function()
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 
     assert.equals(TL.named_session_name, require("auto-session").Lib.current_session_name())
+    assert.equals(TL.named_session_name, require("auto-session").Lib.current_session_name(true))
   end)
 
   it("can complete session names", function()
@@ -156,6 +157,7 @@ describe("The default config", function()
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 
     assert.equals(vim.fn.getcwd(), require("auto-session.lib").current_session_name())
+    assert.equals(vim.fn.fnamemodify(vim.fn.getcwd(), ":t"), require("auto-session.lib").current_session_name(true))
   end)
 
   it("can purge old sessions", function()
