@@ -831,6 +831,11 @@ function AutoSession.SaveSessionToDir(session_dir, session_name, show_message)
   local pre_cmds = AutoSession.get_cmds "pre_save"
   run_hook_cmds(pre_cmds, "pre-save")
 
+  -- We don't want to save arguments to the session as that can cause issues
+  -- with buffers that can't be removed from the session as they keep being
+  -- added back through an argadd
+  vim.cmd "%argdelete"
+
   Lib.logger.debug("SaveSessionToDir writing session to: " .. session_path)
 
   -- Vim cmds require escaping any % with a \ but we don't want to do that
