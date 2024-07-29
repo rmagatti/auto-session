@@ -46,10 +46,11 @@ session_control                                                *session_control*
 
 
 AutoSession.setup({config})                                  *AutoSession.setup*
-    Setup function for AutoSession
+    Setup function for AutoSession. Config is not marked as defaultConf so it doesn't
+    create a diagnostic about missing fields.
 
     Parameters: ~
-        {config}  (defaultConf)  config for auto session
+        {config}  (table|nil)  Config for auto session
 
 
 AutoSession.session_exists_for_cwd()        *AutoSession.session_exists_for_cwd*
