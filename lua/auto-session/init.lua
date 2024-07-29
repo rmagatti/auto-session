@@ -701,14 +701,12 @@ function AutoSession.AutoRestoreSession(session_name)
   return AutoSession.RestoreSession(session_name, false)
 end
 
----Function called by AutoSession at VimEnter to automatically restore a session.
+---Called at VimEnter (after Lazy is done) to see if we should automatically restore a session
 ---If launched with a single directory parameter and conf.args_allow_single_directory is true, pass
 ---that in as the session_dir. Handles both 'nvim .' and 'nvim some/dir'
----
 ---Also make sure to call no_restore if no session was restored
+---@return boolean Was a session restored
 local function auto_restore_session_at_vim_enter()
-  local session_name = nil
-
   -- Save the launch args here as restoring a session will replace vim.fn.argv. We clear
   -- launch_argv in restore session so it's only used for the session launched from the command
   -- line
@@ -722,27 +720,38 @@ local function auto_restore_session_at_vim_enter()
   then
     -- Get the full path of the directory and make sure it doesn't have a trailing path_separator
     -- to make sure we find the session
-    session_name = Lib.remove_trailing_separator(vim.fn.fnamemodify(launch_argv[1], ":p"))
+    local session_name = Lib.remove_trailing_separator(vim.fn.fnamemodify(launch_argv[1], ":p"))
     Lib.logger.debug("Launched with single directory, using as session_dir: " .. session_name)
-  end
 
-  if AutoSession.AutoRestoreSession(session_name) then
-    return true
-  end
-
-  -- Check to see if the last session feature is on
-  if AutoSession.conf.auto_session_enable_last_session then
-    Lib.logger.debug "Last session is enabled, checking for session"
-
-    ---@diagnostic disable-next-line: cast-local-type
-    local last_session_name = Lib.get_latest_session(AutoSession.get_root_dir())
-    if last_session_name then
-      Lib.logger.debug("Found last session: " .. last_session_name)
-      if AutoSession.RestoreSession(last_session_name, false) then
-        return true
-      end
+    if AutoSession.AutoRestoreSession(session_name) then
+      return true
     end
-    Lib.logger.debug "Failed to load last session"
+
+    -- We failed to load a session for the other directory. Unless session name matches cwd, we don't
+    -- want to enable autosaving since it might replace the session for the cwd
+    if vim.fn.getcwd() ~= session_name then
+      Lib.logger.debug "Not enabling autosave because launch argument didn't load session and doesn't match cwd"
+      AutoSession.conf.auto_save_enabled = false
+    end
+  else
+    if AutoSession.AutoRestoreSession() then
+      return true
+    end
+
+    -- Check to see if the last session feature is on
+    if AutoSession.conf.auto_session_enable_last_session then
+      Lib.logger.debug "Last session is enabled, checking for session"
+
+      ---@diagnostic disable-next-line: cast-local-type
+      local last_session_name = Lib.get_latest_session(AutoSession.get_root_dir())
+      if last_session_name then
+        Lib.logger.debug("Found last session: " .. last_session_name)
+        if AutoSession.RestoreSession(last_session_name, false) then
+          return true
+        end
+      end
+      Lib.logger.debug "Failed to load last session"
+    end
   end
 
   -- No session was restored, dispatch no-restore hook
