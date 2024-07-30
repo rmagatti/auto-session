@@ -2,17 +2,17 @@ defaultConf                                                        *defaultConf*
     table default config for auto session
 
     Fields: ~
-        {log_level?}                         (string|integer)        "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
-        {auto_session_enable_last_session?}  (boolean)
-        {auto_session_root_dir?}             (string)                root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
-        {auto_session_enabled?}              (boolean)               enable auto session
-        {auto_session_create_enabled}        (boolean|function|nil)  Enables/disables auto creating new sessions. Can take a function that should return true/false if a session should be created or not
-        {auto_save_enabled?}                 (boolean)               Enables/disables auto saving session
-        {auto_restore_enabled?}              (boolean)               Enables/disables auto restoring session
-        {auto_restore_lazy_delay_enabled?}   (boolean)               Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used. Can be disabled if a problem is suspected or for debugging
-        {auto_session_suppress_dirs?}        (table)                 Suppress auto session for directories
-        {auto_session_allowed_dirs?}         (table)                 Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
-        {auto_session_use_git_branch?}       (boolean)               Include git branch name in session name to differentiate between sessions for different git branches
+        {auto_session_enabled?}              (boolean)           Enables/disables auto saving and restoring
+        {auto_session_root_dir?}             (string)            root directory for session files, by default is `vim.fn.stdpath('data') .. '/sessions/'`
+        {auto_save_enabled?}                 (boolean)           Enables/disables auto saving session on exit
+        {auto_restore_enabled?}              (boolean)           Enables/disables auto restoring session on start
+        {auto_session_suppress_dirs?}        (table)             Suppress auto session for directories
+        {auto_session_allowed_dirs?}         (table)             Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
+        {auto_session_create_enabled}        (boolean|function)  Enables/disables auto creating new sessions. Can take a function that should return true/false if a session should be created or not
+        {auto_session_enable_last_session?}  (boolean)           On startup, loads the last saved session if session for cwd does not exist
+        {auto_session_use_git_branch?}       (boolean)           Include git branch name in session name to differentiate between sessions for different git branches
+        {auto_restore_lazy_delay_enabled?}   (boolean)           Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used. Can be disabled if a problem is suspected or for debugging
+        {log_level?}                         (string|integer)    "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
 
 
 luaOnlyConf                                                        *luaOnlyConf*
@@ -46,155 +46,144 @@ session_control                                                *session_control*
 
 
 AutoSession.setup({config})                                  *AutoSession.setup*
-    Setup function for AutoSession
+    Setup function for AutoSession. Config is not marked as defaultConf so it doesn't
+    create a diagnostic about missing fields.
 
     Parameters: ~
-        {config}  (defaultConf)  config for auto session
-
-
-AutoSession.setup_session_lens()                *AutoSession.setup_session_lens*
-
-
-AutoSession.get_latest_session()                *AutoSession.get_latest_session*
-    Get latest session for the "last session" feature
-
-    Returns: ~
-        (string|nil)
+        {config}  (table|nil)  Config for auto session
 
 
 AutoSession.session_exists_for_cwd()        *AutoSession.session_exists_for_cwd*
+    Quickly checks if a session file exists for the current working directory.
+    This is useful for starter plugins which don't want to display 'restore session'
+    unless a session for the current working directory exists.
+
+    Returns: ~
+        (boolean)  if a session exists for the cwd
 
 
-                                                   *AutoSession.AutoSaveSession*
-AutoSession.AutoSaveSession({sessions_dir?})
+AutoSession.AutoSaveSession()                      *AutoSession.AutoSaveSession*
     AutoSaveSession
     Function called by auto_session to trigger auto_saving sessions, for example on VimExit events.
 
-    Parameters: ~
-        {sessions_dir?}  (string)  the session directory to auto_save a session for. If empty this function will end up using the cwd to infer what session to save for.
-
-
-                                                      *AutoSession.get_root_dir*
-AutoSession.get_root_dir({with_trailing_separator?})
-    Gets the root directory of where to save the sessions.
-    By default this resolves to `vim.fn.stdpath "data" .. "/sessions/"`
-
-    Parameters: ~
-        {with_trailing_separator?}  (boolean)  whether to incude the trailing separator. A few places (telescope picker don't expect a trailing separator)
-
     Returns: ~
-        (string)
-
-
-AutoSession.get_cmds({typ})                               *AutoSession.get_cmds*
-    Get the hook commands to run
-    This function gets cmds from both lua and vimscript configs
-
-    Parameters: ~
-        {typ}  (string)
-
-    Returns: ~
-        (function[]|string[])
-
-
-PickerItem                                                          *PickerItem*
-
-    Fields: ~
-        {display_name}  (string)
-        {path}          (string)
-
-
-AutoSession.format_file_name({path})              *AutoSession.format_file_name*
-     Formats an autosession file name to be more presentable to a user
-
-    Parameters: ~
-        {path}  (string)
-
-    Returns: ~
-        (string)
-
-
-AutoSession.get_session_files()                  *AutoSession.get_session_files*
-
-    Returns: ~
-        (PickerItem[])
-
-
-                                                       *AutoSession.SaveSession*
-AutoSession.SaveSession({sessions_dir?}, {auto})
-
-    Parameters: ~
-        {sessions_dir?}  (string)
-        {auto}           (boolean)
+        (boolean)  if a session was saved
 
 
                                                 *AutoSession.AutoRestoreSession*
-AutoSession.AutoRestoreSession({session_dir})
+AutoSession.AutoRestoreSession({session_name?})
     Function called by AutoSession when automatically restoring a session.
 
     Parameters: ~
-        {session_dir}  (any)
+        {session_name?}  (string)  An optional session to load
 
     Returns: ~
         (boolean)  returns whether restoring the session was successful or not.
-
-
-                                            *AutoSession.RestoreSessionFromFile*
-AutoSession.RestoreSessionFromFile({session_file})
-
-    Parameters: ~
-        {session_file}  (string)
-
-
-                                                    *AutoSession.RestoreSession*
-AutoSession.RestoreSession({sessions_dir_or_file})
-    Restores the session by sourcing the session file if it exists/is readable.
-    This function is intended to be called by the user but it is also called by `AutoRestoreSession`
-
-    Parameters: ~
-        {sessions_dir_or_file}  (string)  a dir string or a file string
-
-    Returns: ~
-        (boolean)  returns whether restoring the session was successful or not.
-
-
-AutoSession.DisableAutoSave()                      *AutoSession.DisableAutoSave*
-    DisableAutoSave
-    Intended to be called by the user
-
-
-AutoSession.CompleteSessions()                    *AutoSession.CompleteSessions*
-    CompleteSessions is used by the vimscript command for session name/path completion.
-
-    Returns: ~
-        (string)
-
-
-AutoSession.DeleteSessionByName({...})         *AutoSession.DeleteSessionByName*
-    DeleteSessionByName deletes sessions given a provided list of paths
-
-    Parameters: ~
-        {...}  (string[])
-
-
-AutoSession.DeleteSession({...})                     *AutoSession.DeleteSession*
-    DeleteSession delets a single session given a provided path
-
-    Parameters: ~
-        {...}  (string[])
 
 
 AutoSession.PurgeOrphanedSessions()          *AutoSession.PurgeOrphanedSessions*
-    PurgeOrphanedSessions deletes sessions with no working directory exist
+     Deletes sessions where the original directory no longer exists
 
 
-                                                              *M.setup_autocmds*
-M.setup_autocmds({config}, {AutoSession})
-    Setup autocmds for DirChangedPre and DirChanged
+                                                       *AutoSession.SaveSession*
+AutoSession.SaveSession({session_name?}, {show_message?})
+    Saves a session to the dir specified in the config. If no optional
+    session name is passed in, it uses the cwd as the session name
 
     Parameters: ~
-        {config}       (table)  auto session config
-        {AutoSession}  (table)  auto session instance
+        {session_name?}  (string|nil)  Optional session name
+        {show_message?}  (boolean)     Optional, whether to show a message on save (true by default)
+
+    Returns: ~
+        (boolean)
+
+
+                                                  *AutoSession.SaveSessionToDir*
+AutoSession.SaveSessionToDir({session_dir}, {session_name?}, {show_message?})
+    Saves a session to the passed in directory. If no optional
+    session name is passed in, it uses the cwd as the session name
+
+    Parameters: ~
+        {session_dir}    (string)      Directory to write the session file to
+        {session_name?}  (string|nil)  Optional session name
+        {show_message?}  (boolean)     Optional, whether to show a message on save (true by default)
+
+    Returns: ~
+        (boolean)
+
+
+                                                    *AutoSession.RestoreSession*
+AutoSession.RestoreSession({session_name?}, {show_message?})
+    Restores a session from the passed in directory. If no optional session name
+    is passed in, it uses the cwd as the session name
+
+    Parameters: ~
+        {session_name?}  (string|nil)  Optional session name
+        {show_message?}  (boolean)     Optional, whether to show a message on restore (true by default)
+
+
+                                             *AutoSession.RestoreSessionFromDir*
+AutoSession.RestoreSessionFromDir({session_dir}, {session_name?}, {show_message?})
+    Restores a session from the passed in directory. If no optional session name
+    is passed in, it uses the cwd as the session name
+
+    Parameters: ~
+        {session_dir}    (string)      Directory to write the session file to
+        {session_name?}  (string|nil)  Optional session name
+        {show_message?}  (boolean)     Optional, whether to show a message on restore (true by default)
+
+
+                                                *AutoSession.RestoreSessionFile*
+AutoSession.RestoreSessionFile({session_path}, {show_message?})
+    Restores a session from a specific file
+
+    Parameters: ~
+        {session_path}   (string)   The session file to load
+        {show_message?}  (boolean)  Optional, whether to show a message on restore (true by default)
+
+    Returns: ~
+        (boolean)  a session restored
+
+
+                                                     *AutoSession.DeleteSession*
+AutoSession.DeleteSession({session_name?})
+    Deletes a session from the config session dir. If no optional session name
+    is passed in, it uses the cwd as the session name
+
+    Parameters: ~
+        {session_name?}  (string|nil)  Optional session name
+
+
+                                              *AutoSession.DeleteSessionFromDir*
+AutoSession.DeleteSessionFromDir({session_dir}, {session_name?})
+    Deletes a session from the passed in directory. If no optional session
+    name is passed in, it uses the cwd as the session name
+
+    Parameters: ~
+        {session_dir}    (string)      Directory to delete the session from
+        {session_name?}  (string|nil)  Optional session name
+
+
+                                                 *AutoSession.DeleteSessionFile*
+AutoSession.DeleteSessionFile({session_path}, {session_name})
+    Delete a session file
+
+    Parameters: ~
+        {session_path}  (string)  The filename to delete
+        {session_name}  (string)  Session name being deleted, just use to display messages
+
+    Returns: ~
+        (boolean)  the session file delted
+
+
+AutoSession.DisableAutoSave({enable?})             *AutoSession.DisableAutoSave*
+    Disables autosave. Enables autosave if enable is true
+
+    Parameters: ~
+        {enable?}  (boolean)  Optional paramter to enable autosaving
+
+    Returns: ~
+        (boolean)  autosaving is enabled or not
 
 
 session_lens_config                                        *session_lens_config*
@@ -220,28 +209,6 @@ SessionLens.search_session({custom_opts})
 
     Parameters: ~
         {custom_opts}  (any)
-
-
-M.setup()                                                              *M.setup*
-
-
-M.source_session({prompt_bufnr})                              *M.source_session*
-    Source session action
-    Source a selected session after doing proper current session saving and cleanup
-
-    Parameters: ~
-        {prompt_bufnr}  (number)  the telescope prompt bufnr
-
-
-M.delete_session({prompt_bufnr})                              *M.delete_session*
-    Delete session action
-    Delete a selected session file
-
-    Parameters: ~
-        {prompt_bufnr}  (number)  the telescope prompt bufnr
-
-
-M.alternate_session()                                      *M.alternate_session*
 
 
 vim:tw=78:ts=8:noet:ft=help:norl:

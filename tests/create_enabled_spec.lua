@@ -9,7 +9,7 @@ describe("The create_enabled=false config", function()
   TL.clearSessionFilesAndBuffers()
 
   it("does not create an autosaved session", function()
-    vim.cmd(":e " .. TL.test_file)
+    vim.cmd("e " .. TL.test_file)
 
     ---@diagnostic disable-next-line: missing-parameter
     require("auto-session").AutoSaveSession()
@@ -19,10 +19,10 @@ describe("The create_enabled=false config", function()
   end)
 
   it("can save a session", function()
-    vim.cmd(":e " .. TL.test_file)
+    vim.cmd("e " .. TL.test_file)
 
     ---@diagnostic disable-next-line: missing-parameter
-    vim.cmd ":SessionSave"
+    vim.cmd "SessionSave"
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
@@ -39,7 +39,7 @@ describe("The create_enabled=false config", function()
     -- Make sure the buffer is gone
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 
-    vim.cmd ":SessionRestore"
+    vim.cmd "SessionRestore"
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
   end)
@@ -47,19 +47,19 @@ describe("The create_enabled=false config", function()
   it("can modify a session", function()
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 
-    vim.cmd(":e " .. TL.other_file)
+    vim.cmd("e " .. TL.other_file)
 
     -- Make sure the buffer is gone
     assert.equals(1, vim.fn.bufexists(TL.other_file))
 
-    vim.cmd ":SessionSave"
+    vim.cmd "SessionSave"
 
     vim.cmd "silent %bw"
 
     assert.equals(0, vim.fn.bufexists(TL.test_file))
     assert.equals(0, vim.fn.bufexists(TL.other_file))
 
-    vim.cmd ":SessionRestore"
+    vim.cmd "SessionRestore"
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
     assert.equals(1, vim.fn.bufexists(TL.other_file))
@@ -81,7 +81,7 @@ describe("The create_enabled=function config", function()
   }
 
   TL.clearSessionFilesAndBuffers()
-  vim.cmd(":e " .. TL.other_file)
+  vim.cmd("e " .. TL.other_file)
 
   it("calls the callback and does not autosave a session", function()
     require("auto-session").AutoSaveSession()

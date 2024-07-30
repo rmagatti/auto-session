@@ -1,17 +1,13 @@
-local Lib = require "auto-session.lib"
+local AutoSession = require "auto-session"
+local Lib = AutoSession.Lib
 
-local M = {
-  conf = {},
-  functions = {},
-}
+local M = {}
 
-function M.setup(config, functions)
-  M.conf = vim.tbl_deep_extend("force", config, M.conf)
-  M.functions = functions
-end
-
+---@private
 local function get_alternate_session()
-  local filepath = M.conf.session_control.control_dir .. M.conf.session_control.control_filename
+  ---@diagnostic disable-next-line: undefined-field
+  local session_control_conf = AutoSession.conf.session_lens.session_control
+  local filepath = vim.fn.expand(session_control_conf.control_dir) .. session_control_conf.control_filename
 
   if vim.fn.filereadable(filepath) == 1 then
     local json = Lib.load_session_control_file(filepath)
@@ -31,26 +27,30 @@ local function get_alternate_session()
   end
 end
 
-local function source_session(path, prompt_bufnr)
+local function source_session(session_name, prompt_bufnr)
   if prompt_bufnr then
     local actions = require "telescope.actions"
     actions.close(prompt_bufnr)
   end
 
   vim.defer_fn(function()
-    M.functions.restore_selected_session(path)
+    AutoSession.autosave_and_restore(session_name)
   end, 50)
 end
 
+---@private
 ---Source session action
 ---Source a selected session after doing proper current session saving and cleanup
 ---@param prompt_bufnr number the telescope prompt bufnr
 M.source_session = function(prompt_bufnr)
   local action_state = require "telescope.actions.state"
   local selection = action_state.get_selected_entry()
-  source_session(selection.path, prompt_bufnr)
+  if selection then
+    source_session(selection.value, prompt_bufnr)
+  end
 end
 
+---@private
 ---Delete session action
 ---Delete a selected session file
 ---@param prompt_bufnr number the telescope prompt bufnr
@@ -58,10 +58,13 @@ M.delete_session = function(prompt_bufnr)
   local action_state = require "telescope.actions.state"
   local current_picker = action_state.get_current_picker(prompt_bufnr)
   current_picker:delete_selection(function(selection)
-    M.functions.DeleteSession(selection.path)
+    if selection then
+      AutoSession.DeleteSessionFile(selection.path, selection.display)
+    end
   end)
 end
 
+---@private
 M.alternate_session = function(prompt_bufnr)
   local alternate_session = get_alternate_session()
 
@@ -71,13 +74,15 @@ M.alternate_session = function(prompt_bufnr)
     return
   end
 
-  source_session(alternate_session, prompt_bufnr)
-end
+  local file_name = vim.fn.fnamemodify(alternate_session, ":t")
+  local session_name
+  if Lib.is_legacy_file_name(file_name) then
+    session_name = (Lib.legacy_unescape_session_name(file_name):gsub("%.vim$", ""))
+  else
+    session_name = Lib.escaped_session_name_to_session_name(file_name)
+  end
 
---TODO: figure out the whole file placeholder parsing, expanding, escaping issue!!
----ex:
----"/Users/ronnieandrewmagatti/.local/share/nvim/sessions//%Users%ronnieandrewmagatti%Projects%dotfiles.vim",
----"/Users/ronnieandrewmagatti/.local/share/nvim/sessions/%Users%ronnieandrewmagatti%Projects%auto-session.vim"
----"/Users/ronnieandrewmagatti/.local/share/nvim/sessions/\\%Users\\%ronnieandrewmagatti\\%Projects\\%auto-session.vim"
+  source_session(session_name, prompt_bufnr)
+end
 
 return M

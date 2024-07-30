@@ -9,10 +9,10 @@ describe("A session directory with no trailing slash", function()
 
   TL.clearSessionFilesAndBuffers()
 
-  vim.cmd(":e " .. TL.test_file)
+  vim.cmd("e " .. TL.test_file)
 
   it("saves a session to the directory", function()
-    vim.cmd ":SessionSave"
+    vim.cmd "SessionSave"
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 
@@ -28,7 +28,7 @@ describe("A session directory with no trailing slash", function()
     -- Make sure the buffer is gone
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 
-    vim.cmd ":SessionRestore"
+    vim.cmd "SessionRestore"
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
   end)

@@ -7,11 +7,12 @@ TL.clearSessionFilesAndBuffers()
 TL.clearSessionFiles(custom_session_dir)
 
 describe("A custom session dir config", function()
+  -- Get path that requires expanding
+  local expanding_path = vim.fn.fnamemodify(vim.fn.getcwd() .. custom_session_dir, ":~")
+
   local as = require "auto-session"
   as.setup {
-    -- Remove trailing slash
-    auto_session_root_dir = vim.fn.getcwd() .. custom_session_dir,
-    -- log_level = "debug",
+    auto_session_root_dir = expanding_path,
   }
 
   TL.clearSessionFilesAndBuffers()

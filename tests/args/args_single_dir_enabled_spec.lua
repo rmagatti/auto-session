@@ -4,7 +4,8 @@ local stub = require "luassert.stub"
 
 describe("The args single dir enabled config", function()
   local no_restore_hook_called = false
-  require("auto-session").setup {
+  local as = require "auto-session"
+  as.setup {
     args_allow_single_directory = true,
     args_allow_files_auto_save = false,
 
@@ -15,17 +16,43 @@ describe("The args single dir enabled config", function()
         no_restore_hook_called = true
       end,
     },
+    -- log_level = "debug",
   }
 
+  it("does not autosave for cwd if single directory arg does not have a session", function()
+    no_restore_hook_called = false
+    --enable autosave for this test
+    as.conf.auto_save_enabled = true
+
+    local s = stub(vim.fn, "argv")
+    s.returns { "tests" }
+
+    -- only exported because we set the unit testing env in TL
+    assert.False(as.auto_restore_session_at_vim_enter())
+    assert.equals(true, no_restore_hook_called)
+
+    -- we don't want it to save a session since it won't have loaded a session
+    assert.False(as.AutoSaveSession())
+
+    -- Revert the stub
+    vim.fn.argv:revert()
+    as.conf.auto_save_enabled = false
+  end)
+
   it("does restore a session when run with a single directory", function()
-    assert.equals(false, no_restore_hook_called)
+    no_restore_hook_called = false
+
+    local cwd = vim.fn.getcwd()
+
+    -- Change out of current directory so we don't load session for it
+    vim.cmd "cd tests"
 
     -- Stub
     local s = stub(vim.fn, "argv")
-    s.returns { "." }
+    s.returns { cwd }
 
     -- only exported because we set the unit testing env in TL
-    assert.equals(true, require("auto-session").auto_restore_session_at_vim_enter())
+    assert.equals(true, as.auto_restore_session_at_vim_enter())
 
     -- Revert the stub
     vim.fn.argv:revert()
@@ -44,7 +71,7 @@ describe("The args single dir enabled config", function()
     s.returns { TL.test_file }
 
     -- only exported because we set the unit testing env in TL
-    assert.equals(false, require("auto-session").auto_restore_session_at_vim_enter())
+    assert.equals(false, as.auto_restore_session_at_vim_enter())
 
     -- Revert the stub
     vim.fn.argv:revert()

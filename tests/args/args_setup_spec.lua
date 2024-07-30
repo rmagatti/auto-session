@@ -6,9 +6,9 @@ require("auto-session").setup {
 
 describe("The args setup config", function()
   it("can save a session", function()
-    vim.cmd(":e " .. TL.test_file)
+    vim.cmd("e " .. TL.test_file)
 
-    vim.cmd ":SessionSave"
+    vim.cmd "SessionSave"
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
@@ -25,7 +25,7 @@ describe("The args setup config", function()
     -- Make sure the buffer is gone
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 
-    vim.cmd ":SessionRestore"
+    vim.cmd "SessionRestore"
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 
