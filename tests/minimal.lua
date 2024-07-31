@@ -7,9 +7,9 @@ for _, name in ipairs { "config", "data", "state", "cache" } do
 end
 
 -- Add plenary, so we can run it
-vim.opt.rtp:append "./.test/telescope"
+vim.opt.rtp:append "./.test/plenary"
 
 -- Add telescope path for session-lens test
-vim.opt.rtp:append "./.test/plenary"
+vim.opt.rtp:append "./.test/telescope"
 
 require "plenary"
