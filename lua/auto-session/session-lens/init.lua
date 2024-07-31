@@ -36,7 +36,12 @@ function SessionLens.setup()
   end
 end
 
-local function make_telescope_callback(opts)
+---@private
+---Function generator that returns the function for generating telescope file entries. Only exported
+---for testing.
+---@param opts table Options for how paths sould be displayed. Only supports opts.shorten
+---@return function The function to be set as entry_maker in Telescope picker options
+function SessionLens.make_telescope_callback(opts)
   local session_root_dir = AutoSession.get_root_dir()
 
   -- just used for shortening the display_name (if enabled)
@@ -123,7 +128,7 @@ SessionLens.search_session = function(custom_opts)
 
   local opts = {
     prompt_title = "Sessions",
-    entry_maker = make_telescope_callback(custom_opts),
+    entry_maker = SessionLens.make_telescope_callback(custom_opts),
     cwd = session_root_dir,
     attach_mappings = function(_, map)
       telescope_actions.select_default:replace(Actions.source_session)
