@@ -6,7 +6,10 @@ for _, name in ipairs { "config", "data", "state", "cache" } do
   vim.env[("XDG_%s_HOME"):format(name:upper())] = root .. name
 end
 
--- Add plenary so we can run it
+-- Add plenary, so we can run it
+vim.opt.rtp:append "./.test/telescope"
+
+-- Add telescope path for session-lens test
 vim.opt.rtp:append "./.test/plenary"
 
 require "plenary"

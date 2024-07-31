@@ -16,6 +16,22 @@ describe("The args not enabled config", function()
       end,
     },
   }
+  TL.clearSessionFilesAndBuffers()
+
+  it("can save a session", function()
+    vim.cmd("e " .. TL.test_file)
+
+    vim.cmd "SessionSave"
+
+    -- Make sure the session was created
+    assert.equals(1, vim.fn.filereadable(TL.default_session_path))
+
+    -- Make sure the session has our buffer
+    TL.assertSessionHasFile(TL.default_session_path, TL.test_file)
+
+    -- now clear the buffers
+    vim.cmd "%bw!"
+  end)
 
   it("doesn't restore a session when run with a single directory", function()
     assert.equals(false, no_restore_hook_called)
