@@ -1,14 +1,17 @@
-# Using my fork of plenary just for https://github.com/nvim-lua/plenary.nvim/pull/611
-PLENARY_VER = master
-PLENARY_DIR = .test/plenary
+# FIXME: Using my fork of plenary just for https://github.com/nvim-lua/plenary.nvim/pull/611
 PLENARY_URL = https://github.com/cameronr/plenary.nvim
+PLENARY_DIR = .test/plenary
+PLENARY_VER = master
 
 # Telescope for session-lens test
-TELESCOPE_VER = 0.1.8
-TELESCOPE_DIR = .test/telescope
 TELESCOPE_URL = https://github.com/nvim-telescope/telescope.nvim
+TELESCOPE_DIR = .test/telescope
+TELESCOPE_VER = 0.1.8
 
+# FIXME: Using my fork on mini.nvim just for https://github.com/echasnovski/mini.nvim/pull/1101
+MINI_URL = https://github.com/cameronr/mini.nvim
 MINI_DIR = .test/mini.nvim
+MINI_VER = windows
 
 PLUGINS := $(PLENARY_DIR) $(TELESCOPE_DIR) ${MINI_DIR}
 
@@ -39,4 +42,4 @@ $(TELESCOPE_DIR):
 	git clone --depth=1 --branch $(TELESCOPE_VER) $(TELESCOPE_URL) $@
 
 $(MINI_DIR):
-	git clone --depth=1 --filter=blob:none https://github.com/echasnovski/mini.nvim $@
+	git clone --depth=1 --filter=blob:none --branch $(MINI_VER) $(MINI_URL) $@

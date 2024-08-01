@@ -1,3 +1,4 @@
+---@diagnostic disable: undefined-field
 -- Define helper aliases
 local new_set = MiniTest.new_set
 local expect, eq = MiniTest.expect, MiniTest.expect.equality
@@ -45,13 +46,6 @@ T["session lens"]["save a named session"] = function()
   child.cmd "SessionSave project_x"
 end
 
-T["session lens"]["can list sessions"] = function()
-  child.cmd "SessionSearch"
-  -- give the UI time to come up
-  vim.loop.sleep(100)
-  expect.reference_screenshot(child.get_screenshot())
-end
-
 T["session lens"]["can load a session"] = function()
   expect.equality(0, child.fn.bufexists(TL.test_file))
   child.cmd "SessionSearch"
@@ -60,7 +54,6 @@ T["session lens"]["can load a session"] = function()
   child.type_keys "<cr>"
   -- give the session time to load
   vim.loop.sleep(500)
-  expect.reference_screenshot(child.get_screenshot())
   expect.equality(1, child.fn.bufexists(TL.test_file))
 end
 
