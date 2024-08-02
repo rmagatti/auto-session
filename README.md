@@ -363,23 +363,6 @@ Another possibility is to only save the session if there are at least two window
 
 ```
 
-## Disabling the plugin
-
-You might run into issues with Firenvim or another plugin and want to disable `auto_session` altogether based on some condition.
-For this example, as to not try and save sessions for Firenvim, we disable the plugin if the `started_by_firenvim` variable is set.
-
-```viml
-if exists('g:started_by_firenvim')
-  let g:auto_session_enabled = v:false
-endif
-```
-
-One can also disable the plugin by setting the `auto_session_enabled` option to false at startup.
-
-```sh
-nvim "+let g:auto_session_enabled = v:false"
-```
-
 ## 🔭 Session Lens
 
 You can use Telescope to see, load, and delete your sessions. It's enabled by default if you have Telescope, but here's the Lazy config that shows the configuration options:
@@ -427,11 +410,11 @@ NOTE: If you previously installed `rmagatti/session-lens`, you should remove it 
 
 <img src="https://github.com/rmagatti/readme-assets/blob/main/session-lens.gif" width=800 />
 
-### Statusline
+## Statusline
 
-One can show the current session name in the statusline by using an AutoSession helper function.
+You can show the current session name in the statusline by using the function `current_session_name()`. With no arguments, it will return the full session name. For automatically created sessions that will be the path where the session was saved. If you only want the last directory in the path, you can call `current_session_name(true)`.
 
-Lualine example config and how it looks
+Here's an example using [Lualine](https://github.com/nvim-lualine/lualine.nvim):
 
 ```lua
 require('lualine').setup{
@@ -449,6 +432,23 @@ require('lualine').setup{
 ```
 
 <img width="1904" alt="Screen Shot 2021-10-30 at 3 58 57 PM" src="https://user-images.githubusercontent.com/2881382/139559478-8edefdb8-8254-42e7-a0f3-babd3dfd6ff2.png">
+
+## Disabling the plugin
+
+You might run into issues with Firenvim or another plugin and want to disable `auto_session` altogether based on some condition.
+For this example, as to not try and save sessions for Firenvim, we disable the plugin if the `started_by_firenvim` variable is set.
+
+```viml
+if exists('g:started_by_firenvim')
+  let g:auto_session_enabled = v:false
+endif
+```
+
+One can also disable the plugin by setting the `auto_session_enabled` option to false at startup.
+
+```sh
+nvim "+let g:auto_session_enabled = v:false"
+```
 
 ## 🚧 Troubleshooting
 

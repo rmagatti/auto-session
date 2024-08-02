@@ -18,6 +18,22 @@ describe("The args single dir enabled config", function()
     },
     -- log_level = "debug",
   }
+  TL.clearSessionFilesAndBuffers()
+
+  it("can save a session", function()
+    vim.cmd("e " .. TL.test_file)
+
+    vim.cmd "SessionSave"
+
+    -- Make sure the session was created
+    assert.equals(1, vim.fn.filereadable(TL.default_session_path))
+
+    -- Make sure the session has our buffer
+    TL.assertSessionHasFile(TL.default_session_path, TL.test_file)
+
+    -- now clear the buffers
+    vim.cmd "%bw!"
+  end)
 
   it("does not autosave for cwd if single directory arg does not have a session", function()
     no_restore_hook_called = false
