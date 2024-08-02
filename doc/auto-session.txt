@@ -8,7 +8,7 @@ defaultConf                                                        *defaultConf*
         {auto_restore_enabled?}              (boolean)           Enables/disables auto restoring session on start
         {auto_session_suppress_dirs?}        (table)             Suppress auto session for directories
         {auto_session_allowed_dirs?}         (table)             Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
-        {auto_session_create_enabled}        (boolean|function)  Enables/disables auto creating new sessions. Can take a function that should return true/false if a session should be created or not
+        {auto_session_create_enabled?}       (boolean|function)  Enables/disables auto creating new sessions. Can take a function that should return true/false if a session should be created or not
         {auto_session_enable_last_session?}  (boolean)           On startup, loads the last saved session if session for cwd does not exist
         {auto_session_use_git_branch?}       (boolean)           Include git branch name in session name to differentiate between sessions for different git branches
         {auto_restore_lazy_delay_enabled?}   (boolean)           Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used. Can be disabled if a problem is suspected or for debugging
@@ -19,14 +19,15 @@ luaOnlyConf                                                        *luaOnlyConf*
     Lua Only Configs for Auto Session
 
     Fields: ~
-        {cwd_change_handling}              (CwdChangeHandling)
-        {bypass_session_save_file_types?}  (table)              List of file types to bypass auto save when the only buffer open is one of the file types listed
-        {close_unsupported_windows?}       (boolean)            Whether to close windows that aren't backed by a real file
-        {silent_restore}                   (boolean)            Whether to restore sessions silently or not
-        {log_level?}                       (string|integer)     "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
-        {args_allow_single_directory?}     (boolean)            Follow normal sesion save/load logic if launched with a single directory as the only argument
-                                                                Argv Handling
-        {args_allow_files_auto_save?}      (boolean|function)   Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. While you can just set this to true, you probably want to set it to a function that decides when to save a session when launched with file args. See documentation for more detail
+        {cwd_change_handling?}             (boolean|CwdChangeHandling)
+        {bypass_session_save_file_types?}  (table)                      List of file types to bypass auto save when the only buffer open is one of the file types listed
+        {close_unsupported_windows?}       (boolean)                    Whether to close windows that aren't backed by a real file
+        {silent_restore?}                  (boolean)                    Whether to restore sessions silently or not
+        {log_level?}                       (string|integer)             "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
+        {args_allow_single_directory?}     (boolean)                    Follow normal sesion save/load logic if launched with a single directory as the only argument
+                                                                        Argv Handling
+        {args_allow_files_auto_save?}      (boolean|function)           Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. While you can just set this to true, you probably want to set it to a function that decides when to save a session when launched with file args. See documentation for more detail
+        {session_lens?}                    (session_lens_config)        Session lens configuration options
 
 
 CwdChangeHandling                                            *CwdChangeHandling*
@@ -34,7 +35,8 @@ CwdChangeHandling                                            *CwdChangeHandling*
 
     Fields: ~
         {restore_upcoming_session}  (boolean)  {true} restore session for upcoming cwd on cwd change
-        {pre_cwd_changed_hook}      (boolean)
+        {pre_cwd_changed_hook?}     (boolean)  {true} This is called after auto_session code runs for the DirChangedPre autocmd
+        {post_cwd_changed_hook?}    (boolean)  {true} This is called after auto_session code runs for the DirChanged autocmd
 
 
 session_control                                                *session_control*
@@ -46,11 +48,10 @@ session_control                                                *session_control*
 
 
 AutoSession.setup({config})                                  *AutoSession.setup*
-    Setup function for AutoSession. Config is not marked as defaultConf so it doesn't
-    create a diagnostic about missing fields.
+    Setup function for AutoSession
 
     Parameters: ~
-        {config}  (table|nil)  Config for auto session
+        {config}  (defaultConf|nil)  Config for auto session
 
 
 AutoSession.session_exists_for_cwd()        *AutoSession.session_exists_for_cwd*
@@ -190,13 +191,13 @@ session_lens_config                                        *session_lens_config*
     Session Lens Config
 
     Fields: ~
-        {shorten_path}        (boolean)          Deprecated, pass { 'shorten' } to path_display
-        {path_display}        (table)            An array that specifies how to handle paths. Read :h telescope.defaults.path_display
-        {theme_conf}          (table)
-        {buftypes_to_ignore}  (table)            Deprecated, if you're using this please report your usage on github
-        {previewer}           (boolean)
-        {session_control}     (session_control)
-        {load_on_setup}       (boolean)
+        {shorten_path?}        (boolean)          Deprecated, pass { 'shorten' } to path_display
+        {path_display?}        (table)            An array that specifies how to handle paths. Read :h telescope.defaults.path_display
+        {theme_conf?}          (table)
+        {buftypes_to_ignore?}  (table)            Deprecated, if you're using this please report your usage on github
+        {previewer?}           (boolean)
+        {session_control?}     (session_control)
+        {load_on_setup?}       (boolean)
 
 
 SessionLens.setup()                                          *SessionLens.setup*
