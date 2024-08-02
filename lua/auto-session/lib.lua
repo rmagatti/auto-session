@@ -272,6 +272,8 @@ end
 ---@param file_or_dir string
 ---@return string
 function Lib.expand(file_or_dir)
+  -- Deprecated as 0.9.0, should update to following when we only want to support 0.9.0+
+  -- local saved_wildignore = vim.o.wildignore
   local saved_wildignore = vim.api.nvim_get_option "wildignore"
   vim.api.nvim_set_option("wildignore", "")
   ---@diagnostic disable-next-line: param-type-mismatch
