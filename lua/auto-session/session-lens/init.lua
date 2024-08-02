@@ -9,16 +9,15 @@ local SessionLens = {
 
 ---Session Lens Config
 ---@class session_lens_config
----@field shorten_path boolean Deprecated, pass { 'shorten' } to path_display
----@field path_display table An array that specifies how to handle paths. Read :h telescope.defaults.path_display
----@field theme_conf table
----@field buftypes_to_ignore table Deprecated, if you're using this please report your usage on github
----@field previewer boolean
----@field session_control session_control
----@field load_on_setup boolean
+---@field shorten_path? boolean Deprecated, pass { 'shorten' } to path_display
+---@field path_display? table An array that specifies how to handle paths. Read :h telescope.defaults.path_display
+---@field theme_conf? table
+---@field buftypes_to_ignore? table Deprecated, if you're using this please report your usage on github
+---@field previewer? boolean
+---@field session_control? session_control
+---@field load_on_setup? boolean
 
 ---@type session_lens_config
----@diagnostic disable-next-line: missing-fields
 local defaultConf = {
   theme_conf = {},
   previewer = false,

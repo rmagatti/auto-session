@@ -4,7 +4,6 @@ local AutoCmds = require "auto-session.autocmds"
 ----------- Setup ----------
 local AutoSession = {
   ---@type luaOnlyConf
-  ---@diagnostic disable-next-line: missing-fields
   conf = {},
 
   -- Hold on to the lib object here, useful to have the same Lib object for unit
@@ -48,7 +47,7 @@ end
 ---@field auto_restore_enabled? boolean Enables/disables auto restoring session on start
 ---@field auto_session_suppress_dirs? table Suppress auto session for directories
 ---@field auto_session_allowed_dirs? table Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
----@field auto_session_create_enabled boolean|function Enables/disables auto creating new sessions. Can take a function that should return true/false if a session should be created or not
+---@field auto_session_create_enabled? boolean|function Enables/disables auto creating new sessions. Can take a function that should return true/false if a session should be created or not
 ---@field auto_session_enable_last_session? boolean On startup, loads the last saved session if session for cwd does not exist
 ---@field auto_session_use_git_branch? boolean Include git branch name in session name to differentiate between sessions for different git branches
 ---@field auto_restore_lazy_delay_enabled? boolean Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used. Can be disabled if a problem is suspected or for debugging
@@ -72,14 +71,15 @@ local defaultConf = {
 
 ---Lua Only Configs for Auto Session
 ---@class luaOnlyConf
----@field cwd_change_handling CwdChangeHandling
+---@field cwd_change_handling? boolean|CwdChangeHandling
 ---@field bypass_session_save_file_types? table List of file types to bypass auto save when the only buffer open is one of the file types listed
 ---@field close_unsupported_windows? boolean Whether to close windows that aren't backed by a real file
----@field silent_restore boolean Whether to restore sessions silently or not
+---@field silent_restore? boolean Whether to restore sessions silently or not
 ---@field log_level? string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
 ---Argv Handling
 ---@field args_allow_single_directory? boolean Follow normal sesion save/load logic if launched with a single directory as the only argument
 ---@field args_allow_files_auto_save? boolean|function Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. While you can just set this to true, you probably want to set it to a function that decides when to save a session when launched with file args. See documentation for more detail
+---@field session_lens? session_lens_config Session lens configuration options
 
 local luaOnlyConf = {
   bypass_session_save_file_types = nil, -- Bypass auto save when only buffer open is one of these file types
@@ -89,17 +89,16 @@ local luaOnlyConf = {
   ---CWD Change Handling Config
   ---@class CwdChangeHandling
   ---@field restore_upcoming_session boolean {true} restore session for upcoming cwd on cwd change
-  ---@field pre_cwd_changed_hook boolean? {true} This is called after auto_session code runs for the DirChangedPre autocmd
-  ---@field post_cwd_changed_hook boolean? {true} This is called after auto_session code runs for the DirChanged autocmd
+  ---@field pre_cwd_changed_hook? boolean {true} This is called after auto_session code runs for the DirChangedPre autocmd
+  ---@field post_cwd_changed_hook? boolean {true} This is called after auto_session code runs for the DirChanged autocmd
 
-  ---@type CwdChangeHandling this config can also be set to `false` to disable cwd change handling altogether.
+  ---@type boolean|CwdChangeHandling this config can also be set to `false` to disable cwd change handling altogether.
   ---Can also be set to a table with any of the following keys:
   --- {
   ---   restore_upcoming_session = true,
   ---   pre_cwd_changed_hook = nil, -- lua function hook. This is called after auto_session code runs for the `DirChangedPre` autocmd
   ---   post_cwd_changed_hook = nil, -- lua function hook. This is called after auto_session code runs for the `DirChanged` autocmd
   --- }
-  ---@diagnostic disable-next-line: assign-type-mismatch
   cwd_change_handling = false,
   ---Session Control Config
   ---@class session_control
@@ -132,9 +131,8 @@ local function check_config()
   end
 end
 
----Setup function for AutoSession. Config is not marked as defaultConf so it doesn't
----create a diagnostic about missing fields.
----@param config table|nil Config for auto session
+---Setup function for AutoSession
+---@param config defaultConf|nil Config for auto session
 function AutoSession.setup(config)
   AutoSession.conf = vim.tbl_deep_extend("force", AutoSession.conf, config or {})
   Lib.setup(AutoSession.conf)
@@ -146,7 +144,6 @@ function AutoSession.setup(config)
 
   check_config()
 
-  ---@diagnostic disable-next-line: undefined-field
   if AutoSession.conf.session_lens.load_on_setup then
     Lib.logger.debug "Loading session lens on setup"
     AutoSession.setup_session_lens()
@@ -651,10 +648,7 @@ function AutoSession.autosave_and_restore(session_name)
 end
 
 local function write_to_session_control_json(session_file_name)
-  --- FIXME: fix the types at some point
-  ---@diagnostic disable-next-line: undefined-field
   local control_dir = AutoSession.conf.session_lens.session_control.control_dir
-  ---@diagnostic disable-next-line: undefined-field
   local control_file = AutoSession.conf.session_lens.session_control.control_filename
   session_file_name = Lib.expand(session_file_name)
 
@@ -742,7 +736,6 @@ local function auto_restore_session_at_vim_enter()
     if AutoSession.conf.auto_session_enable_last_session then
       Lib.logger.debug "Last session is enabled, checking for session"
 
-      ---@diagnostic disable-next-line: cast-local-type
       local last_session_name = Lib.get_latest_session(AutoSession.get_root_dir())
       if last_session_name then
         Lib.logger.debug("Found last session: " .. last_session_name)
