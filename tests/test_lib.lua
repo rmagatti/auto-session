@@ -50,11 +50,21 @@ M.named_session_name = "mysession"
 M.named_session_path = M.session_dir .. M.named_session_name .. ".vim"
 
 function M.fileHasString(file_path, string)
-  return vim.fn.system('rg -c "' .. string .. '" "' .. file_path .. '"'):gsub("%s+", "") ~= ""
+  if vim.fn.has "win32" == 1 then
+    return vim.fn
+      .system('findstr /c:"' .. string .. '" "' .. (file_path:gsub("/", "\\")) .. '" | find /c /v ""')
+      :gsub("%s+", "") ~= "0"
+  end
+  return vim.fn.system('grep -c "' .. string .. '" "' .. file_path .. '"'):gsub("%s+", "") ~= "0"
 end
 
 function M.sessionHasFile(session_path, file)
-  return vim.fn.system('rg badd "' .. session_path .. '" | rg -c "' .. file .. '"'):gsub("%s+", "") == "1"
+  if vim.fn.has "win32" == 1 then
+    return vim.fn
+      .system('findstr badd "' .. (session_path:gsub("/", "\\")) .. '" | findstr /c:"' .. file .. '" | find /c /v ""')
+      :gsub("%s+", "") == "1"
+  end
+  return vim.fn.system('grep badd "' .. session_path .. '" | grep -c "' .. file .. '"'):gsub("%s+", "") == "1"
 end
 
 function M.assertSessionHasFile(session_path, file)
