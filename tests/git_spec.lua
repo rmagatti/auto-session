@@ -42,7 +42,8 @@ describe("The git config", function()
 
   -- init repo and make a commit
   runCmdAndPrint "git init -b main"
-  runCmdAndPrint 'git config user.email "test@test.com"; git config user.name "test"'
+  runCmdAndPrint 'git config user.email "test@test.com"'
+  runCmdAndPrint 'git config user.name "test"'
   runCmdAndPrint "git add test.txt"
   runCmdAndPrint "git commit -m 'init'"
 

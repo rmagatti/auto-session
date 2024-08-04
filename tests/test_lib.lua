@@ -51,8 +51,10 @@ M.named_session_path = M.session_dir .. M.named_session_name .. ".vim"
 
 function M.fileHasString(file_path, string)
   if vim.fn.has "win32" == 1 then
+    -- Have to make sure it's windows' native find (and not MinGW's find), so we use specify SystemRoot
+    -- This is necessary to make it work for the GH action
     return vim.fn
-      .system('findstr /c:"' .. string .. '" "' .. (file_path:gsub("/", "\\")) .. '" | find /c /v ""')
+      .system('findstr /c:"' .. string .. '" "' .. (file_path:gsub("/", "\\")) .. '" | %SystemRoot%\\system32\\find /c /v ""')
       :gsub("%s+", "") ~= "0"
   end
   return vim.fn.system('grep -c "' .. string .. '" "' .. file_path .. '"'):gsub("%s+", "") ~= "0"
@@ -60,8 +62,16 @@ end
 
 function M.sessionHasFile(session_path, file)
   if vim.fn.has "win32" == 1 then
+    -- Have to make sure it's windows' native find (and not MinGW's find), so we use specify SystemRoot
+    -- This is necessary to make it work for the GH action
     return vim.fn
-      .system('findstr badd "' .. (session_path:gsub("/", "\\")) .. '" | findstr /c:"' .. file .. '" | find /c /v ""')
+      .system(
+        'findstr badd "'
+          .. (session_path:gsub("/", "\\"))
+          .. '" | findstr /c:"'
+          .. file
+          .. '" | %SystemRoot%\\system32\\find /c /v ""'
+      )
       :gsub("%s+", "") == "1"
   end
   return vim.fn.system('grep badd "' .. session_path .. '" | grep -c "' .. file .. '"'):gsub("%s+", "") == "1"
