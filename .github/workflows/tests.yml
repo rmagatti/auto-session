@@ -22,22 +22,24 @@ jobs:
           args: --check . -g '*.lua' -g '!deps/'
 
   test:
-    runs-on: ubuntu-latest
     timeout-minutes: 2
     strategy:
       matrix:
-        neovim_version: ["v0.7.2", "v0.8.3", "v0.9.5", "v0.10.0", "nightly"]
+        os: [ubuntu-latest]
+        neovim_version: ["v0.7.2", "v0.8.3", "v0.9.5", "v0.10.1", "nightly"]
+        include:
+          - os: windows-latest
+            neovim_version: v0.10.1
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
 
-      - run: date +%F > todays-date
-
-      - name: restore cache for today's nightly.
-        uses: actions/cache@v4
-        with:
-          path: _neovim
-          key: ${{ runner.os }}-x64-${{ hashFiles('todays-date') }}
+      # For sshing in to debug GH actions
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
+      #   with:
+      #     detached: true
 
       - name: setup neovim
         uses: rhysd/action-setup-vim@v1
@@ -45,11 +47,5 @@ jobs:
           neovim: true
           version: ${{ matrix.neovim_version }}
 
-      - name: install ripgrep
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ripgrep
-
-      - name: run tests
-        run: |
-          make test
+      - name: Run tests
+        run: make test
