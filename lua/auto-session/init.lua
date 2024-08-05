@@ -939,7 +939,9 @@ function AutoSession.RestoreSessionFile(session_path, show_message)
   local cmd = "source " .. vim_session_path
 
   if AutoSession.conf.silent_restore then
-    cmd = "silent " .. cmd
+    cmd = "silent! " .. cmd
+    -- clear errors here so we can
+    vim.v.errmsg = ""
   end
 
   -- Set restore_in_progress here so we won't also try to save/load the session if
@@ -959,11 +961,17 @@ function AutoSession.RestoreSessionFile(session_path, show_message)
   -- Clear any saved command line args since we don't need them anymore
   launch_argv = nil
 
+  if AutoSession.conf.silent_restore and vim.v.errmsg and vim.v.errmsg ~= "" then
+    -- we had an error while sourcing silently so surface it
+    success = false
+    result = vim.v.errmsg
+  end
+
   if not success then
     Lib.logger.error([[
-Error restoring session! The session might be corrupted.
-Disabling auto save. Please check for errors in your config. Error:
-]] .. result)
+Error restoring session, disabling auto save.
+Set silent_restore = false in the config for a more detailed error message.
+Error: ]] .. result)
     AutoSession.conf.auto_save_enabled = false
     return false
   end
