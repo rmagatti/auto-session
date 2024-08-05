@@ -74,7 +74,7 @@ local defaultConf = {
 ---@field cwd_change_handling? boolean|CwdChangeHandling
 ---@field bypass_session_save_file_types? table List of file types to bypass auto save when the only buffer open is one of the file types listed
 ---@field close_unsupported_windows? boolean Whether to close windows that aren't backed by a real file
----@field silent_restore? boolean Whether to restore sessions silently or not
+---@field silent_restore? boolean Suppress extraneous messages and source the whole session, even if there's an error. Set to false to get the line number of a restore error
 ---@field log_level? string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
 ---Argv Handling
 ---@field args_allow_single_directory? boolean Follow normal sesion save/load logic if launched with a single directory as the only argument
@@ -114,7 +114,7 @@ local luaOnlyConf = {
       control_filename = "session_control.json", -- File name of the session control file
     },
   },
-  silent_restore = true,
+  silent_restore = true, --  Suppress extraneous messages and source the whole session, even if there's an error. Set to false to get the line number of a restore error
 }
 
 -- Set default config on plugin load
