@@ -22,7 +22,7 @@ luaOnlyConf                                                        *luaOnlyConf*
         {cwd_change_handling?}             (boolean|CwdChangeHandling)
         {bypass_session_save_file_types?}  (table)                      List of file types to bypass auto save when the only buffer open is one of the file types listed
         {close_unsupported_windows?}       (boolean)                    Whether to close windows that aren't backed by a real file
-        {silent_restore?}                  (boolean)                    Whether to restore sessions silently or not
+        {silent_restore?}                  (boolean)                    Suppress extraneous messages and source the whole session, even if there's an error. Set to false to get the line number of a restore error
         {log_level?}                       (string|integer)             "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
         {args_allow_single_directory?}     (boolean)                    Follow normal sesion save/load logic if launched with a single directory as the only argument
                                                                         Argv Handling
