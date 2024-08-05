@@ -74,7 +74,7 @@ local defaultConf = {
 ---@field cwd_change_handling? boolean|CwdChangeHandling
 ---@field bypass_session_save_file_types? table List of file types to bypass auto save when the only buffer open is one of the file types listed
 ---@field close_unsupported_windows? boolean Whether to close windows that aren't backed by a real file
----@field silent_restore? boolean Whether to restore sessions silently or not
+---@field silent_restore? boolean Suppress extraneous messages and source the whole session, even if there's an error. Set to false to get the line number of a restore error
 ---@field log_level? string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
 ---Argv Handling
 ---@field args_allow_single_directory? boolean Follow normal sesion save/load logic if launched with a single directory as the only argument
@@ -114,7 +114,7 @@ local luaOnlyConf = {
       control_filename = "session_control.json", -- File name of the session control file
     },
   },
-  silent_restore = true,
+  silent_restore = true, --  Suppress extraneous messages and source the whole session, even if there's an error. Set to false to get the line number of a restore error
 }
 
 -- Set default config on plugin load
@@ -939,7 +939,9 @@ function AutoSession.RestoreSessionFile(session_path, show_message)
   local cmd = "source " .. vim_session_path
 
   if AutoSession.conf.silent_restore then
-    cmd = "silent " .. cmd
+    cmd = "silent! " .. cmd
+    -- clear errors here so we can
+    vim.v.errmsg = ""
   end
 
   -- Set restore_in_progress here so we won't also try to save/load the session if
@@ -959,11 +961,17 @@ function AutoSession.RestoreSessionFile(session_path, show_message)
   -- Clear any saved command line args since we don't need them anymore
   launch_argv = nil
 
+  if AutoSession.conf.silent_restore and vim.v.errmsg and vim.v.errmsg ~= "" then
+    -- we had an error while sourcing silently so surface it
+    success = false
+    result = vim.v.errmsg
+  end
+
   if not success then
     Lib.logger.error([[
-Error restoring session! The session might be corrupted.
-Disabling auto save. Please check for errors in your config. Error:
-]] .. result)
+Error restoring session, disabling auto save.
+Set silent_restore = false in the config for a more detailed error message.
+Error: ]] .. result)
     AutoSession.conf.auto_save_enabled = false
     return false
   end
