@@ -312,10 +312,19 @@ function Lib.close_unsupported_windows()
       if vim.fn.tabpagenr "$" == 1 and vim.fn.winnr "$" == 1 then
         return
       end
-      local buffer = vim.api.nvim_win_get_buf(window)
-      local file_name = vim.api.nvim_buf_get_name(buffer)
-      if vim.fn.filereadable(file_name) == 0 then
-        vim.api.nvim_win_close(window, true)
+      -- Sometimes closing one window can affect another so wrap in pcall
+      local success, buffer = pcall(vim.api.nvim_win_get_buf, window)
+      if success then
+        local file_name = vim.api.nvim_buf_get_name(buffer)
+        local buf_type = vim.api.nvim_get_option_value("buftype", { buf = buffer })
+        -- Lib.logger.debug("file_name: " .. file_name .. " buf_type: " .. buf_type)
+        if vim.fn.filereadable(file_name) == 0 and buf_type ~= "terminal" then
+          Lib.logger.debug("closing window: " .. window .. " file_name: " .. file_name .. " buf_type: " .. buf_type)
+
+          vim.api.nvim_win_close(window, true)
+        end
+      else
+        Lib.logger.debug("Windows: " .. vim.inspect(windows) .. " window is no longer valid: " .. window)
       end
     end
   end
