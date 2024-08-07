@@ -482,6 +482,12 @@ end
 ---@return boolean True if a session exists for the cwd
 function AutoSession.session_exists_for_cwd()
   local session_file = get_session_file_name(vim.fn.getcwd())
+  if vim.fn.filereadable(AutoSession.get_root_dir() .. session_file) ~= 0 then
+    return true
+  end
+
+  -- Check legacy sessions
+  local session_file = get_session_file_name(vim.fn.getcwd(), true)
   return vim.fn.filereadable(AutoSession.get_root_dir() .. session_file) ~= 0
 end
 

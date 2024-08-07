@@ -25,6 +25,8 @@ describe("Legacy file name support", function()
 
     -- save a default session in new format
     as.SaveSession()
+
+    assert.True(as.session_exists_for_cwd())
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
     assert.equals(1, vim.fn.filereadable(default_extra_cmds_path))
 
@@ -32,6 +34,7 @@ describe("Legacy file name support", function()
     vim.loop.fs_rename(default_extra_cmds_path, legacy_extra_cmds_path)
 
     print(TL.default_session_path_legacy)
+    assert.True(as.session_exists_for_cwd())
     assert.equals(1, vim.fn.filereadable(TL.default_session_path_legacy))
     assert.equals(0, vim.fn.filereadable(TL.default_session_path))
     assert.equals(1, vim.fn.filereadable(legacy_extra_cmds_path))
@@ -54,6 +57,8 @@ describe("Legacy file name support", function()
     -- and no old file name?
     assert.equals(0, vim.fn.filereadable(TL.default_session_path_legacy))
     assert.equals(0, vim.fn.filereadable(legacy_extra_cmds_path))
+
+    assert.True(as.session_exists_for_cwd())
   end)
 
   it("can convert a session to the new format during a delete", function()
