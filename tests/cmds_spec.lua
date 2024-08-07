@@ -17,6 +17,7 @@ describe("The default config", function()
   end)
 
   it("can save a session for the cwd", function()
+    assert.False(as.session_exists_for_cwd())
     vim.cmd("e " .. TL.test_file)
 
     vim.cmd "SessionSave"
