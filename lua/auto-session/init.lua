@@ -72,7 +72,7 @@ local defaultConf = {
 ---Lua Only Configs for Auto Session
 ---@class luaOnlyConf
 ---@field cwd_change_handling? boolean|CwdChangeHandling
----@field bypass_session_save_file_types? table List of file types to bypass auto save when the only buffer open is one of the file types listed
+---@field bypass_session_save_file_types? table List of file types to bypass auto save when the only buffer open is one of the file types listed, useful to ignore dashboards
 ---@field close_unsupported_windows? boolean Whether to close windows that aren't backed by a real file
 ---@field silent_restore? boolean Suppress extraneous messages and source the whole session, even if there's an error. Set to false to get the line number of a restore error
 ---@field log_level? string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
@@ -82,7 +82,7 @@ local defaultConf = {
 ---@field session_lens? session_lens_config Session lens configuration options
 
 local luaOnlyConf = {
-  bypass_session_save_file_types = nil, -- Bypass auto save when only buffer open is one of these file types
+  bypass_session_save_file_types = nil, -- Bypass auto save when only buffer open is one of these file types, useful to ignore dashboards
   close_unsupported_windows = true, -- Close windows that aren't backed by normal file
   args_allow_single_directory = true, -- Allow single directory arguments by default
   args_allow_files_auto_save = false, -- Don't save session for file args by default

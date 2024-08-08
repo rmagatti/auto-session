@@ -103,7 +103,7 @@ EOF
 
 ```lua
 require("auto-session").setup {
-  bypass_session_save_file_types = nil, -- table: Bypass auto save when only buffer open is one of these file types
+  bypass_session_save_file_types = nil, -- table: Bypass auto save when only buffer open is one of these file types, useful to ignore dashboards
   close_unsupported_windows = true, -- boolean: Close windows that aren't backed by normal file
   cwd_change_handling = { -- table: Config for handling the DirChangePre and DirChanged autocmds, can be set to nil to disable altogether
     restore_upcoming_session = false, -- boolean: restore session for upcoming cwd on cwd change
@@ -433,6 +433,17 @@ require('lualine').setup{
 ```
 
 <img width="1904" alt="Screen Shot 2021-10-30 at 3 58 57 PM" src="https://user-images.githubusercontent.com/2881382/139559478-8edefdb8-8254-42e7-a0f3-babd3dfd6ff2.png">
+
+## Dashboards
+
+If you use a dashboard, you probably don't want to try and save a session when just the dashboard is open. To avoid that, add your dashboard filetype to the bypass list as follows:
+
+```lua
+require('auto-session').setup({
+  bypass_session_save_file_types = { 'alpha', 'dashboard' } -- or whatever dashboard you use
+})
+
+```
 
 ## Disabling the plugin
 
