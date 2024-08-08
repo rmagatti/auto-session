@@ -487,7 +487,7 @@ function AutoSession.session_exists_for_cwd()
   end
 
   -- Check legacy sessions
-  local session_file = get_session_file_name(vim.fn.getcwd(), true)
+  session_file = get_session_file_name(vim.fn.getcwd(), true)
   return vim.fn.filereadable(AutoSession.get_root_dir() .. session_file) ~= 0
 end
 
