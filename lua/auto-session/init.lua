@@ -648,11 +648,19 @@ end
 
 ---@private
 ---Handler for when a session is picked from the UI, either via Telescope or via AutoSession.select_session
----Save the current session (if autosave allows) and restore the selected session
+---Save the current session if the session we're loading isn't also for the cwd (if autosave allows)
+---and then restore the selected session
 ---@param session_name string The session name to restore
 ---@return boolean Was the session restored successfully
 function AutoSession.autosave_and_restore(session_name)
-  AutoSession.AutoSaveSession()
+  local cwd_session_name = Lib.escaped_session_name_to_session_name(get_session_file_name())
+  if cwd_session_name ~= session_name then
+    Lib.logger.debug("Autosaving before restoring", { cwd = cwd_session_name, session_name = session_name })
+    AutoSession.AutoSaveSession()
+  else
+    Lib.logger.debug("Not autosaving, cwd == session_name for: ", session_name)
+  end
+
   return AutoSession.RestoreSession(session_name)
 end
 
