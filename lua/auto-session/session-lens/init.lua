@@ -131,9 +131,9 @@ SessionLens.search_session = function(custom_opts)
     cwd = session_root_dir,
     attach_mappings = function(_, map)
       telescope_actions.select_default:replace(Actions.source_session)
-      map("i", "<c-d>", Actions.delete_session)
-      map("i", "<c-s>", Actions.alternate_session)
-      map("i", "<c-a>", Actions.alternate_session)
+      map("n", "x", Actions.delete_session)
+      map("n", "<c-s>", Actions.alternate_session)
+      map("n", "<c-a>", Actions.alternate_session)
       return true
     end,
   }

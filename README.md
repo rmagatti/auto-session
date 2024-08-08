@@ -1,3 +1,6 @@
+# This is a fork
+This repo is a fork of https://github.com/rmagatti/auto-session with customized maps for Session-Lens' picker. Made so that Lazy doesn't become crazy on every release on the original repo.
+
 # 🗒️ AutoSession
 
 AutoSession takes advantage of Neovim's existing session management capabilities to provide seamless automatic session management.
