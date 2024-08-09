@@ -7,28 +7,8 @@ local SessionLens = {
   conf = {},
 }
 
----Session Lens Config
----@class session_lens_config
----@field shorten_path? boolean Deprecated, pass { 'shorten' } to path_display
----@field path_display? table An array that specifies how to handle paths. Read :h telescope.defaults.path_display
----@field theme_conf? table
----@field buftypes_to_ignore? table Deprecated, if you're using this please report your usage on github
----@field previewer? boolean
----@field session_control? session_control
----@field load_on_setup? boolean
-
----@type session_lens_config
-local defaultConf = {
-  theme_conf = {},
-  previewer = false,
-  buftypes_to_ignore = {},
-}
-
--- Set default config on plugin load
-SessionLens.conf = defaultConf
-
 function SessionLens.setup()
-  SessionLens.conf = vim.tbl_deep_extend("force", SessionLens.conf, AutoSession.conf.session_lens)
+  SessionLens.conf = AutoSession.conf.session_lens
 
   if SessionLens.conf.buftypes_to_ignore ~= nil and not vim.tbl_isempty(SessionLens.conf.buftypes_to_ignore) then
     Lib.logger.warn "buftypes_to_ignore is deprecated. If you think you need this option, please file a bug on GitHub. If not, please remove it from your config"
@@ -131,9 +111,12 @@ SessionLens.search_session = function(custom_opts)
     cwd = session_root_dir,
     attach_mappings = function(_, map)
       telescope_actions.select_default:replace(Actions.source_session)
-      map("i", "<c-d>", Actions.delete_session)
-      map("i", "<c-s>", Actions.alternate_session)
-      map("i", "<c-a>", Actions.alternate_session)
+
+      local mappings = AutoSession.conf.session_lens.mappings
+      if mappings then
+        map(mappings.delete_session[1], mappings.delete_session[2], Actions.delete_session)
+        map(mappings.alternate_session[1], mappings.alternate_session[2], Actions.alternate_session)
+      end
       return true
     end,
   }

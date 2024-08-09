@@ -72,7 +72,7 @@ local defaultConf = {
 ---Lua Only Configs for Auto Session
 ---@class luaOnlyConf
 ---@field cwd_change_handling? boolean|CwdChangeHandling
----@field bypass_session_save_file_types? table List of file types to bypass auto save when the only buffer open is one of the file types listed
+---@field bypass_session_save_file_types? table List of file types to bypass auto save when the only buffer open is one of the file types listed, useful to ignore dashboards
 ---@field close_unsupported_windows? boolean Whether to close windows that aren't backed by a real file
 ---@field silent_restore? boolean Suppress extraneous messages and source the whole session, even if there's an error. Set to false to get the line number of a restore error
 ---@field log_level? string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
@@ -82,7 +82,7 @@ local defaultConf = {
 ---@field session_lens? session_lens_config Session lens configuration options
 
 local luaOnlyConf = {
-  bypass_session_save_file_types = nil, -- Bypass auto save when only buffer open is one of these file types
+  bypass_session_save_file_types = nil, -- Bypass auto save when only buffer open is one of these file types, useful to ignore dashboards
   close_unsupported_windows = true, -- Close windows that aren't backed by normal file
   args_allow_single_directory = true, -- Allow single directory arguments by default
   args_allow_files_auto_save = false, -- Don't save session for file args by default
@@ -100,18 +100,40 @@ local luaOnlyConf = {
   ---   post_cwd_changed_hook = nil, -- lua function hook. This is called after auto_session code runs for the `DirChanged` autocmd
   --- }
   cwd_change_handling = false,
+
+  ---Session Lens Config
+  ---@class session_lens_config
+  ---@field load_on_setup? boolean
+  ---@field shorten_path? boolean Deprecated, pass { 'shorten' } to path_display
+  ---@field path_display? table An array that specifies how to handle paths. Read :h telescope.defaults.path_display
+  ---@field theme_conf? table
+  ---@field buftypes_to_ignore? table Deprecated, if you're using this please report your usage on github
+  ---@field previewer? boolean
+  ---@field session_control? session_control
+  ---@field mappings? session_lens_mapping
+
   ---Session Control Config
   ---@class session_control
   ---@field control_dir string
   ---@field control_filename string
 
+  ---Session Lens Mapping
+  ---@class session_lens_mapping
+  ---@field delete_session table mode and key for deleting a session from the picker
+  ---@field alternate_session table mode and key for swapping to alertnate session from the picker
+
   ---@type session_lens_config
   session_lens = {
-    buftypes_to_ignore = {}, -- list of bufftypes to ignore when switching between sessions
     load_on_setup = true,
+    buftypes_to_ignore = {},
     session_control = {
       control_dir = vim.fn.stdpath "data" .. "/auto_session/", -- Auto session control dir, for control files, like alternating between two sessions with session-lens
       control_filename = "session_control.json", -- File name of the session control file
+    },
+    mappings = {
+      -- Mode can be a string or a table, e.g. {"i", "n"} for both insert and normal mode
+      delete_session = { "i", "<C-D>" },
+      alternate_session = { "i", "<C-S>" },
     },
   },
   silent_restore = true, --  Suppress extraneous messages and source the whole session, even if there's an error. Set to false to get the line number of a restore error
@@ -487,7 +509,7 @@ function AutoSession.session_exists_for_cwd()
   end
 
   -- Check legacy sessions
-  local session_file = get_session_file_name(vim.fn.getcwd(), true)
+  session_file = get_session_file_name(vim.fn.getcwd(), true)
   return vim.fn.filereadable(AutoSession.get_root_dir() .. session_file) ~= 0
 end
 
@@ -648,11 +670,19 @@ end
 
 ---@private
 ---Handler for when a session is picked from the UI, either via Telescope or via AutoSession.select_session
----Save the current session (if autosave allows) and restore the selected session
+---Save the current session if the session we're loading isn't also for the cwd (if autosave allows)
+---and then restore the selected session
 ---@param session_name string The session name to restore
 ---@return boolean Was the session restored successfully
 function AutoSession.autosave_and_restore(session_name)
-  AutoSession.AutoSaveSession()
+  local cwd_session_name = Lib.escaped_session_name_to_session_name(get_session_file_name())
+  if cwd_session_name ~= session_name then
+    Lib.logger.debug("Autosaving before restoring", { cwd = cwd_session_name, session_name = session_name })
+    AutoSession.AutoSaveSession()
+  else
+    Lib.logger.debug("Not autosaving, cwd == session_name for: ", session_name)
+  end
+
   return AutoSession.RestoreSession(session_name)
 end
 
