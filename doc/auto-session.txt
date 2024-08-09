@@ -20,7 +20,7 @@ luaOnlyConf                                                        *luaOnlyConf*
 
     Fields: ~
         {cwd_change_handling?}             (boolean|CwdChangeHandling)
-        {bypass_session_save_file_types?}  (table)                      List of file types to bypass auto save when the only buffer open is one of the file types listed
+        {bypass_session_save_file_types?}  (table)                      List of file types to bypass auto save when the only buffer open is one of the file types listed, useful to ignore dashboards
         {close_unsupported_windows?}       (boolean)                    Whether to close windows that aren't backed by a real file
         {silent_restore?}                  (boolean)                    Suppress extraneous messages and source the whole session, even if there's an error. Set to false to get the line number of a restore error
         {log_level?}                       (string|integer)             "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
@@ -39,12 +39,34 @@ CwdChangeHandling                                            *CwdChangeHandling*
         {post_cwd_changed_hook?}    (boolean)  {true} This is called after auto_session code runs for the DirChanged autocmd
 
 
+session_lens_config                                        *session_lens_config*
+    Session Lens Config
+
+    Fields: ~
+        {load_on_setup?}       (boolean)
+        {shorten_path?}        (boolean)               Deprecated, pass { 'shorten' } to path_display
+        {path_display?}        (table)                 An array that specifies how to handle paths. Read :h telescope.defaults.path_display
+        {theme_conf?}          (table)
+        {buftypes_to_ignore?}  (table)                 Deprecated, if you're using this please report your usage on github
+        {previewer?}           (boolean)
+        {session_control?}     (session_control)
+        {mappings?}            (session_lens_mapping)
+
+
 session_control                                                *session_control*
     Session Control Config
 
     Fields: ~
         {control_dir}       (string)
         {control_filename}  (string)
+
+
+session_lens_mapping                                      *session_lens_mapping*
+    Session Lens Mapping
+
+    Fields: ~
+        {delete_session}     (table)  mode and key for deleting a session from the picker
+        {alternate_session}  (table)  mode and key for swapping to alertnate session from the picker
 
 
 AutoSession.setup({config})                                  *AutoSession.setup*
@@ -185,19 +207,6 @@ AutoSession.DisableAutoSave({enable?})             *AutoSession.DisableAutoSave*
 
     Returns: ~
         (boolean)  autosaving is enabled or not
-
-
-session_lens_config                                        *session_lens_config*
-    Session Lens Config
-
-    Fields: ~
-        {shorten_path?}        (boolean)          Deprecated, pass { 'shorten' } to path_display
-        {path_display?}        (table)            An array that specifies how to handle paths. Read :h telescope.defaults.path_display
-        {theme_conf?}          (table)
-        {buftypes_to_ignore?}  (table)            Deprecated, if you're using this please report your usage on github
-        {previewer?}           (boolean)
-        {session_control?}     (session_control)
-        {load_on_setup?}       (boolean)
 
 
 SessionLens.setup()                                          *SessionLens.setup*
