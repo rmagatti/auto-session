@@ -100,18 +100,40 @@ local luaOnlyConf = {
   ---   post_cwd_changed_hook = nil, -- lua function hook. This is called after auto_session code runs for the `DirChanged` autocmd
   --- }
   cwd_change_handling = false,
+
+  ---Session Lens Config
+  ---@class session_lens_config
+  ---@field load_on_setup? boolean
+  ---@field shorten_path? boolean Deprecated, pass { 'shorten' } to path_display
+  ---@field path_display? table An array that specifies how to handle paths. Read :h telescope.defaults.path_display
+  ---@field theme_conf? table
+  ---@field buftypes_to_ignore? table Deprecated, if you're using this please report your usage on github
+  ---@field previewer? boolean
+  ---@field session_control? session_control
+  ---@field mappings? session_lens_mapping
+
   ---Session Control Config
   ---@class session_control
   ---@field control_dir string
   ---@field control_filename string
 
+  ---Session Lens Mapping
+  ---@class session_lens_mapping
+  ---@field delete_session table mode and key for deleting a session from the picker
+  ---@field alternate_session table mode and key for swapping to alertnate session from the picker
+
   ---@type session_lens_config
   session_lens = {
-    buftypes_to_ignore = {}, -- list of bufftypes to ignore when switching between sessions
     load_on_setup = true,
+    buftypes_to_ignore = {},
     session_control = {
       control_dir = vim.fn.stdpath "data" .. "/auto_session/", -- Auto session control dir, for control files, like alternating between two sessions with session-lens
       control_filename = "session_control.json", -- File name of the session control file
+    },
+    mappings = {
+      -- Mode can be a string or a table, e.g. {"i", "n"} for both insert and normal mode
+      delete_session = { "i", "<C-D>" },
+      alternate_session = { "i", "<C-S>" },
     },
   },
   silent_restore = true, --  Suppress extraneous messages and source the whole session, even if there's an error. Set to false to get the line number of a restore error

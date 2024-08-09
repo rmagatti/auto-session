@@ -391,6 +391,11 @@ You can use Telescope to see, load, and delete your sessions. It's enabled by de
         load_on_setup = true,
         theme_conf = { border = true },
         previewer = false,
+        mappings = {
+          -- Mode can be a string or a table, e.g. {"i", "n"} for both insert and normal mode
+          delete_session = { "i", "<C-D>" },
+          alternate_session = { "i", "<C-S>" },
+        },
       },
     })
   end,
