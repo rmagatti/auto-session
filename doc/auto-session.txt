@@ -39,12 +39,34 @@ CwdChangeHandling                                            *CwdChangeHandling*
         {post_cwd_changed_hook?}    (boolean)  {true} This is called after auto_session code runs for the DirChanged autocmd
 
 
+session_lens_config                                        *session_lens_config*
+    Session Lens Config
+
+    Fields: ~
+        {load_on_setup?}       (boolean)
+        {shorten_path?}        (boolean)               Deprecated, pass { 'shorten' } to path_display
+        {path_display?}        (table)                 An array that specifies how to handle paths. Read :h telescope.defaults.path_display
+        {theme_conf?}          (table)
+        {buftypes_to_ignore?}  (table)                 Deprecated, if you're using this please report your usage on github
+        {previewer?}           (boolean)
+        {session_control?}     (session_control)
+        {mappings?}            (session_lens_mapping)
+
+
 session_control                                                *session_control*
     Session Control Config
 
     Fields: ~
         {control_dir}       (string)
         {control_filename}  (string)
+
+
+session_lens_mapping                                      *session_lens_mapping*
+    Session Lens Mapping
+
+    Fields: ~
+        {delete_session}     (table)  mode and key for deleting a session from the picker
+        {alternate_session}  (table)  mode and key for swapping to alertnate session from the picker
 
 
 AutoSession.setup({config})                                  *AutoSession.setup*
@@ -185,19 +207,6 @@ AutoSession.DisableAutoSave({enable?})             *AutoSession.DisableAutoSave*
 
     Returns: ~
         (boolean)  autosaving is enabled or not
-
-
-session_lens_config                                        *session_lens_config*
-    Session Lens Config
-
-    Fields: ~
-        {shorten_path?}        (boolean)          Deprecated, pass { 'shorten' } to path_display
-        {path_display?}        (table)            An array that specifies how to handle paths. Read :h telescope.defaults.path_display
-        {theme_conf?}          (table)
-        {buftypes_to_ignore?}  (table)            Deprecated, if you're using this please report your usage on github
-        {previewer?}           (boolean)
-        {session_control?}     (session_control)
-        {load_on_setup?}       (boolean)
 
 
 SessionLens.setup()                                          *SessionLens.setup*
