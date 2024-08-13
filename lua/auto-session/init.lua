@@ -108,7 +108,7 @@ local luaOnlyConf = {
   ---@field path_display? table An array that specifies how to handle paths. Read :h telescope.defaults.path_display
   ---@field theme_conf? table
   ---@field buftypes_to_ignore? table Deprecated, if you're using this please report your usage on github
-  ---@field previewer? boolean
+  ---@field previewer? boolean Whether to show a preview of the session file (not very useful to most people
   ---@field session_control? session_control
   ---@field mappings? session_lens_mapping
 
@@ -125,6 +125,8 @@ local luaOnlyConf = {
   ---@type session_lens_config
   session_lens = {
     load_on_setup = true,
+    previewer = false,
+    theme_conf = {},
     buftypes_to_ignore = {},
     session_control = {
       control_dir = vim.fn.stdpath "data" .. "/auto_session/", -- Auto session control dir, for control files, like alternating between two sessions with session-lens
@@ -617,7 +619,7 @@ local function get_session_files()
     return Lib.is_session_file(sessions_dir .. item)
   end)
 
-  return vim.tbl_map(function(file_name)
+  return vim.bl_map(function(file_name)
     --  sessions_dir is guaranteed to have a trailing separator so don't need to add another one here
     local session_name
     local display_name
