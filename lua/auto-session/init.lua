@@ -619,7 +619,7 @@ local function get_session_files()
     return Lib.is_session_file(sessions_dir .. item)
   end)
 
-  return vim.bl_map(function(file_name)
+  return vim.tbl_map(function(file_name)
     --  sessions_dir is guaranteed to have a trailing separator so don't need to add another one here
     local session_name
     local display_name
