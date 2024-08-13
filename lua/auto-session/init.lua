@@ -108,7 +108,7 @@ local luaOnlyConf = {
   ---@field path_display? table An array that specifies how to handle paths. Read :h telescope.defaults.path_display
   ---@field theme_conf? table
   ---@field buftypes_to_ignore? table Deprecated, if you're using this please report your usage on github
-  ---@field previewer? boolean Whether to show a preview of the session file (not very useful to most people
+  ---@field previewer? boolean Whether to show a preview of the session file (not very useful to most people)
   ---@field session_control? session_control
   ---@field mappings? session_lens_mapping
 
