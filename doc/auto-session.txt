@@ -48,7 +48,7 @@ session_lens_config                                        *session_lens_config*
         {path_display?}        (table)                 An array that specifies how to handle paths. Read :h telescope.defaults.path_display
         {theme_conf?}          (table)
         {buftypes_to_ignore?}  (table)                 Deprecated, if you're using this please report your usage on github
-        {previewer?}           (boolean)               Whether to show a preview of the session file (not very useful to most people
+        {previewer?}           (boolean)               Whether to show a preview of the session file (not very useful to most people)
         {session_control?}     (session_control)
         {mappings?}            (session_lens_mapping)
 
