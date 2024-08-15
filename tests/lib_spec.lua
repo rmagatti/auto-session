@@ -181,5 +181,6 @@ describe("Lib / Helper functions", function()
     TL.clearSessionFilesAndBuffers()
 
     assert.equals("", Lib.current_session_name())
+    assert.equals("", Lib.current_session_name(true))
   end)
 end)

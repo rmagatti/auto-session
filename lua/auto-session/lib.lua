@@ -27,13 +27,19 @@ function Lib.current_session_name(tail_only)
   tail_only = tail_only or false
   -- get the filename without the extension
   local file_name = vim.fn.fnamemodify(vim.v.this_session, ":t:r")
-  local session_name = Lib.get_session_display_name(file_name)
-
   if not tail_only then
-    return session_name
+    return Lib.get_session_display_name(file_name)
   end
 
-  return vim.fn.fnamemodify(session_name, ":t")
+  -- Have to get the display name sections if we want to shorten just the path in case
+  -- there's a git branch
+  local sections = Lib.get_session_display_name_as_table(file_name)
+  sections[1] = vim.fn.fnamemodify(sections[1], ":t")
+  if #sections == 1 then
+    return sections[1]
+  end
+
+  return table.concat(sections, " ")
 end
 
 function Lib.is_empty_table(t)

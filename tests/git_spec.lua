@@ -10,22 +10,20 @@ describe("The git config", function()
 
   TL.clearSessionFilesAndBuffers()
 
-  local git_test_dir = TL.tests_base_dir .. "/test_git"
+  local git_test_dir = "test_git"
+  local git_test_path = TL.tests_base_dir .. "/" .. git_test_dir
 
-  -- make test git dir
-  if vim.fn.isdirectory(git_test_dir) ~= 1 then
-    vim.fn.mkdir(git_test_dir)
-  else
-    TL.clearSessionFiles(git_test_dir)
-  end
+  -- clear git test dir
+  vim.fn.delete(git_test_path, "rf")
+  vim.fn.mkdir(git_test_path)
 
   -- get a file in that dir
   vim.cmd("e " .. TL.test_file)
-  vim.cmd("w! " .. git_test_dir .. "/test.txt")
+  vim.cmd("w! " .. git_test_path .. "/test.txt")
   vim.cmd "%bw"
 
   -- change to that dir
-  vim.cmd("cd " .. git_test_dir)
+  vim.cmd("cd " .. git_test_path)
 
   local function runCmdAndPrint(cmd)
     ---@diagnostic disable-next-line: unused-local
@@ -98,5 +96,17 @@ describe("The git config", function()
     assert.equals(0, vim.fn.filereadable(legacy_branch_session_path))
 
     assert.equals(vim.fn.getcwd() .. " (branch: main)", as.Lib.current_session_name())
+  end)
+
+  it("can get the session name of a git branch with a slash", function()
+    runCmdAndPrint "git checkout -b slash/branch"
+
+    as.SaveSession()
+
+    local session_path = TL.session_dir .. TL.escapeSessionName(vim.fn.getcwd() .. "|slash/branch") .. ".vim"
+    assert.equals(1, vim.fn.filereadable(session_path))
+    assert.equals(vim.fn.getcwd() .. " (branch: slash/branch)", as.Lib.current_session_name())
+    assert.equals(git_test_dir .. " (branch: slash/branch)", as.Lib.current_session_name(true))
+    print(as.Lib.current_session_name())
   end)
 end)
