@@ -17,11 +17,10 @@ AutoSession takes advantage of Neovim's existing session management capabilities
   dependencies = {
     'nvim-telescope/telescope.nvim', -- Only needed if you want to use sesssion lens
   },
-  config = function()
-    require('auto-session').setup({
-      auto_session_suppress_dirs = { '~/', '~/Projects', '~/Downloads', '/' },
-    })
-  end,
+  opts = {
+    auto_session_suppress_dirs = { '~/', '~/Projects', '~/Downloads', '/' },
+    -- log_level = 'debug',
+  }
 }
 ```
 
