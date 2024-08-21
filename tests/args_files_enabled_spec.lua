@@ -90,7 +90,7 @@ describe("The args files enabled config", function()
   end)
 
   it("doesn't autosave when args_allow_files_auto_save returns false", function()
-    M.clearSessionFilesAndBuffers()
+    TL.clearSessionFilesAndBuffers()
 
     vim.cmd("e " .. TL.other_file)
     assert.equals(1, vim.fn.bufexists(TL.other_file))
@@ -111,7 +111,7 @@ describe("The args files enabled config", function()
   end)
 
   it("does autosave a session when args_allow_files_auto_save returns true", function()
-    M.clearSessionFilesAndBuffers()
+    TL.clearSessionFilesAndBuffers()
 
     vim.cmd("e " .. TL.other_file)
     assert.equals(1, vim.fn.bufexists(TL.other_file))
