@@ -14,31 +14,6 @@ local AutoSession = {
   session_lens = nil,
 }
 
--- Run command hooks
-local function run_hook_cmds(cmds, hook_name)
-  local results = {}
-  if not Lib.is_empty_table(cmds) then
-    for _, cmd in ipairs(cmds) do
-      Lib.logger.debug(string.format("Running %s command: %s", hook_name, cmd))
-      local success, result
-
-      if type(cmd) == "function" then
-        success, result = pcall(cmd)
-      else
-        ---@diagnostic disable-next-line: param-type-mismatch
-        success, result = pcall(vim.cmd, cmd)
-      end
-
-      if not success then
-        Lib.logger.error(string.format("Error running %s. error: %s", cmd, result))
-      else
-        table.insert(results, result)
-      end
-    end
-  end
-  return results
-end
-
 ---table default config for auto session
 ---@class defaultConf
 ---@field auto_session_enabled? boolean Enables/disables auto saving and restoring
@@ -587,7 +562,7 @@ local function save_extra_cmds_new(session_path)
     return false
   end
 
-  local data = run_hook_cmds(extra_cmds, "save-extra")
+  local data = Lib.run_hook_cmds(extra_cmds, "save-extra")
   if not data then
     return false
   end
@@ -791,7 +766,7 @@ local function auto_restore_session_at_vim_enter()
   -- No session was restored, dispatch no-restore hook
   local no_restore_cmds = AutoSession.get_cmds "no_restore"
   Lib.logger.debug "No session restored, call no_restore hooks"
-  run_hook_cmds(no_restore_cmds, "no-restore")
+  Lib.run_hook_cmds(no_restore_cmds, "no-restore")
 
   return false
 end
@@ -863,7 +838,7 @@ function AutoSession.SaveSessionToDir(session_dir, session_name, show_message)
   local session_path = session_dir .. escaped_session_name
 
   local pre_cmds = AutoSession.get_cmds "pre_save"
-  run_hook_cmds(pre_cmds, "pre-save")
+  Lib.run_hook_cmds(pre_cmds, "pre-save")
 
   -- We don't want to save arguments to the session as that can cause issues
   -- with buffers that can't be removed from the session as they keep being
@@ -881,7 +856,7 @@ function AutoSession.SaveSessionToDir(session_dir, session_name, show_message)
   save_extra_cmds_new(session_path)
 
   local post_cmds = AutoSession.get_cmds "post_save"
-  run_hook_cmds(post_cmds, "post-save")
+  Lib.run_hook_cmds(post_cmds, "post-save")
 
   -- session_name might be nil (e.g. when using cwd), unescape escaped_session_name instead
   Lib.logger.debug("Saved session: " .. Lib.unescape_session_name(escaped_session_name))
@@ -966,7 +941,7 @@ end
 ---@return boolean Was a session restored
 function AutoSession.RestoreSessionFile(session_path, show_message)
   local pre_cmds = AutoSession.get_cmds "pre_restore"
-  run_hook_cmds(pre_cmds, "pre-restore")
+  Lib.run_hook_cmds(pre_cmds, "pre-restore")
 
   Lib.logger.debug("RestoreSessionFile restoring session from: " .. session_path)
 
@@ -1021,7 +996,7 @@ Error: ]] .. result)
   end
 
   local post_cmds = AutoSession.get_cmds "post_restore"
-  run_hook_cmds(post_cmds, "post-restore")
+  Lib.run_hook_cmds(post_cmds, "post-restore")
 
   write_to_session_control_json(session_path)
   return true
@@ -1076,7 +1051,7 @@ end
 ---@return boolean Was the session file delted
 function AutoSession.DeleteSessionFile(session_path, session_name)
   local pre_cmds = AutoSession.get_cmds "pre_delete"
-  run_hook_cmds(pre_cmds, "pre-delete")
+  Lib.run_hook_cmds(pre_cmds, "pre-delete")
 
   Lib.logger.debug("DeleteSessionFile deleting: " .. session_path)
 
@@ -1104,7 +1079,7 @@ function AutoSession.DeleteSessionFile(session_path, session_name)
   end
 
   local post_cmds = AutoSession.get_cmds "post_delete"
-  run_hook_cmds(post_cmds, "post-delete")
+  Lib.run_hook_cmds(post_cmds, "post-delete")
   return result
 end
 
@@ -1220,7 +1195,7 @@ function SetupAutocmds()
         -- Don't auto restore session in pager mode
         local no_restore_cmds = AutoSession.get_cmds "no_restore"
         Lib.logger.debug("In pager mode, skipping auto restore", no_restore_cmds)
-        run_hook_cmds(no_restore_cmds, "no-restore")
+        Lib.run_hook_cmds(no_restore_cmds, "no-restore")
         return
       end
 

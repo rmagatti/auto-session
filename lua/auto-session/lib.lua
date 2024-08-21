@@ -512,4 +512,33 @@ function Lib.find_matching_directory(dirToFind, dirs)
   return false
 end
 
+---@param cmds table Cmds to run
+---@param hook_name string Name of the hook being run
+---@return table Results of the cmds
+function Lib.run_hook_cmds(cmds, hook_name)
+  local results = {}
+  if Lib.is_empty_table(cmds) then
+    return results
+  end
+
+  for _, cmd in ipairs(cmds) do
+    Lib.logger.debug(string.format("Running %s command: %s", hook_name, cmd))
+    local success, result
+
+    if type(cmd) == "function" then
+      success, result = pcall(cmd)
+    else
+      ---@diagnostic disable-next-line: param-type-mismatch
+      success, result = pcall(vim.cmd, cmd)
+    end
+
+    if not success then
+      Lib.logger.error(string.format("Error running %s. error: %s", cmd, result))
+    else
+      table.insert(results, result)
+    end
+  end
+  return results
+end
+
 return Lib
