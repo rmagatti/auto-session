@@ -1,20 +1,14 @@
 local Logger = require "auto-session.logger"
 
-local Config = {}
 local Lib = {
   logger = {},
-  conf = {
-    log_level = false,
-  },
-  Config = Config,
   _VIM_FALSE = 0,
   _VIM_TRUE = 1,
 }
 
 function Lib.setup(config)
-  Lib.conf = vim.tbl_deep_extend("force", Lib.conf, config or {})
   Lib.logger = Logger:new {
-    log_level = Lib.conf.log_level,
+    log_level = config.log_level,
   }
 end
 
