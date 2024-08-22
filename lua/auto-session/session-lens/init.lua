@@ -20,7 +20,11 @@ function SessionLens.make_telescope_callback(opts)
     -- Don't include <session>x.vim files that nvim makes for custom user
     -- commands
     if not Lib.is_session_file(session_root_dir .. file_name) then
-      return nil
+      -- FIXME: Returning nil would be better here since otherwise the result count
+      -- will be off. However, returning nil can prevent delete from working so return {}
+      -- until this is fixed:
+      -- https://github.com/nvim-telescope/telescope.nvim/issues/3265
+      return {}
     end
 
     -- the name of the session, to be used for restoring/deleting
