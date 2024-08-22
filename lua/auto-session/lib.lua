@@ -343,7 +343,7 @@ end
 ---@param escaped_session_name string The session file name. It should not have a path component
 ---@return table The session name components
 function Lib.get_session_display_name_as_table(escaped_session_name)
-  -- sesssion name contains a |, split on that and get git branch
+  -- session name contains a |, split on that and get git branch
   local session_name = Lib.escaped_session_name_to_session_name(escaped_session_name)
   local splits = vim.split(session_name, "|")
 

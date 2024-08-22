@@ -29,7 +29,7 @@ function SessionLens.make_telescope_callback(opts)
     -- the name to display, possibly with a shortened path
     local display_name
 
-    -- an annotation about the sesssion, added to display_name after any path processing
+    -- an annotation about the session, added to display_name after any path processing
     local annotation = ""
     if Lib.is_legacy_file_name(file_name) then
       session_name = (Lib.legacy_unescape_session_name(file_name):gsub("%.vim$", ""))

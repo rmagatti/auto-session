@@ -15,7 +15,7 @@ local error = vim.health.error or vim.health.report_error
 ---@diagnostic disable-next-line: deprecated
 local info = vim.health.info or vim.health.report_info
 
-local function check_sesssion_options()
+local function check_session_options()
   if not vim.tbl_contains(vim.split(vim.o.sessionoptions, ","), "localoptions") then
     warn(
       "`vim.o.sessionoptions` should contain 'localoptions' to make sure\nfiletype and highlighting work correctly after a session is restored.\n\n"
@@ -29,12 +29,12 @@ end
 
 function M.check()
   start "vim options"
-  check_sesssion_options()
+  check_session_options()
 
   start "General Info"
   info("Session directory: " .. AutoSession.get_root_dir())
   info("Current session: " .. Lib.current_session_name())
-  info("Current sesssion file: " .. vim.v.this_session)
+  info("Current session file: " .. vim.v.this_session)
 
   start "Config"
   info("Here's the config using the new option names\n" .. vim.inspect(Config.modernized_config()))
