@@ -3,6 +3,7 @@ local TL = require "tests/test_lib"
 
 describe("Session lens", function()
   local as = require "auto-session"
+  local session_lens = require "auto-session.session-lens"
   as.setup {
     -- log_level = "debug",
   }
@@ -13,7 +14,7 @@ describe("Session lens", function()
 
     -- initialize session_lens
     assert.True(as.setup_session_lens())
-    local make_telescope_entry = as.session_lens.make_telescope_callback {}
+    local make_telescope_entry = session_lens.make_telescope_callback {}
 
     local data = make_telescope_entry(TL.escapeSessionName(TL.default_session_name) .. ".vim")
     assert.not_nil(data)

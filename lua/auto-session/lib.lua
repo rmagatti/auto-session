@@ -6,9 +6,9 @@ local Lib = {
   _VIM_TRUE = 1,
 }
 
-function Lib.setup(config)
+function Lib.setup(log_level)
   Lib.logger = Logger:new {
-    log_level = config.log_level,
+    log_level = log_level,
   }
 end
 

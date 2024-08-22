@@ -17,6 +17,8 @@ describe("The args files enabled config", function()
     },
   }
 
+  local c = require "auto-session.config"
+
   TL.clearSessionFilesAndBuffers()
 
   it("can save a session", function()
@@ -76,11 +78,11 @@ describe("The args files enabled config", function()
 
     local as = require "auto-session"
 
-    as.conf.auto_save_enabled = true
+    c.auto_save = true
 
     assert.equals(true, as.AutoSaveSession())
 
-    as.conf.auto_save_enabled = false
+    c.auto_save = false
 
     -- Session should have new file
     TL.assertSessionHasFile(TL.default_session_path, TL.other_file)
@@ -97,14 +99,14 @@ describe("The args files enabled config", function()
 
     local as = require "auto-session"
 
-    as.conf.auto_save_enabled = true
-    as.conf.args_allow_files_auto_save = function()
+    c.auto_save = true
+    c.args_allow_files_auto_save = function()
       return false
     end
 
     assert.equals(false, as.AutoSaveSession())
 
-    as.conf.auto_save_enabled = false
+    c.auto_save = false
 
     assert.equals(false, TL.sessionHasFile(TL.default_session_path, TL.other_file))
     assert.equals(false, TL.sessionHasFile(TL.default_session_path, TL.test_file))
@@ -118,14 +120,14 @@ describe("The args files enabled config", function()
 
     local as = require "auto-session"
 
-    as.conf.auto_save_enabled = true
-    as.conf.args_allow_files_auto_save = function()
+    c.auto_save = true
+    c.args_allow_files_auto_save = function()
       return true
     end
 
     assert.equals(true, as.AutoSaveSession())
 
-    as.conf.auto_save_enabled = false
+    c.auto_save = false
 
     -- Session should have new file
     TL.assertSessionHasFile(TL.default_session_path, TL.other_file)

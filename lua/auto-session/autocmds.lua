@@ -1,18 +1,16 @@
 local Lib = require "auto-session.lib"
+local Config = require "auto-session.config"
 
 local M = {}
 
 ---@private
 ---Setup autocmds for DirChangedPre and DirChanged
----@param config table auto session config
 ---@param AutoSession table auto session instance
-M.setup_autocmds = function(config, AutoSession)
-  if not config.cwd_change_handling or not config.cwd_change_handling.restore_upcoming_session then
+M.setup_autocmds = function(AutoSession)
+  if not Config.cwd_change_handling then
     Lib.logger.debug "cwd_change_handling is disabled, skipping setting DirChangedPre and DirChanged autocmd handling"
     return
   end
-
-  local conf = config.cwd_change_handling
 
   vim.api.nvim_create_autocmd("DirChangedPre", {
     callback = function()
@@ -41,56 +39,49 @@ M.setup_autocmds = function(config, AutoSession)
       end
 
       AutoSession.AutoSaveSession()
-
-      if type(conf.pre_cwd_changed_hook) == "function" then
-        conf.pre_cwd_changed_hook()
-      end
+      AutoSession.run_cmds "pre_cwd_changed"
     end,
     pattern = "global",
   })
 
-  if conf.restore_upcoming_session then
-    vim.api.nvim_create_autocmd("DirChanged", {
-      callback = function()
-        Lib.logger.debug "DirChanged"
-        Lib.logger.debug("  cwd: " .. vim.fn.getcwd())
-        Lib.logger.debug("  changed window: " .. tostring(vim.v.event.changed_window))
-        Lib.logger.debug("  scope: " .. vim.v.event.scope)
+  vim.api.nvim_create_autocmd("DirChanged", {
+    callback = function()
+      Lib.logger.debug "DirChanged"
+      Lib.logger.debug("  cwd: " .. vim.fn.getcwd())
+      Lib.logger.debug("  changed window: " .. tostring(vim.v.event.changed_window))
+      Lib.logger.debug("  scope: " .. vim.v.event.scope)
 
-        -- see above
-        if vim.v.event.changed_window then
-          return
-        end
+      -- see above
+      if vim.v.event.changed_window then
+        return
+      end
 
-        if AutoSession.restore_in_progress or vim.g.SessionLoad then
-          -- NOTE: We don't call the cwd_changed_hook here (or in the other case below)
-          -- I think that's probably the right choice because I assume that event is mostly
-          -- for preparing sessions for save/restoring but we don't want to do that when we're
-          -- already restoring a session
-          Lib.logger.debug "DirChangedPre: restore_in_progress/vim.g.SessionLoad is true, ignoring this event"
-          return
-        end
+      if AutoSession.restore_in_progress or vim.g.SessionLoad then
+        -- NOTE: We don't call the cwd_changed_hook here (or in the other case below)
+        -- I think that's probably the right choice because I assume that event is mostly
+        -- for preparing sessions for save/restoring but we don't want to do that when we're
+        -- already restoring a session
+        Lib.logger.debug "DirChangedPre: restore_in_progress/vim.g.SessionLoad is true, ignoring this event"
+        return
+      end
 
-        -- all buffers should've been deleted in `DirChangedPre`, something probably went wrong
-        if Lib.has_open_buffers() then
-          Lib.logger.debug "Cancelling session restore"
-          return
-        end
+      -- all buffers should've been deleted in `DirChangedPre`, something probably went wrong
+      if Lib.has_open_buffers() then
+        Lib.logger.debug "Cancelling session restore"
+        return
+      end
 
-        local success = AutoSession.AutoRestoreSession()
+      local success = AutoSession.AutoRestoreSession()
 
-        if not success then
-          Lib.logger.info("Could not load session for: " .. vim.fn.getcwd())
-          -- Don't return, still dispatch the hook below
-        end
+      if not success then
+        Lib.logger.info("Could not load session for: " .. vim.fn.getcwd())
+        -- Don't return, still dispatch the hook below
+      end
 
-        if type(conf.post_cwd_changed_hook) == "function" then
-          conf.post_cwd_changed_hook()
-        end
-      end,
-      pattern = "global",
-    })
-  end
+      AutoSession.run_cmds "post_cwd_changed"
+    end,
+    pattern = "global",
+  })
 end
 
 return M

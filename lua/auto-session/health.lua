@@ -1,4 +1,6 @@
 local AutoSession = require "auto-session"
+local Lib = require "auto-session.lib"
+local Config = require "auto-session.config"
 
 local M = {}
 
@@ -26,12 +28,16 @@ local function check_sesssion_options()
 end
 
 function M.check()
-  start "auto-session"
-
-  info("Session directory: " .. AutoSession.get_root_dir())
-  info("Current session: " .. AutoSession.Lib.current_session_name())
-  info("Current sesssion file: " .. vim.v.this_session)
+  start "vim options"
   check_sesssion_options()
+
+  start "General Info"
+  info("Session directory: " .. AutoSession.get_root_dir())
+  info("Current session: " .. Lib.current_session_name())
+  info("Current sesssion file: " .. vim.v.this_session)
+
+  start "Config"
+  info("Here's the config using the new option names\n" .. vim.inspect(Config.modernized_config()))
 end
 
 return M

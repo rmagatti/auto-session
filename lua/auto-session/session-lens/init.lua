@@ -1,19 +1,10 @@
+local Config = require "auto-session.config"
+local Lib = require "auto-session.lib"
 local Actions = require "auto-session.session-lens.actions"
 local AutoSession = require "auto-session"
-local Lib = AutoSession.Lib
 
 ----------- Setup ----------
-local SessionLens = {
-  conf = {},
-}
-
-function SessionLens.setup()
-  SessionLens.conf = AutoSession.conf.session_lens
-
-  if SessionLens.conf.buftypes_to_ignore ~= nil and not vim.tbl_isempty(SessionLens.conf.buftypes_to_ignore) then
-    Lib.logger.warn "buftypes_to_ignore is deprecated. If you think you need this option, please file a bug on GitHub. If not, please remove it from your config"
-  end
-end
+local SessionLens = {}
 
 ---@private
 ---Function generator that returns the function for generating telescope file entries. Only exported
@@ -80,7 +71,7 @@ SessionLens.search_session = function(custom_opts)
   local themes = require "telescope.themes"
   local telescope_actions = require "telescope.actions"
 
-  custom_opts = (vim.tbl_isempty(custom_opts or {}) or custom_opts == nil) and SessionLens.conf or custom_opts
+  custom_opts = (vim.tbl_isempty(custom_opts or {}) or custom_opts == nil) and Config.session_lens or custom_opts
 
   -- Use auto_session_root_dir from the Auto Session plugin
   local session_root_dir = AutoSession.get_root_dir()
@@ -112,7 +103,7 @@ SessionLens.search_session = function(custom_opts)
     attach_mappings = function(_, map)
       telescope_actions.select_default:replace(Actions.source_session)
 
-      local mappings = AutoSession.conf.session_lens.mappings
+      local mappings = Config.session_lens.mappings
       if mappings then
         map(mappings.delete_session[1], mappings.delete_session[2], Actions.delete_session)
         map(mappings.alternate_session[1], mappings.alternate_session[2], Actions.alternate_session)

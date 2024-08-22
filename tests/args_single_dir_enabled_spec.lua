@@ -5,6 +5,8 @@ local stub = require "luassert.stub"
 describe("The args single dir enabled config", function()
   local no_restore_hook_called = false
   local as = require "auto-session"
+  local c = require "auto-session.config"
+
   as.setup {
     args_allow_single_directory = true,
     args_allow_files_auto_save = false,
@@ -38,7 +40,7 @@ describe("The args single dir enabled config", function()
   it("does not autosave for cwd if single directory arg does not have a session", function()
     no_restore_hook_called = false
     --enable autosave for this test
-    as.conf.auto_save_enabled = true
+    c.auto_save = true
 
     local s = stub(vim.fn, "argv")
     s.returns { "tests" }
@@ -52,7 +54,7 @@ describe("The args single dir enabled config", function()
 
     -- Revert the stub
     vim.fn.argv:revert()
-    as.conf.auto_save_enabled = false
+    c.auto_save = false
   end)
 
   it("does restore a session when run with a single directory", function()

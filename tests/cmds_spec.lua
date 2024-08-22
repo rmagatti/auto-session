@@ -3,6 +3,7 @@ local TL = require "tests/test_lib"
 
 describe("The default config", function()
   local as = require "auto-session"
+  local c = require "auto-session.config"
   as.setup {
     -- log_level = "debug",
   }
@@ -115,7 +116,7 @@ describe("The default config", function()
     vim.cmd("SessionDelete " .. TL.named_session_name)
 
     -- Auto save should be disabled when deleting the current session
-    assert.False(as.conf.auto_save_enabled)
+    assert.False(c.auto_save)
 
     -- Deleting current session should set vim.v.this_session = ""
     assert.True(vim.v.this_session == "")
@@ -131,10 +132,10 @@ describe("The default config", function()
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 
     -- auto_save_enabled will be disabled by delete above
-    assert.False(as.conf.auto_save_enabled)
+    assert.False(c.auto_save)
 
     -- enable it
-    as.conf.auto_save_enabled = true
+    c.auto_save = true
 
     as.AutoSaveSession()
 

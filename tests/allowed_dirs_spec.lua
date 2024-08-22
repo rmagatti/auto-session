@@ -4,6 +4,7 @@ TL.clearSessionFilesAndBuffers()
 
 describe("The allowed dirs config", function()
   local as = require "auto-session"
+  local c = require "auto-session.config"
   as.setup {
     auto_session_allowed_dirs = { "/dummy" },
   }
@@ -19,7 +20,7 @@ describe("The allowed dirs config", function()
   end)
 
   it("saves a session for an allowed dir", function()
-    as.conf.auto_session_allowed_dirs = { vim.fn.getcwd() }
+    c.allowed_dirs = { vim.fn.getcwd() }
     as.AutoSaveSession()
 
     -- Make sure the session was created
@@ -32,7 +33,7 @@ describe("The allowed dirs config", function()
   it("saves a session for an allowed dir with a glob", function()
     TL.clearSessionFilesAndBuffers()
     vim.cmd("e " .. TL.test_file)
-    as.conf.auto_session_allowed_dirs = { vim.fn.getcwd() .. "/tests/*" }
+    c.allowed_dirs = { vim.fn.getcwd() .. "/tests/*" }
 
     -- Change to a sub directory to see if it's allowed
     vim.cmd "cd tests/test_files"
