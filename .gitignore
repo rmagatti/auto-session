@@ -7,3 +7,4 @@ doc/tags
 tests/test_sessions
 tests/custom_sessions
 tests/test_git
+tests/symlink-test

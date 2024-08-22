@@ -491,12 +491,34 @@ end
 ---@param dirs table
 ---@param dirToFind string
 function Lib.find_matching_directory(dirToFind, dirs)
-  Lib.logger.debug("find_matching_directory", { dirToFind = dirToFind, dirs = dirs })
-  for _, s in pairs(dirs) do
-    local expanded = Lib.expand(s)
-    -- Lib.logger.debug("find_matching_directory expanded: " .. s)
+  local dirsToCheck = {}
+
+  -- resolve any symlinks and also check those
+  for _, dir in pairs(dirs) do
+    -- first expand it
+    local expanded_dir = Lib.expand(dir)
+
+    -- resolve symlinks
+    local resolved_dir = vim.fn.resolve(expanded_dir)
+
+    -- Lib.logger.debug("dir: " .. dir .. " expanded_dir: " .. expanded_dir .. " resolved_dir: " .. resolved_dir)
+
+    -- add the base expanded dir first. in theory, we should only need
+    -- the resolved directory but other systems might behave differently so
+    -- safer to check both
+    table.insert(dirsToCheck, expanded_dir)
+
+    -- add the resolved dir if it's different (e.g. a symlink)
+    if resolved_dir ~= expanded_dir then
+      table.insert(dirsToCheck, resolved_dir)
+    end
+  end
+
+  Lib.logger.debug("find_matching_directory", { dirToFind = dirToFind, dirsToCheck = dirsToCheck })
+
+  for _, dir in pairs(dirsToCheck) do
     ---@diagnostic disable-next-line: param-type-mismatch
-    for path in string.gmatch(expanded, "[^\r\n]+") do
+    for path in string.gmatch(dir, "[^\r\n]+") do
       local simplified_path = vim.fn.simplify(path)
       local path_without_trailing_slashes = string.gsub(simplified_path, "/+$", "")
 
