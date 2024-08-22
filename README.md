@@ -15,7 +15,7 @@ AutoSession takes advantage of Neovim's existing session management capabilities
   'rmagatti/auto-session',
   lazy = false,
   dependencies = {
-    'nvim-telescope/telescope.nvim', -- Only needed if you want to use sesssion lens
+    'nvim-telescope/telescope.nvim', -- Only needed if you want to use session lens
   },
   opts = {
     auto_session_suppress_dirs = { '~/', '~/Projects', '~/Downloads', '/' },
@@ -206,9 +206,9 @@ AutoSession exposes the following commands that can be used or mapped to any key
 :SessionDelete " deletes a session based on the `cwd` from `auto_session_root_dir`
 :SessionDelete my_session " deletes `my_sesion` from `auto_session_root_dir`
 
-:SesssionDisableAutoSave " disables autosave
-:SesssionDisableAutoSave! " enables autosave (still does all checks in the config)
-:SesssionToggleAutoSave " toggles autosave
+:SessionDisableAutoSave " disables autosave
+:SessionDisableAutoSave! " enables autosave (still does all checks in the config)
+:SessionToggleAutoSave " toggles autosave
 
 :SessionPurgeOrphaned " removes all orphaned sessions with no working directory left.
 
