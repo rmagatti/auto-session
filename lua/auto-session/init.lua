@@ -4,12 +4,7 @@ local AutoCmds = require "auto-session.autocmds"
 local SessionLens -- will initialize later
 
 ----------- Setup ----------
-local AutoSession = {
-  -- FIXME: I don't think i need Lib here
-  -- Hold on to the lib object here, useful to have the same Lib object for unit
-  -- testing, especially since the logger needs the config to be functional
-  Lib = Lib,
-}
+local AutoSession = {}
 
 ---Setup function for AutoSession
 ---@param config AutoSession.Config|nil Config for auto session
@@ -27,7 +22,7 @@ function AutoSession.setup(config)
     AutoSession.setup_session_lens()
   end
 
-  -- TODO: should all autocommands be in autocmds?
+  -- FIXME: should all autocommands be in autocmds?
   AutoCmds.setup_autocmds(AutoSession)
 
   SetupAutocmds()

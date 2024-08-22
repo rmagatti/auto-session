@@ -3,6 +3,7 @@ local TL = require "tests/test_lib"
 
 describe("The git config", function()
   local as = require "auto-session"
+  local Lib = require "auto-session.lib"
   as.setup {
     auto_session_use_git_branch = true,
     -- log_level = "debug",
@@ -60,7 +61,7 @@ describe("The git config", function()
     -- print(session_path)
     assert.equals(1, vim.fn.filereadable(branch_session_path))
 
-    assert.equals(vim.fn.getcwd() .. " (branch: main)", as.Lib.current_session_name())
+    assert.equals(vim.fn.getcwd() .. " (branch: main)", Lib.current_session_name())
   end)
 
   it("Autorestores a session with the branch name", function()
@@ -73,7 +74,7 @@ describe("The git config", function()
 
     assert.equals(1, vim.fn.filereadable(branch_session_path))
 
-    assert.equals(vim.fn.getcwd() .. " (branch: main)", as.Lib.current_session_name())
+    assert.equals(vim.fn.getcwd() .. " (branch: main)", Lib.current_session_name())
   end)
 
   it("can migrate an old git session", function()
@@ -95,7 +96,7 @@ describe("The git config", function()
     assert.equals(1, vim.fn.filereadable(branch_session_path))
     assert.equals(0, vim.fn.filereadable(legacy_branch_session_path))
 
-    assert.equals(vim.fn.getcwd() .. " (branch: main)", as.Lib.current_session_name())
+    assert.equals(vim.fn.getcwd() .. " (branch: main)", Lib.current_session_name())
   end)
 
   it("can get the session name of a git branch with a slash", function()
@@ -105,8 +106,8 @@ describe("The git config", function()
 
     local session_path = TL.session_dir .. TL.escapeSessionName(vim.fn.getcwd() .. "|slash/branch") .. ".vim"
     assert.equals(1, vim.fn.filereadable(session_path))
-    assert.equals(vim.fn.getcwd() .. " (branch: slash/branch)", as.Lib.current_session_name())
-    assert.equals(git_test_dir .. " (branch: slash/branch)", as.Lib.current_session_name(true))
-    print(as.Lib.current_session_name())
+    assert.equals(vim.fn.getcwd() .. " (branch: slash/branch)", Lib.current_session_name())
+    assert.equals(git_test_dir .. " (branch: slash/branch)", Lib.current_session_name(true))
+    print(Lib.current_session_name())
   end)
 end)
