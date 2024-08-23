@@ -53,67 +53,48 @@ Manually saving a session can still be done by calling `:SessionSave`.
 
 ### Configuration
 
-You can set the auto_session root dir that will be used for auto session saving and restoring.
-
-```viml
-let g:auto_session_root_dir = path/to/my/custom/dir
-
-" or use Lua
-lua << EOF
-local opts = {
-  auto_session_enabled = true,
-  auto_session_root_dir = vim.fn.stdpath('data') .. "/sessions/",
-  auto_save_enabled = true,
-  auto_restore_enabled = true,
-  auto_session_suppress_dirs = nil,
-  auto_session_allowed_dirs = nil,
-  auto_session_create_enabled = true,
-  auto_session_enable_last_session = false,
-  auto_session_use_git_branch = false,
-  auto_restore_lazy_delay_enabled = true,
-  log_level = 'error',
-}
-
-require('auto-session').setup(opts)
-EOF
-```
-
-### Options
-
-| Config                           | Options                  | Default                              | Description                                                                                                                                          |
-| -------------------------------- | ------------------------ | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| auto_session_enabled             | false, true              | true                                 | Enables/disables the plugin's auto save _and_ restore features                                                                                       |
-| auto_session_root_dir            | "/some/path/you/want"    | vim.fn.stdpath('data').."/sessions/" | Changes the root dir for sessions                                                                                                                    |
-| auto_save_enabled                | false, true              | true                                 | Enables/disables auto saving                                                                                                                         |
-| auto_restore_enabled             | false, true              | true                                 | Enables/disables auto restoring                                                                                                                      |
-| auto_session_suppress_dirs       | ["list", "of paths"]     | nil                                  | Suppress session create/restore if in one of the list of dirs                                                                                        |
-| auto_session_allowed_dirs        | ["list", "of paths"]     | nil                                  | Allow session create/restore if in one of the list of dirs                                                                                           |
-| auto_session_create_enabled      | false, true, function    | true                                 | Enables/disables the plugin's session auto creation. Can also be a Lua function that returns true if a session should be created and false otherwise |
-| auto_session_enable_last_session | false, true              | false                                | On startup, loads the last loaded session if session for cwd does not exist                                                                          |
-| auto_session_use_git_branch      | false, true              | false                                | Use the git branch to differentiate the session name                                                                                                 |
-| auto_restore_lazy_delay_enabled  | false, true              | true                                 | Enables/disables delaying auto-restore if Lazy.nvim is used                                                                                          |
-| log_level                        | 'debug', 'info', 'error' | 'error'                              | Sets the log level of the plugin. Set to info for more feedback on what's happening                                                                  |
-
-#### Notes
-
-`auto_session_suppress_dirs` and `auto_session_allowed_dirs` support base paths with `*` wildcard (e.g.: `/my/base/path/*`)
-
-### Lua Only Options
+Here are the default settings:
 
 ```lua
-require("auto-session").setup {
-  bypass_session_save_file_types = nil, -- table: Bypass auto save when only buffer open is one of these file types, useful to ignore dashboards
-  close_unsupported_windows = true, -- boolean: Close windows that aren't backed by normal file
-  cwd_change_handling = { -- table: Config for handling the DirChangePre and DirChanged autocmds, can be set to nil to disable altogether
-    restore_upcoming_session = false, -- boolean: restore session for upcoming cwd on cwd change
-    pre_cwd_changed_hook = nil, -- function: This is called after auto_session code runs for the `DirChangedPre` autocmd
-    post_cwd_changed_hook = nil, -- function: This is called after auto_session code runs for the `DirChanged` autocmd
+{
+  enabled = true, -- Enables/disables auto creating, saving and restoring
+  root_dir = vim.fn.stdpath "data" .. "/sessions/", -- Root dir where sessions will be stored
+  auto_save = true, -- Enables/disables auto save feature
+  auto_restore = true, -- Enables/disables auto restore feature
+  auto_create = true, -- Enables/disables auto creating new session files. Can take a function that should return true/false if a new session file should be created or not
+  suppressed_dirs = nil, -- Suppress session restore/create in certain directories
+  alloweded_dirs = nil, -- Allow session restore/create in certain directories
+  auto_restore_last_session = false, -- Enables/disables the "last session" feature
+  use_git_branch = false, -- Include git branch name in session name
+  lazy_support = true, -- Enables/disables Lazy delay feature
+  bypass_save_filetypes = nil, -- Bypass auto save when only buffer open is one of these file types
+  close_unsupported_windows = true, -- Close windows that aren't backed by normal file before autosaving a session
+  args_allow_single_directory = true, -- Allow single directory arguments by default
+  args_allow_files_auto_save = false, -- Don't save session for file args by default
+  continue_restore_on_error = true, -- Suppress extraneous messages and source the whole session, even if there's an error. Set to false to get the line number of a restore error
+  cwd_change_handling = false, -- Save/restore sessions when changing directories
+  log_level = "error", -- Sets the log level of the plugin (debug, info, error).
+
+  session_lens = {
+    load_on_setup = true, -- Initialize on startup (requires Telescope)
+    theme_conf = {}, -- Pass through for Telescope theme options
+    previewer = false, -- File preview for session picker
+
+    session_control = {
+      control_dir = vim.fn.stdpath "data" .. "/auto_session/", -- Auto session control dir, for control files, like alternating between two sessions with session-lens
+      control_filename = "session_control.json", -- File name of the session control file
+    },
+
+    mappings = {
+      -- Mode can be a string or a table, e.g. {"i", "n"} for both insert and normal mode
+      delete_session = { "i", "<C-D>" },
+      alternate_session = { "i", "<C-S>" },
+    },
   },
-  args_allow_single_directory = true, -- boolean Follow normal sesion save/load logic if launched with a single directory as the only argument
-  args_allow_files_auto_save = false, -- boolean|function Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. While you can just set this to true, you probably want to set it to a function that decides when to save a session when launched with file args. See documentation for more detail
-  silent_restore = true, -- Suppress extraneous messages and source the whole session, even if there's an error. Set to false to get the line number a restore error
 }
 ```
+
+NOTE: Older configuration names are still currently supported and will be automatically translated to the names above. If you want to update your config to the new names, `:checkhealth auto-session` will show you your config using the new names.
 
 #### Recommended sessionoptions config
 
