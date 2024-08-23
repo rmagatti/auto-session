@@ -630,12 +630,6 @@ function AutoSession.RestoreSessionFile(session_path, show_message)
   local vim_session_path = Lib.escape_string_for_vim(session_path)
   local cmd = "source " .. vim_session_path
 
-  if Config.continue_restore_on_error then
-    cmd = "silent! " .. cmd
-    -- clear errors here so we can
-    vim.v.errmsg = ""
-  end
-
   -- Set restore_in_progress here so we won't also try to save/load the session if
   -- cwd_change_handling = true and the session contains a cd command
   -- The session file will also set SessionLoad so we'll check that too but feels
@@ -647,22 +641,26 @@ function AutoSession.RestoreSessionFile(session_path, show_message)
   vim.cmd "clearjumps"
 
   ---@diagnostic disable-next-line: param-type-mismatch
-  local success, result = pcall(vim.cmd, cmd)
+  local success, result = pcall(vim.cmd, "silent " .. cmd)
+
+  -- normal restore failed, source again but with silent! to restore as much as possible
+  if not success and Config.continue_restore_on_error then
+    vim.cmd "%bw!"
+    vim.cmd "clearjumps"
+
+    -- don't capture return values as we'll use success and result from the first call
+    ---@diagnostic disable-next-line: param-type-mismatch
+    pcall(vim.cmd, "silent! " .. cmd)
+  end
+
   AutoSession.restore_in_progress = false
 
   -- Clear any saved command line args since we don't need them anymore
   launch_argv = nil
 
-  if Config.continue_restore_on_error and vim.v.errmsg and vim.v.errmsg ~= "" then
-    -- we had an error while sourcing silently so surface it
-    success = false
-    result = vim.v.errmsg
-  end
-
   if not success then
     Lib.logger.error([[
 Error restoring session, disabling auto save.
-Set silent_restore = false in the config for a more detailed error message.
 Error: ]] .. result)
     Config.auto_save = false
     return false
