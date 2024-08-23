@@ -6,7 +6,7 @@ AutoSession takes advantage of Neovim's existing session management capabilities
 
 [<img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/rmagatti/auto-session/tests.yml?style=for-the-badge&label=tests">](https://github.com/rmagatti/auto-session/actions/workflows/tests.yml)
 
-## 📦 Installation
+# 📦 Installation
 
 [Lazy.nvim](https://github.com/folke/lazy.nvim):
 
@@ -37,7 +37,7 @@ use {
 }
 ```
 
-## 💡 Behaviour
+# 💡 Behaviour
 
 1. When starting `nvim` with no arguments, AutoSession will try to restore an existing session for the current `cwd` if one exists.
 2. When starting `nvim .` (or another directory), AutoSession will try to restore the session for that directory.
@@ -49,7 +49,7 @@ use {
 :warning: Please note that if there are errors in your config, restoring the session might fail, if that happens, auto session will then disable auto saving for the current session.
 Manually saving a session can still be done by calling `:SessionSave`.
 
-## ⚙️ Configuration
+# ⚙️ Configuration
 
 Here are the default settings:
 
@@ -101,7 +101,7 @@ NOTE: Older configuration names are still currently supported and will be automa
 
 #### Recommended sessionoptions config
 
-For a better experience with the plugin overall using this config for `sessionoptions` is recommended.
+For a better experience with the plugin overall using this config for `sessionoptions` is recommended:
 
 **Lua**
 
@@ -117,7 +117,7 @@ set sessionoptions+=winpos,terminal,folds
 
 :warning: if you use [packer.nvim](https://github.com/wbthomason/packer.nvim)'s lazy loading feature, and you have the `options` value in your `sessionoptions` beware it might lead to weird behaviour with the lazy loading, especially around key-based lazy loading where keymaps are kept and thus the lazy loading mapping packer creates never gets set again.
 
-## 📢 Commands
+# 📢 Commands
 
 AutoSession exposes the following commands that can be used or mapped to any keybindings for manually saving and restoring sessions.
 
@@ -143,9 +143,9 @@ AutoSession exposes the following commands that can be used or mapped to any key
 :Autosession delete " open a vim.ui.select picker to choose a session to delete.
 ```
 
-## 📖 More Configuration Details
+# 📖 More Configuration Details
 
-### 🔭 Session Lens
+## 🔭 Session Lens
 
 You can use Telescope to see, load, and delete your sessions. It's enabled by default if you have Telescope, but here's the Lazy config that shows the configuration options:
 
@@ -199,11 +199,11 @@ The following default keymaps are available when the session-lens picker is open
 
 NOTE: If you previously installed `rmagatti/session-lens`, you should remove it from your config as it is no longer necessary.
 
-### Preview
+## Preview
 
 <img src="https://github.com/rmagatti/readme-assets/blob/main/session-lens.gif" width=800 />
 
-### 📁 Current Working Directory
+## 📁 Current Working Directory
 
 AutoSession can track `cwd` changes!
 
@@ -242,7 +242,7 @@ require('auto-session').setup({
 })
 ```
 
-### 🖥️Dashboards
+## 🖥️ Dashboards
 
 If you use a dashboard, you probably don't want to try and save a session when just the dashboard is open. To avoid that, add your dashboard filetype to the bypass list as follows:
 
@@ -253,7 +253,7 @@ require('auto-session').setup({
 
 ```
 
-### 🪝 Command Hooks
+## 🪝 Command Hooks
 
 #### Command hooks are a list of commands that get executed at different stages of the session management lifecycle.
 
@@ -299,7 +299,7 @@ require('auto-session').setup {
 }
 ```
 
-### ➖ Statusline
+## ➖ Statusline
 
 You can show the current session name in the statusline by using the function `current_session_name()`. With no arguments, it will return the full session name. For automatically created sessions that will be the path where the session was saved. If you only want the last directory in the path, you can call `current_session_name(true)`.
 
@@ -322,7 +322,7 @@ require('lualine').setup{
 
 <img width="1904" alt="Screen Shot 2021-10-30 at 3 58 57 PM" src="https://user-images.githubusercontent.com/2881382/139559478-8edefdb8-8254-42e7-a0f3-babd3dfd6ff2.png">
 
-### ⏮️ Last Session
+## ⏮️ Last Session
 
 This optional feature enables the keeping track and loading of the last session.
 The last session is only loaded at startup if there isn't already a session for the current working directory.
@@ -347,7 +347,7 @@ require('auto-session').setup {
 
 Now last session will be restored only when Neovim is launched in the home directory, which is usually right after launching the terminal or Neovim GUI clients.
 
-### Conditionally creating a session
+## Conditionally creating a session
 
 `auto_create` doesn't just have to be a boolean, it can also take a function that returns if a session should be created or not as part of auto saving. As one example, you could use this to only create new session files for git projects:
 
@@ -362,7 +362,7 @@ require('auto-session').setup({
 
 ```
 
-### 🗃️ Argument Handling
+## 🗃️ Argument Handling
 
 By default, when `nvim` is run with a single directory argument, AutoSession will try to restore the session for that directory. If `nvim` is run with multiple directories or any file arguments, AutoSession won't try to restore a session and won't auto-save a session on exit (if enabled). Those behaviors can be changed with these config parameters:
 
@@ -422,7 +422,7 @@ require('auto-session').setup({
 })
 ```
 
-### 🚫 Disabling the plugin
+## 🚫 Disabling the plugin
 
 You might run into issues with Firenvim or another plugin and want to disable `auto_session` altogether based on some condition.
 For this example, as to not try and save sessions for Firenvim, we disable the plugin if the `started_by_firenvim` variable is set.
@@ -433,7 +433,7 @@ if exists('g:started_by_firenvim')
 endif
 ```
 
-One can also disable the plugin by setting the `enabled` option to false at startup.
+One can also disable the plugin by setting the `auto_session_enabled` option to false at startup.
 
 ```sh
 nvim --cmd "let g:auto_session_enabled = v:false"
