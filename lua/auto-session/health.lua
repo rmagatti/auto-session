@@ -33,10 +33,10 @@ function M.check()
 
   start "Config"
   if Config.has_old_config then
-    warn(
-      "You have old config names. You should update your config to:\n"
+    info(
+      "You have old config names. You could update your config to:\n"
         .. vim.inspect(Config.options_without_defaults)
-        .. "\n\nYou may also need to remove any vim global config settings"
+        .. "\n\nYou could also need to remove any vim global config settings"
     )
   else
     ok("\n" .. vim.inspect(Config.options_without_defaults))
