@@ -12,8 +12,6 @@ describe("Session lens", function()
     as.SaveSession()
     as.SaveSession "project_x"
 
-    -- initialize session_lens
-    assert.True(as.setup_session_lens())
     local make_telescope_entry = session_lens.make_telescope_callback {}
 
     local data = make_telescope_entry(TL.escapeSessionName(TL.default_session_name) .. ".vim")
