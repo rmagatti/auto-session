@@ -199,7 +199,7 @@ The following default keymaps are available when the session-lens picker is open
 
 NOTE: If you previously installed `rmagatti/session-lens`, you should remove it from your config as it is no longer necessary.
 
-## Preview
+### Preview
 
 <img src="https://github.com/rmagatti/readme-assets/blob/main/session-lens.gif" width=800 />
 
