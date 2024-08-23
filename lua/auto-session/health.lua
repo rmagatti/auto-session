@@ -31,13 +31,21 @@ function M.check()
   start "vim options"
   check_session_options()
 
+  start "Config"
+  if Config.has_old_config then
+    warn(
+      "You have old config names. You should update your config to:\n"
+        .. vim.inspect(Config.options_without_defaults)
+        .. "\n\nYou may also need to remove any vim global configs"
+    )
+  else
+    ok("\n" .. vim.inspect(Config.options_without_defaults))
+  end
+
   start "General Info"
   info("Session directory: " .. AutoSession.get_root_dir())
   info("Current session: " .. Lib.current_session_name())
   info("Current session file: " .. vim.v.this_session)
-
-  start "Config"
-  info("Here's the config using the new option names\n" .. vim.inspect(Config.modernized_config()))
 end
 
 return M

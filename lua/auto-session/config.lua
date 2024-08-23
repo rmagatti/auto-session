@@ -1,3 +1,4 @@
+---@diagnostic disable: inject-field
 ---@type AutoSession.Config
 local M = {}
 
@@ -79,13 +80,13 @@ local defaults = {
     theme_conf = {}, -- Pass through for Telescope theme options
     previewer = false, -- File preview for session picker
 
-    ---@SessionControl
+    ---@type SessionControl
     session_control = {
       control_dir = vim.fn.stdpath "data" .. "/auto_session/", -- Auto session control dir, for control files, like alternating between two sessions with session-lens
       control_filename = "session_control.json", -- File name of the session control file
     },
 
-    ---@SessionLensMappings
+    ---@type SessionLensMappings
     mappings = {
       -- Mode can be a string or a table, e.g. {"i", "n"} for both insert and normal mode
       delete_session = { "i", "<C-D>" },
@@ -95,10 +96,14 @@ local defaults = {
 }
 
 ---@type AutoSession.Config
-local options
+M.options = {}
 
 ---@type AutoSession.Config
-local modernized_config
+---Used to show the user their config using the new names without the defaults
+M.options_without_defaults = {}
+
+---Does the config have old names. Used to show a warning in the health check
+M.has_old_config = true
 
 ---Set config options based on vim globals
 ---@param config AutoSession.Config
@@ -123,12 +128,13 @@ local function check_for_vim_globals(config)
     no_restore_cmds = "no_restore_cmds",
   }
 
-  -- TODO: should eventually deprecate these options, starting with a healthcheck warning
-
   for global_name, config_name in pairs(vim_globals_mapping) do
     -- if the global is set and the config isn't set, set the config
-    if vim.g[global_name] and config[config_name] == nil then
-      config[config_name] = vim.g[global_name]
+    if vim.g[global_name] ~= nil then
+      M.has_old_config = true
+      if config[config_name] == nil then
+        config[config_name] = vim.g[global_name]
+      end
     end
   end
 end
@@ -151,15 +157,16 @@ local function check_old_config_names(config)
     silent_restore = "continue_restore_on_error",
   }
 
-  -- TODO: should eventually deprecate these options, starting with a healthcheck warning
-
   for old_name, new_name in pairs(old_config_names) do
     -- if old name is set and new name isn't set, then copy over the value to the new name
     -- and clear the old name
-    if config[old_name] ~= nil and config[new_name] == nil then
-      config[new_name] = config[old_name]
+    if config[old_name] ~= nil then
+      M.has_old_config = true
+      if config[new_name] == nil then
+        config[new_name] = config[old_name]
+      end
+      config[old_name] = nil
     end
-    config[old_name] = nil
   end
 
   if
@@ -179,42 +186,37 @@ local function check_old_config_names(config)
 end
 
 ---@param config? AutoSession.Config
----@diagnostic disable-next-line: inject-field
 function M.setup(config)
   ---@diagnostic disable-next-line: param-type-mismatch
-  modernized_config = vim.deepcopy(config) or {}
+  M.options_without_defaults = vim.deepcopy(config) or {}
 
   -- capture any old vim global config options
-  check_for_vim_globals(modernized_config)
+  check_for_vim_globals(M.options_without_defaults)
 
   -- capture any old config names
-  check_old_config_names(modernized_config)
+  check_old_config_names(M.options_without_defaults)
 
-  options = vim.tbl_deep_extend("force", defaults, modernized_config)
+  M.options = vim.tbl_deep_extend("force", defaults, M.options_without_defaults)
 end
 
----Used to show the updated config in healthcheck
----@diagnostic disable-next-line: inject-field
-function M.modernized_config()
-  return modernized_config
-end
-
----@diagnostic disable-next-line: inject-field
 function M.check(logger)
   if not vim.tbl_contains(vim.split(vim.o.sessionoptions, ","), "localoptions") then
     logger.warn "vim.o.sessionoptions is missing localoptions. \nUse `:checkhealth autosession` for more info."
   end
+
+  -- TODO: At some point, we should pop up a warning about old config if
+  -- M.has_old_config but let's make sure everything is working well before doing that
 end
 
 return setmetatable(M, {
   __index = function(_, key)
-    if options == nil then
+    if M.options == nil then
       M.setup()
     end
     ---@diagnostic disable-next-line: need-check-nil
-    return options[key]
+    return M.options[key]
   end,
   __tostring = function(_)
-    return vim.inspect(options)
+    return vim.inspect(M.options)
   end,
 })
