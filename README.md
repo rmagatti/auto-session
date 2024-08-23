@@ -69,7 +69,7 @@ Here are the default settings:
   close_unsupported_windows = true, -- Close windows that aren't backed by normal file before autosaving a session
   args_allow_single_directory = true, -- Follow normal sesion save/load logic if launched with a single directory as the only argument
   args_allow_files_auto_save = false, -- Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. While you can just set this to true, you probably want to set it to a function that decides when to save a session when launched with file args. See documentation for more detail
-  continue_restore_on_error = true, -- Keep loading the session even if there's an error. Set to false to get the line number of an error when loading a session
+  continue_restore_on_error = true, -- Keep loading the session even if there's an error
   cwd_change_handling = false, -- Follow cwd changes, saving a session before change and restoring after
   log_level = "error", -- Sets the log level of the plugin (debug, info, warn, error).
 
@@ -203,7 +203,20 @@ NOTE: If you previously installed `rmagatti/session-lens`, you should remove it 
 
 <img src="https://github.com/rmagatti/readme-assets/blob/main/session-lens.gif" width=800 />
 
-## 📁 Current Working Directory
+## 📁 Allowed / Suppressed directories
+
+There are two config options, `allowed_dirs` and `suppressed_dirs`, that control which directories AutoSession will auto-save a session for. If `allowed_dirs` is set, sessions will only be auto-saved in matching directories. If `suppressed_dirs` is set, then a session won't be auto-saved for a matching directory. If both are set, a session will only be auto-saved if it matches an allowed dir and does not match a suppressed dir.
+
+Both options are a table of directories, with support for globs:
+
+```lua
+  alloweded_dirs = { '/some/dir/', '/projects/*' }
+  suppressed_dirs = { '/projects/secret' }
+```
+
+With those options, sessions would only be auto-saved for `/some/dir` and any direct child of `/projects` (e.g. `/projects/myproject` but not `/projects/myproject/submodule`) except `/projects/secret`
+
+## 🚶 Current Working Directory
 
 AutoSession can track `cwd` changes!
 
