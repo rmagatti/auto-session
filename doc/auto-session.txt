@@ -33,10 +33,6 @@ AutoSession.AutoRestoreSession({session_name?})
         (boolean)  returns whether restoring the session was successful or not.
 
 
-AutoSession.PurgeOrphanedSessions()          *AutoSession.PurgeOrphanedSessions*
-     Deletes sessions where the original directory no longer exists
-
-
                                                        *AutoSession.SaveSession*
 AutoSession.SaveSession({session_name?}, {show_message?})
     Saves a session to the dir specified in the config. If no optional
