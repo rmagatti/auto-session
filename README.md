@@ -122,14 +122,14 @@ set sessionoptions+=winpos,terminal,folds
 AutoSession exposes the following commands that can be used or mapped to any keybindings for manually saving and restoring sessions.
 
 ```viml
-:SessionSave " saves a session based on the `cwd` in `auto_session_root_dir`
-:SessionSave my_session " saves a session called `my_session` in `auto_session_root_dir`
+:SessionSave " saves a session based on the `cwd` in `root_dir`
+:SessionSave my_session " saves a session called `my_session` in `root_dir`
 
-:SessionRestore " restores a session based on the `cwd` from `auto_session_root_dir`
-:SessionRestore my_session " restores `my_session` from `auto_session_root_dir`
+:SessionRestore " restores a session based on the `cwd` from `root_dir`
+:SessionRestore my_session " restores `my_session` from `root_dir`
 
-:SessionDelete " deletes a session based on the `cwd` from `auto_session_root_dir`
-:SessionDelete my_session " deletes `my_sesion` from `auto_session_root_dir`
+:SessionDelete " deletes a session based on the `cwd` from `root_dir`
+:SessionDelete my_session " deletes `my_sesion` from `root_dir`
 
 :SessionDisableAutoSave " disables autosave
 :SessionDisableAutoSave! " enables autosave (still does all checks in the config)

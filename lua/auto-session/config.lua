@@ -2,6 +2,10 @@
 ---@type AutoSession.Config
 local M = {}
 
+---@toc toc
+
+---@mod auto-session.config Config
+
 ---@class AutoSession.Config
 ---@field enabled? boolean Enables/disables auto saving and restoring
 ---@field root_dir? string root directory for session files, by default is `vim.fn.stdpath('data') .. '/sessions/'`
@@ -213,6 +217,7 @@ function M.check(logger)
   -- M.has_old_config but let's make sure everything is working well before doing that
 end
 
+---@export Config
 return setmetatable(M, {
   __index = function(_, key)
     if M.options == nil then

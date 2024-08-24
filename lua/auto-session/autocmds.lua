@@ -2,6 +2,28 @@ local Lib = require "auto-session.lib"
 local Config = require "auto-session.config"
 local SessionLens -- will be initialized later
 
+---@mod auto-session.commands Commands
+---@brief [[
+---This plugin provides the following commands:
+---
+---*SessionSave* - saves a session based on the `cwd` in `root_dir`
+---*SessionSave my_session* - saves a session called `my_session` in `root_dir`
+---
+---*SessionRestore* - restores a session based on the `cwd` from `root_dir`
+---*SessionRestore my_session* - restores `my_session` from `root_dir`
+---
+---*SessionDelete* - deletes a session based on the `cwd` from `root_dir`
+---*SessionDelete my_session* - deletes `my_sesion` from `root_dir`
+---
+---*SessionDisableAutoSave* - disables autosave
+---*SessionDisableAutoSave!* - enables autosave (still does all checks in the config)
+---*SessionToggleAutoSave* - toggles autosave
+---
+---*SessionPurgeOrphaned* - removes all orphaned sessions with no working directory left.
+---
+---*SessionSearch* - open a session picker, uses Telescope if installed, vim.ui.select otherwise
+---@brief ]]
+
 local M = {}
 
 ---Calls lib function for completeing session names with session dir
@@ -384,4 +406,5 @@ function M.setup_autocmds(AutoSession)
   end
 end
 
+---@export autocmds
 return M

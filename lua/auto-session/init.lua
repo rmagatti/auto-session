@@ -3,6 +3,8 @@ local Config = require "auto-session.config"
 local AutoCmds = require "auto-session.autocmds"
 
 ----------- Setup ----------
+
+---@mod auto-session.api API
 local AutoSession = {}
 
 ---Setup function for AutoSession
