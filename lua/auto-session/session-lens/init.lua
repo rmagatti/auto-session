@@ -68,6 +68,7 @@ function SessionLens.make_telescope_callback(opts)
   end
 end
 
+---@private
 ---Search session
 ---Triggers the customized telescope picker for switching sessions
 ---@param custom_opts any
