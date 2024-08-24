@@ -2,8 +2,8 @@
 Table of Contents                                                          *toc*
 
 Config ··················································· |auto-session.config|
-API ························································· |auto-session.api|
 Commands ··············································· |auto-session.commands|
+API ························································· |auto-session.api|
 
 ==============================================================================
 Config                                                     *auto-session.config*
@@ -71,6 +71,28 @@ SessionLensMappings                                        *SessionLensMappings*
         {delete_session}     (table)  mode and key for deleting a session from the picker
         {alternate_session}  (table)  mode and key for swapping to alertnate session from the picker
 
+
+==============================================================================
+Commands                                                 *auto-session.commands*
+
+This plugin provides the following commands:
+
+  *SessionSave* - saves a session based on the `cwd` in `root_dir`
+  *SessionSave my_session* - saves a session called `my_session` in `root_dir`
+
+  *SessionRestore* - restores a session based on the `cwd` from `root_dir`
+  *SessionRestore my_session* - restores `my_session` from `root_dir`
+
+  *SessionDelete* - deletes a session based on the `cwd` from `root_dir`
+  *SessionDelete my_session* - deletes `my_sesion` from `root_dir`
+
+  *SessionDisableAutoSave* - disables autosave
+  *SessionDisableAutoSave!* - enables autosave (still does all checks in the config)
+  *SessionToggleAutoSave* - toggles autosave
+
+  *SessionPurgeOrphaned* - removes all orphaned sessions with no working directory left.
+
+  *SessionSearch* - open a session picker, uses Telescope if installed, vim.ui.select otherwise
 
 ==============================================================================
 API                                                           *auto-session.api*
@@ -209,37 +231,6 @@ AutoSession.DisableAutoSave({enable?})             *AutoSession.DisableAutoSave*
 
     Returns: ~
         (boolean)  autosaving is enabled or not
-
-
-==============================================================================
-Commands                                                 *auto-session.commands*
-
-This plugin provides the following commands:
-
-*SessionSave* - saves a session based on the `cwd` in `root_dir`
-*SessionSave my_session* - saves a session called `my_session` in `root_dir`
-
-*SessionRestore* - restores a session based on the `cwd` from `root_dir`
-*SessionRestore my_session* - restores `my_session` from `root_dir`
-
-*SessionDelete* - deletes a session based on the `cwd` from `root_dir`
-*SessionDelete my_session* - deletes `my_sesion` from `root_dir`
-
-*SessionDisableAutoSave* - disables autosave
-*SessionDisableAutoSave!* - enables autosave (still does all checks in the config)
-*SessionToggleAutoSave* - toggles autosave
-
-*SessionPurgeOrphaned* - removes all orphaned sessions with no working directory left.
-
-*SessionSearch* - open a session picker, uses Telescope if installed, vim.ui.select otherwise
-
-                                                    *SessionLens.search_session*
-SessionLens.search_session({custom_opts})
-    Search session
-    Triggers the customized telescope picker for switching sessions
-
-    Parameters: ~
-        {custom_opts}  (any)
 
 
 vim:tw=78:ts=8:noet:ft=help:norl:
