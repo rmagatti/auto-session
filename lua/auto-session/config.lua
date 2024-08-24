@@ -180,7 +180,7 @@ local function check_old_config_names(config)
 
   if
     config["cwd_change_handling"]
-    and type(config["cwd_change_handling"] == "table")
+    and type(config["cwd_change_handling"]) == "table"
     and config.cwd_change_handling["restore_upcoming_session"]
   then
     local old_cwd_change_handling = config.cwd_change_handling or {} -- shouldn't be nil but placate LS
