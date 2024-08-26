@@ -462,7 +462,7 @@ nvim --cmd "let g:auto_session_enabled = v:false"
 
 ## 🚧 Troubleshooting
 
-First run ':checkhealth auto-session' to see if it detects any problems.
+First run `:checkhealth auto-session` to see if it detects any problems.
 
 If that doesn't help, you can:
 
