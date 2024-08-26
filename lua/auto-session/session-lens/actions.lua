@@ -1,12 +1,19 @@
 local AutoSession = require "auto-session"
-local Lib = AutoSession.Lib
+local Config = require "auto-session.config"
+local Lib = require "auto-session.lib"
 
 local M = {}
 
 ---@private
 local function get_alternate_session()
   ---@diagnostic disable-next-line: undefined-field
-  local session_control_conf = AutoSession.conf.session_lens.session_control
+  local session_control_conf = Config.session_lens.session_control
+
+  if not session_control_conf then
+    Lib.logger.error "No session_control in config!"
+    return
+  end
+
   local filepath = vim.fn.expand(session_control_conf.control_dir) .. session_control_conf.control_filename
 
   if vim.fn.filereadable(filepath) == 1 then

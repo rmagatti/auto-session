@@ -1,5 +1,5 @@
 local asLib = require "auto-session.lib"
-M = {}
+local M = {}
 
 -- This disables the headless check inside autosession
 -- I couldn't find a good way to mock out the calls to make this unnecessary

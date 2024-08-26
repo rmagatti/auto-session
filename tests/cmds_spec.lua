@@ -3,6 +3,8 @@ local TL = require "tests/test_lib"
 
 describe("The default config", function()
   local as = require "auto-session"
+  local Lib = require "auto-session.lib"
+  local c = require "auto-session.config"
   as.setup {
     -- log_level = "debug",
   }
@@ -80,12 +82,12 @@ describe("The default config", function()
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 
-    assert.equals(TL.named_session_name, require("auto-session").Lib.current_session_name())
-    assert.equals(TL.named_session_name, require("auto-session").Lib.current_session_name(true))
+    assert.equals(TL.named_session_name, require("auto-session.lib").current_session_name())
+    assert.equals(TL.named_session_name, require("auto-session.lib").current_session_name(true))
   end)
 
   it("can complete session names", function()
-    local sessions = as.Lib.complete_session_for_dir(TL.session_dir, "")
+    local sessions = Lib.complete_session_for_dir(TL.session_dir, "")
     -- print(vim.inspect(sessions))
 
     assert.True(vim.tbl_contains(sessions, TL.default_session_name))
@@ -93,7 +95,7 @@ describe("The default config", function()
 
     print(vim.inspect(sessions))
     -- With my prefix, only named session should be present
-    sessions = as.Lib.complete_session_for_dir(TL.session_dir, "my")
+    sessions = Lib.complete_session_for_dir(TL.session_dir, "my")
     assert.False(vim.tbl_contains(sessions, TL.default_session_name))
     assert.True(vim.tbl_contains(sessions, TL.named_session_name))
   end)
@@ -115,7 +117,7 @@ describe("The default config", function()
     vim.cmd("SessionDelete " .. TL.named_session_name)
 
     -- Auto save should be disabled when deleting the current session
-    assert.False(as.conf.auto_save_enabled)
+    assert.False(c.auto_save)
 
     -- Deleting current session should set vim.v.this_session = ""
     assert.True(vim.v.this_session == "")
@@ -131,10 +133,10 @@ describe("The default config", function()
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 
     -- auto_save_enabled will be disabled by delete above
-    assert.False(as.conf.auto_save_enabled)
+    assert.False(c.auto_save)
 
     -- enable it
-    as.conf.auto_save_enabled = true
+    c.auto_save = true
 
     as.AutoSaveSession()
 

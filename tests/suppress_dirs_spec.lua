@@ -3,6 +3,7 @@ local TL = require "tests/test_lib"
 
 describe("The suppress dirs config", function()
   local as = require "auto-session"
+  local c = require "auto-session.config"
 
   as.setup {
     auto_session_root_dir = TL.session_dir,
@@ -38,7 +39,7 @@ describe("The suppress dirs config", function()
   it("doesn't save a session for an allowed dir with a glob", function()
     TL.clearSessionFilesAndBuffers()
     vim.cmd("e " .. TL.test_file)
-    as.conf.auto_session_suppress_dirs = { vim.fn.getcwd() .. "/tests/*" }
+    c.suppressed_dirs = { vim.fn.getcwd() .. "/tests/*" }
 
     -- Change to a sub directory to see if it's allowed
     vim.cmd "cd tests/test_files"

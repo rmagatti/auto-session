@@ -5,7 +5,7 @@ describe("Lib / Helper functions", function()
   local as = require "auto-session"
   as.setup {}
 
-  local Lib = as.Lib
+  local Lib = require "auto-session.lib"
 
   TL.clearSessionFilesAndBuffers()
 
@@ -45,8 +45,8 @@ describe("Lib / Helper functions", function()
 
   it("get_last_session() returns nil when no session", function()
     ---@diagnostic disable-next-line: missing-parameter
-    assert.equals(nil, as.Lib.get_latest_session())
-    assert.equals(nil, as.Lib.get_latest_session(TL.session_dir))
+    assert.equals(nil, Lib.get_latest_session())
+    assert.equals(nil, Lib.get_latest_session(TL.session_dir))
   end)
 
   it("can percent encode/decode", function()

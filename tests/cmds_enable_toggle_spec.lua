@@ -1,28 +1,29 @@
 describe("The default config", function()
   local as = require "auto-session"
+  local c = require "auto-session.config"
   as.setup {}
 
   it("can disable autosave", function()
-    as.conf.auto_save_enabled = true
+    c.auto_save = true
 
     vim.cmd "SessionDisableAutoSave"
 
-    assert.False(as.conf.auto_save_enabled)
+    assert.False(c.auto_save)
   end)
 
   it("can enable autosave", function()
-    as.conf.auto_save_enabled = false
+    c.auto_save = false
 
     vim.cmd "SessionDisableAutoSave!"
 
-    assert.True(as.conf.auto_save_enabled)
+    assert.True(c.auto_save)
   end)
 
   it("can toggle autosave", function()
-    assert.True(as.conf.auto_save_enabled)
+    assert.True(c.auto_save)
     vim.cmd "SessionToggleAutoSave"
-    assert.False(as.conf.auto_save_enabled)
+    assert.False(c.auto_save)
     vim.cmd "SessionToggleAutoSave"
-    assert.True(as.conf.auto_save_enabled)
+    assert.True(c.auto_save)
   end)
 end)

@@ -1,20 +1,14 @@
 local Logger = require "auto-session.logger"
 
-local Config = {}
 local Lib = {
   logger = {},
-  conf = {
-    log_level = false,
-  },
-  Config = Config,
   _VIM_FALSE = 0,
   _VIM_TRUE = 1,
 }
 
-function Lib.setup(config)
-  Lib.conf = vim.tbl_deep_extend("force", Lib.conf, config or {})
+function Lib.setup(log_level)
   Lib.logger = Logger:new {
-    log_level = Lib.conf.log_level,
+    log_level = log_level,
   }
 end
 
@@ -349,7 +343,7 @@ end
 ---@param escaped_session_name string The session file name. It should not have a path component
 ---@return table The session name components
 function Lib.get_session_display_name_as_table(escaped_session_name)
-  -- sesssion name contains a |, split on that and get git branch
+  -- session name contains a |, split on that and get git branch
   local session_name = Lib.escaped_session_name_to_session_name(escaped_session_name)
   local splits = vim.split(session_name, "|")
 
@@ -497,12 +491,34 @@ end
 ---@param dirs table
 ---@param dirToFind string
 function Lib.find_matching_directory(dirToFind, dirs)
-  Lib.logger.debug("find_matching_directory", { dirToFind = dirToFind, dirs = dirs })
-  for _, s in pairs(dirs) do
-    local expanded = Lib.expand(s)
-    -- Lib.logger.debug("find_matching_directory expanded: " .. s)
+  local dirsToCheck = {}
+
+  -- resolve any symlinks and also check those
+  for _, dir in pairs(dirs) do
+    -- first expand it
+    local expanded_dir = Lib.expand(dir)
+
+    -- resolve symlinks
+    local resolved_dir = vim.fn.resolve(expanded_dir)
+
+    -- Lib.logger.debug("dir: " .. dir .. " expanded_dir: " .. expanded_dir .. " resolved_dir: " .. resolved_dir)
+
+    -- add the base expanded dir first. in theory, we should only need
+    -- the resolved directory but other systems might behave differently so
+    -- safer to check both
+    table.insert(dirsToCheck, expanded_dir)
+
+    -- add the resolved dir if it's different (e.g. a symlink)
+    if resolved_dir ~= expanded_dir then
+      table.insert(dirsToCheck, resolved_dir)
+    end
+  end
+
+  Lib.logger.debug("find_matching_directory", { dirToFind = dirToFind, dirsToCheck = dirsToCheck })
+
+  for _, dir in pairs(dirsToCheck) do
     ---@diagnostic disable-next-line: param-type-mismatch
-    for path in string.gmatch(expanded, "[^\r\n]+") do
+    for path in string.gmatch(dir, "[^\r\n]+") do
       local simplified_path = vim.fn.simplify(path)
       local path_without_trailing_slashes = string.gsub(simplified_path, "/+$", "")
 
@@ -516,6 +532,35 @@ function Lib.find_matching_directory(dirToFind, dirs)
   end
 
   return false
+end
+
+---@param cmds table Cmds to run
+---@param hook_name string Name of the hook being run
+---@return table Results of the cmds
+function Lib.run_hook_cmds(cmds, hook_name)
+  local results = {}
+  if Lib.is_empty_table(cmds) then
+    return results
+  end
+
+  for _, cmd in ipairs(cmds) do
+    Lib.logger.debug(string.format("Running %s command: %s", hook_name, cmd))
+    local success, result
+
+    if type(cmd) == "function" then
+      success, result = pcall(cmd)
+    else
+      ---@diagnostic disable-next-line: param-type-mismatch
+      success, result = pcall(vim.cmd, cmd)
+    end
+
+    if not success then
+      Lib.logger.error(string.format("Error running %s. error: %s", cmd, result))
+    else
+      table.insert(results, result)
+    end
+  end
+  return results
 end
 
 return Lib

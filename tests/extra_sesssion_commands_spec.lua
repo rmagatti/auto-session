@@ -5,6 +5,7 @@ TL.clearSessionFilesAndBuffers()
 describe("Config with extra session commands", function()
   local save_extra_cmds_called = false
   local as = require "auto-session"
+  local Lib = require "auto-session.lib"
   as.setup {
     save_extra_cmds = {
       function()
@@ -64,10 +65,10 @@ describe("Config with extra session commands", function()
   end)
 
   it("can correctly differentiate x.vim session and xx.vim custom commands", function()
-    assert.True(as.Lib.is_session_file(TL.session_dir .. TL.default_session_name .. ".vim"))
-    assert.False(as.Lib.is_session_file(TL.session_dir .. TL.default_session_name .. "x.vim"))
-    assert.True(as.Lib.is_session_file(TL.session_dir .. session_name .. ".vim"))
-    assert.False(as.Lib.is_session_file(TL.session_dir .. session_name .. "x.vim"))
+    assert.True(Lib.is_session_file(TL.session_dir .. TL.default_session_name .. ".vim"))
+    assert.False(Lib.is_session_file(TL.session_dir .. TL.default_session_name .. "x.vim"))
+    assert.True(Lib.is_session_file(TL.session_dir .. session_name .. ".vim"))
+    assert.False(Lib.is_session_file(TL.session_dir .. session_name .. "x.vim"))
   end)
 
   it("deletes a default session's extra commands when deleting the session", function()

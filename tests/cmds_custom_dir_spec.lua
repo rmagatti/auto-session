@@ -8,7 +8,7 @@ describe("The default config", function()
   }
 
   local custom_sessions_dir = vim.fn.getcwd() .. "/tests/custom_sessions/"
-  local cwd_session_name = M.escapeSessionName(vim.fn.getcwd())
+  local cwd_session_name = TL.escapeSessionName(vim.fn.getcwd())
   local cwd_session_path = custom_sessions_dir .. cwd_session_name .. ".vim"
   local named_session_path = custom_sessions_dir .. TL.named_session_name .. ".vim"
 
