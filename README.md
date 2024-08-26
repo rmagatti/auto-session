@@ -65,7 +65,7 @@ Here are the default settings:
   auto_restore = true, -- Enables/disables auto restoring session on start
   auto_create = true, -- Enables/disables auto creating new session files. Can take a function that should return true/false if a new session file should be created or not
   suppressed_dirs = nil, -- Suppress session restore/create in certain directories
-  alloweded_dirs = nil, -- Allow session restore/create in certain directories
+  allowed_dirs = nil, -- Allow session restore/create in certain directories
   auto_restore_last_session = false, -- On startup, loads the last saved session if session for cwd does not exist
   use_git_branch = false, -- Include git branch name in session name
   lazy_support = true, -- Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used. Can be disabled if a problem is suspected or for debugging
@@ -218,7 +218,7 @@ There are two config options, `allowed_dirs` and `suppressed_dirs`, that control
 Both options are a table of directories, with support for globs:
 
 ```lua
-  alloweded_dirs = { '/some/dir/', '/projects/*' }
+  allowed_dirs = { '/some/dir/', '/projects/*' }
   suppressed_dirs = { '/projects/secret' }
 ```
 
