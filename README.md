@@ -218,7 +218,7 @@ There are two config options, `allowed_dirs` and `suppressed_dirs`, that control
 Both options are a table of directories, with support for globs:
 
 ```lua
-  alloweded_dirs = { '/some/dir/', '/projects/*' }
+  allowed_dirs = { '/some/dir/', '/projects/*' }
   suppressed_dirs = { '/projects/secret' }
 ```
 
