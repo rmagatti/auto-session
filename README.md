@@ -17,6 +17,10 @@ AutoSession takes advantage of Neovim's existing session management capabilities
   dependencies = {
     'nvim-telescope/telescope.nvim', -- Only needed if you want to use session lens
   },
+
+  ---enables autocomplete for opts
+  ---@module "auto-session"
+  ---@type AutoSession.Config
   opts = {
     suppressed_dirs = { '~/', '~/Projects', '~/Downloads', '/' },
     -- log_level = 'debug',
@@ -163,6 +167,10 @@ You can use Telescope to see, load, and delete your sessions. It's enabled by de
     { '<leader>ws', '<cmd>SessionSave<CR>', desc = 'Save session' },
     { '<leader>wa', '<cmd>SessionToggleAutoSave<CR>', desc = 'Toggle autosave' },
   },
+
+  ---enables autocomplete for opts
+  ---@module "auto-session"
+  ---@type AutoSession.Config
   opts = {
     -- ⚠️ This will only work if Telescope.nvim is installed
     -- The following are already the default values, no need to provide them if these are already the settings you want.
