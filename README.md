@@ -462,7 +462,13 @@ nvim --cmd "let g:auto_session_enabled = v:false"
 
 ## 🚧 Troubleshooting
 
-For troubleshooting refer to the [wiki page](https://github.com/rmagatti/auto-session/wiki/Troubleshooting).
+First run ':checkhealth auto-session' to see if it detects any problems.
+
+If that doesn't help, you can:
+
+- refer to the [wiki page](https://github.com/rmagatti/auto-session/wiki/Troubleshooting).
+- check the [Discussions](https://github.com/rmagatti/auto-session/discussions)
+- or file an [Issue](https://github.com/rmagatti/auto-session/issues)
 
 # Compatibility
 
