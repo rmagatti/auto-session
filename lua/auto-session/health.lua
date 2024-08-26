@@ -27,9 +27,56 @@ local function check_session_options()
   end
 end
 
+local function check_lazy_settings()
+  local success, lazy = pcall(require, "lazy")
+
+  start "Lazy.nvim settings"
+
+  if not success or not lazy then
+    info "Lazy.nvim not loaded"
+    return
+  end
+
+  if not Config.lazy_support then
+    warn(
+      "Lazy.nvim is present but `lazy_support` is not enabled. This will cause problems when trying\n"
+        .. "to auto-restore a session while the Lazy.nvim window is up. You probably want to add\n"
+        .. "`lazy_support = true,` to your config (or remove the line that's setting it to false)"
+    )
+  else
+    ok "Lazy.nvim support is enabled"
+  end
+
+  local plugins = lazy.plugins()
+  for _, plugin in ipairs(plugins) do
+    if plugin.name == "auto-session" then
+      if plugin.lazy then
+        warn(
+          "auto-session is set to lazy load. This will prevent auto-restoring.\n"
+            .. "You probably want to change your auto-session lazy spec to be something like\n\n"
+            .. [[
+{
+  'rmagatti/auto-session',
+  lazy = true,
+  opts = {
+    -- your config here
+  }
+}
+            ]]
+        )
+      else
+        ok "auto-session is not lazy loaded"
+      end
+
+      return
+    end
+  end
+end
+
 function M.check()
   start "vim options"
   check_session_options()
+  check_lazy_settings()
 
   start "Config"
   if Config.has_old_config then
