@@ -125,15 +125,11 @@ SessionLens.search_session = function(custom_opts)
       end
       return opts.find_command
     elseif 1 == vim.fn.executable "rg" then
-      return { "rg", "--files", "--color", "never" }
-    elseif 1 == vim.fn.executable "fd" then
-      return { "fd", "--type", "f", "--color", "never" }
-    elseif 1 == vim.fn.executable "fdfind" then
-      return { "fdfind", "--type", "f", "--color", "never" }
-    elseif 1 == vim.fn.executable "ls" and vim.fn.has "win32" == 0 then
-      return { "ls" }
+      return { "rg", "--files", "--color", "never", "--sortr", "modified" }
+    elseif 1 == vim.fn.executable "ls" then
+      return { "ls", "-t" }
     elseif 1 == vim.fn.executable "cmd" and vim.fn.has "win32" == 1 then
-      return { "cmd", "/C", "dir", "/b" }
+      return { "cmd", "/C", "dir", "/b", "/o-d" }
     end
   end)()
 
