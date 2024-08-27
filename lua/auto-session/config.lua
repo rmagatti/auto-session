@@ -112,7 +112,7 @@ M.options = {}
 M.options_without_defaults = {}
 
 ---Does the config have old names. Used to show a warning in the health check
-M.has_old_config = true
+M.has_old_config = false
 
 ---Set config options based on vim globals
 ---@param config AutoSession.Config
