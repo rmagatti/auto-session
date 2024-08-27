@@ -4,7 +4,6 @@ about: Create a report to help us improve
 title: "[BUG]"
 labels: bug
 assignees: rmagatti
-
 ---
 
 **Describe the bug**
@@ -23,11 +22,14 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
+**Checkhealth**
+Paste the contents of `checkhealth auto-session` here
+
 **Baseline (please complete the following information):**
- - Result of `set sessionoptions?`:
- - OS. e.g `uname -a`:
- - Neovim version `nvim --version`
- - URL to your current config (if public)
+- Result of `set sessionoptions?`:
+- OS. e.g `uname -a`:
+- Neovim version `nvim --version`
+- URL to your current config (if public)
 
 **Additional context**
 Add any other context about the problem here.
