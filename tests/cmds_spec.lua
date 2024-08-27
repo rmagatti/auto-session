@@ -30,6 +30,10 @@ describe("The default config", function()
     -- Make sure the session has our buffer
     TL.assertSessionHasFile(TL.default_session_path, TL.test_file)
     assert.True(as.session_exists_for_cwd())
+
+    -- Make sure there isn't an extra commands file by default
+    local default_extra_cmds_path = TL.default_session_path:gsub("%.vim$", "x.vim")
+    assert.equals(0, vim.fn.filereadable(default_extra_cmds_path))
   end)
 
   it("can restore a session for the cwd", function()
