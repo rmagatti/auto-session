@@ -57,7 +57,7 @@ local function check_lazy_settings()
             .. [[
 {
   'rmagatti/auto-session',
-  lazy = true,
+  lazy = false,
   opts = {
     -- your config here
   }
