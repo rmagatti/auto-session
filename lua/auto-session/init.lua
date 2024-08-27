@@ -344,7 +344,7 @@ end
 ---@private
 ---Get the hook commands from the config and run them
 ---@param hook_name string
----@return table Results of the commands
+---@return table|nil Results of the commands
 function AutoSession.run_cmds(hook_name)
   local cmds = Config[hook_name .. "_cmds"]
   return Lib.run_hook_cmds(cmds, hook_name)

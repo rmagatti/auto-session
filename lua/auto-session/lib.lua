@@ -536,13 +536,13 @@ end
 
 ---@param cmds table Cmds to run
 ---@param hook_name string Name of the hook being run
----@return table Results of the cmds
+---@return table|nil Results of the cmds
 function Lib.run_hook_cmds(cmds, hook_name)
-  local results = {}
   if Lib.is_empty_table(cmds) then
-    return results
+    return nil
   end
 
+  local results = {}
   for _, cmd in ipairs(cmds) do
     Lib.logger.debug(string.format("Running %s command: %s", hook_name, cmd))
     local success, result
