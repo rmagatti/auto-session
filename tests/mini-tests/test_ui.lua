@@ -55,7 +55,7 @@ T["session lens"]["can load a session"] = function()
   expect.equality(0, child.fn.bufexists(TL.test_file))
   child.cmd "SessionSearch"
   -- give the UI time to come up
-  vim.loop.sleep(100)
+  vim.loop.sleep(250)
   child.type_keys "project_x"
   child.type_keys "<cr>"
   -- give the session time to load
@@ -67,10 +67,10 @@ T["session lens"]["can delete a session"] = function()
   expect.equality(1, vim.fn.filereadable(TL.named_session_path))
   child.cmd "SessionSearch"
   -- give the UI time to come up
-  vim.loop.sleep(100)
+  vim.loop.sleep(250)
   child.type_keys "mysession"
   child.type_keys "<c-d>"
-  vim.loop.sleep(100)
+  vim.loop.sleep(250)
   expect.equality(0, vim.fn.filereadable(TL.named_session_path))
 end
 
