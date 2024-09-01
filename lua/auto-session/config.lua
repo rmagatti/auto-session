@@ -196,6 +196,9 @@ end
 
 ---@param config? AutoSession.Config
 function M.setup(config)
+  -- Clear the flag in case setup is called again
+  M.has_old_config = false
+
   ---@diagnostic disable-next-line: param-type-mismatch
   M.options_without_defaults = vim.deepcopy(config) or {}
 
