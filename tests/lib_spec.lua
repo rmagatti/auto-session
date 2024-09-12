@@ -183,4 +183,36 @@ describe("Lib / Helper functions", function()
     assert.equals("", Lib.current_session_name())
     assert.equals("", Lib.current_session_name(true))
   end)
+
+  it("flatten_table_and_split_string() works with strings and tables", function()
+    local data = { "one\ntwo\nthree\n" }
+    local output = Lib.flatten_table_and_split_strings(data)
+
+    assert.equals(#output, 3)
+    assert.equals(output[1], "one")
+    assert.equals(output[2], "two")
+    assert.equals(output[3], "three")
+
+    data = { { "a", "b", "c\nd" }, "e", "f\ng" }
+    output = Lib.flatten_table_and_split_strings(data)
+
+    assert.equals(#output, 7)
+    assert.equals(output[1], "a")
+    assert.equals(output[2], "b")
+    assert.equals(output[3], "c")
+    assert.equals(output[4], "d")
+    assert.equals(output[5], "e")
+    assert.equals(output[6], "f")
+    assert.equals(output[7], "g")
+
+    data = {}
+    output = Lib.flatten_table_and_split_strings(data)
+
+    assert.True(vim.tbl_isempty(output))
+
+    data = { {} }
+    output = Lib.flatten_table_and_split_strings(data)
+
+    assert.True(vim.tbl_isempty(output))
+  end)
 end)

@@ -6,11 +6,15 @@ describe("Config with extra session commands", function()
   local save_extra_cmds_called = false
   local as = require "auto-session"
   local Lib = require "auto-session.lib"
+  -- WARN: this test calls setup again later to change save_extra_cmds
   as.setup {
     save_extra_cmds = {
       function()
         save_extra_cmds_called = true
-        return [[echo "hello world"]]
+        return [[
+        lua vim.g.extraCmdsTest = 1
+        lua vim.g.extraCmdsTest2 = 2
+        ]]
       end,
     },
     -- log_level = "debug",
@@ -36,7 +40,78 @@ describe("Config with extra session commands", function()
     TL.assertSessionHasFile(TL.default_session_path, TL.test_file)
 
     -- Make sure extra commands are there
-    assert.True(TL.fileHasString(default_extra_cmds_path, 'echo \\"hello world\\"'))
+    assert.True(TL.fileHasString(default_extra_cmds_path, "lua vim.g.extraCmdsTest = 1"))
+  end)
+
+  it("can restore a default session with extra commands", function()
+    vim.g.extraCmdsTest = 0
+    vim.g.extraCmdsTest2 = 0
+
+    assert.True(as.RestoreSession())
+
+    assert.True(vim.g.extraCmdsTest == 1)
+    assert.True(vim.g.extraCmdsTest2 == 2)
+  end)
+
+  it("can clear x.vim if there are no extra commands", function()
+    -- make sure the file is there now
+    assert.equals(1, vim.fn.filereadable(default_extra_cmds_path))
+
+    -- remove the handler
+    as.setup {
+      save_extra_cmds = nil,
+    }
+
+    -- generate default session
+    assert.True(as.AutoSaveSession())
+
+    -- Make sure the session was created
+    assert.equals(1, vim.fn.filereadable(TL.default_session_path))
+
+    -- make sure the extra commands file was removed
+    assert.equals(0, vim.fn.filereadable(default_extra_cmds_path))
+  end)
+
+  TL.clearSessionFilesAndBuffers()
+
+  it("can save a default session with extra commands in a table", function()
+    vim.cmd("e " .. TL.test_file)
+
+    save_extra_cmds_called = false
+
+    as.setup {
+      save_extra_cmds = {
+        function()
+          save_extra_cmds_called = true
+          return { "lua vim.g.extraCmdsTest = 1", "lua vim.g.extraCmdsTest2 = 2" }
+        end,
+      },
+    }
+
+    -- generate default session
+    assert.True(as.AutoSaveSession())
+
+    -- Make sure the session was created
+    assert.equals(1, vim.fn.filereadable(TL.default_session_path))
+    assert.equals(1, vim.fn.filereadable(default_extra_cmds_path))
+
+    assert.True(save_extra_cmds_called)
+
+    -- Make sure the session has our buffer
+    TL.assertSessionHasFile(TL.default_session_path, TL.test_file)
+
+    -- Make sure extra commands are there
+    assert.True(TL.fileHasString(default_extra_cmds_path, "lua vim.g.extraCmdsTest = 1"))
+  end)
+
+  it("can restore a default session with extra commands", function()
+    vim.g.extraCmdsTest = 0
+    vim.g.extraCmdsTest2 = 0
+
+    assert.True(as.RestoreSession())
+
+    assert.True(vim.g.extraCmdsTest == 1)
+    assert.True(vim.g.extraCmdsTest2 == 2)
   end)
 
   local session_name = "x"
@@ -61,7 +136,7 @@ describe("Config with extra session commands", function()
     TL.assertSessionHasFile(session_path, TL.test_file)
 
     -- Make sure extra commands are there
-    assert.True(TL.fileHasString(extra_cmds_path, 'echo \\"hello world\\"'))
+    assert.True(TL.fileHasString(extra_cmds_path, "lua vim.g.extraCmdsTest = 1"))
   end)
 
   it("can correctly differentiate x.vim session and xx.vim custom commands", function()

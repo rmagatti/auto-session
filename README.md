@@ -281,7 +281,7 @@ require('auto-session').setup({
 Command hooks exist in the format: {hook_name}
 
 - `{pre_save}`: executes _before_ a session is saved
-- `{save_extra}`: executes _after_ a session is saved, return string will save to `*x.vim`, reference `:help mks`
+- `{save_extra}`: executes _after_ a session is saved, saves returned string or table to `*x.vim`, reference `:help mks`
 - `{post_save}`: executes _after_ a session is saved
 - `{pre_restore}`: executes _before_ a session is restored
 - `{post_restore}`: executes _after_ a session is restored
