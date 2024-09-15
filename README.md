@@ -14,9 +14,6 @@ AutoSession takes advantage of Neovim's existing session management capabilities
 {
   'rmagatti/auto-session',
   lazy = false,
-  dependencies = {
-    'nvim-telescope/telescope.nvim', -- Only needed if you want to use session lens
-  },
 
   ---enables autocomplete for opts
   ---@module "auto-session"
@@ -158,9 +155,6 @@ You can use Telescope to see, load, and delete your sessions. It's enabled by de
 {
   'rmagatti/auto-session',
   lazy = false,
-  dependencies = {
-    'nvim-telescope/telescope.nvim',
-  },
   keys = {
     -- Will use Telescope if installed or a vim.ui.select picker otherwise
     { '<leader>wr', '<cmd>SessionSearch<CR>', desc = 'Session search' },
