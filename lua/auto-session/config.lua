@@ -14,7 +14,7 @@ local M = {}
 ---@field auto_create? boolean|function Enables/disables auto creating new session files. Can take a function that should return true/false if a new session file should be created or not
 ---@field suppressed_dirs? table Suppress auto session for directories
 ---@field allowed_dirs? table Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
----@field auto_restore_last_lession? boolean On startup, loads the last saved session if session for cwd does not exist
+---@field auto_restore_last_session? boolean On startup, loads the last saved session if session for cwd does not exist
 ---@field use_git_branch? boolean Include git branch name in session name to differentiate between sessions for different git branches
 ---@field lazy_support? boolean Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used. Can be disabled if a problem is suspected or for debugging
 ---@field bypass_save_filetypes? table List of file types to bypass auto save when the only buffer open is one of the file types listed, useful to ignore dashboards
@@ -159,7 +159,7 @@ local function check_old_config_names(config)
     auto_session_allowed_dirs = "allowed_dirs",
     auto_session_suppress_dirs = "suppressed_dirs",
     auto_session_create_enabled = "auto_create",
-    auto_session_enable_last_session = "auto_restore_last_lession",
+    auto_session_enable_last_session = "auto_restore_last_session",
     auto_session_use_git_branch = "use_git_branch",
     auto_restore_lazy_delay_enabled = "lazy_support",
     bypass_session_save_file_types = "bypass_save_filetypes",

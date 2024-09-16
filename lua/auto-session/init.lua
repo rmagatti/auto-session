@@ -479,7 +479,7 @@ function AutoSession.auto_restore_session_at_vim_enter()
     end
 
     -- Check to see if the last session feature is on
-    if Config.auto_restore_last_lession then
+    if Config.auto_restore_last_session then
       Lib.logger.debug "Last session is enabled, checking for session"
 
       local last_session_name = Lib.get_latest_session(AutoSession.get_root_dir())
