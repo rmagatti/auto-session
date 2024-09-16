@@ -563,4 +563,45 @@ function Lib.run_hook_cmds(cmds, hook_name)
   return results
 end
 
+---Split any strings on newlines and add each one to the output table
+---Also flatten any embedded tables and and their values into the root table
+---(non recursive so only one level deep)
+---@param input table|nil
+---@return table The flattened table
+function Lib.flatten_table_and_split_strings(input)
+  local output = {}
+
+  if not input then
+    return output
+  end
+
+  local function add_value_to_output(value)
+    Lib.logger.debug("value: ", value)
+    if value == nil then
+      return
+    end
+
+    local value_type = type(value)
+    if value_type == "number" then
+      table.insert(output, value)
+    elseif value_type == "string" then
+      for s in value:gmatch "[^\r\n]+" do
+        table.insert(output, s)
+      end
+    end
+  end
+
+  for _, value in pairs(input) do
+    if type(value) == "table" then
+      for _, subvalue in pairs(value) do
+        add_value_to_output(subvalue)
+      end
+    else
+      add_value_to_output(value)
+    end
+  end
+
+  return output
+end
+
 return Lib

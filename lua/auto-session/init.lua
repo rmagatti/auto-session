@@ -355,12 +355,19 @@ end
 ---@return boolean Returns whether extra commands were saved
 local function save_extra_cmds_new(session_path)
   local data = AutoSession.run_cmds "save_extra"
-  if not data then
+  local extra_file = string.gsub(session_path, "%.vim$", "x.vim")
+
+  -- data is a table of strings or tables, one for each hook function
+  -- need to combine them all here into a single table of strings
+  local data_to_write = Lib.flatten_table_and_split_strings(data)
+
+  if not data_to_write or vim.tbl_isempty(data_to_write) then
+    -- Have to delete the file just in case there's an old file from a previous save
+    vim.fn.delete(extra_file)
     return false
   end
 
-  local extra_file = string.gsub(session_path, "%.vim$", "x.vim")
-  if vim.fn.writefile(data, extra_file) ~= 0 then
+  if vim.fn.writefile(data_to_write, extra_file) ~= 0 then
     return false
   end
 
@@ -472,7 +479,7 @@ function AutoSession.auto_restore_session_at_vim_enter()
     end
 
     -- Check to see if the last session feature is on
-    if Config.auto_restore_last_lession then
+    if Config.auto_restore_last_session then
       Lib.logger.debug "Last session is enabled, checking for session"
 
       local last_session_name = Lib.get_latest_session(AutoSession.get_root_dir())

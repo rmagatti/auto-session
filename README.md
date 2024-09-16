@@ -14,9 +14,6 @@ AutoSession takes advantage of Neovim's existing session management capabilities
 {
   'rmagatti/auto-session',
   lazy = false,
-  dependencies = {
-    'nvim-telescope/telescope.nvim', -- Only needed if you want to use session lens
-  },
 
   ---enables autocomplete for opts
   ---@module "auto-session"
@@ -158,9 +155,6 @@ You can use Telescope to see, load, and delete your sessions. It's enabled by de
 {
   'rmagatti/auto-session',
   lazy = false,
-  dependencies = {
-    'nvim-telescope/telescope.nvim',
-  },
   keys = {
     -- Will use Telescope if installed or a vim.ui.select picker otherwise
     { '<leader>wr', '<cmd>SessionSearch<CR>', desc = 'Session search' },
@@ -281,7 +275,7 @@ require('auto-session').setup({
 Command hooks exist in the format: {hook_name}
 
 - `{pre_save}`: executes _before_ a session is saved
-- `{save_extra}`: executes _after_ a session is saved, return string will save to `*x.vim`, reference `:help mks`
+- `{save_extra}`: executes _after_ a session is saved, saves returned string or table to `*x.vim`, reference `:help mks`
 - `{post_save}`: executes _after_ a session is saved
 - `{pre_restore}`: executes _before_ a session is restored
 - `{post_restore}`: executes _after_ a session is restored
@@ -312,12 +306,25 @@ require('auto-session').setup {
     end
   },
 
+  -- Save quickfix list and open it when restoring the session
   save_extra_cmds = {
     function()
-      return [[echo "hello world"]]
-    end
-  }
-}
+      local qflist = vim.fn.getqflist()
+      -- return nil to clear any old qflist
+      if #qflist == 0 then return nil end
+      local qfinfo = vim.fn.getqflist({ title = 1 })
+
+      for _, entry in ipairs(qflist) do
+        -- use filename instead of bufnr so it can be reloaded
+        entry.filename = vim.api.nvim_buf_get_name(entry.bufnr)
+        entry.bufnr = nil
+      end
+
+      local setqflist = 'call setqflist(' .. vim.fn.string(qflist) .. ')'
+      local setqfinfo = 'call setqflist([], "a", ' .. vim.fn.string(qfinfo) .. ')'
+      return { setqflist, setqfinfo, 'copen' }
+    end,
+  },
 ```
 
 ## ➖ Statusline
