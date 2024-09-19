@@ -226,7 +226,7 @@ It's disabled by default, but when enabled it works as follows:
 
 - DirChangedPre (before the cwd actually changes):
   - Save the current session
-  - Clear all buffers `%bd!`. This guarantees buffers don't bleed to the
+  - Clear all buffers `%bw!`. This guarantees buffers don't bleed to the
     next session.
   - Clear jumps. Also done so there is no bleeding between sessions.
   - Run the `pre_cwd_changed` hook

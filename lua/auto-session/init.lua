@@ -646,16 +646,16 @@ function AutoSession.RestoreSessionFile(session_path, show_message)
   AutoSession.restore_in_progress = true
 
   -- Clear the buffers and jumps
-  vim.cmd "%bw!"
-  vim.cmd "clearjumps"
+  vim.cmd "silent %bw!"
+  vim.cmd "silent clearjumps"
 
   ---@diagnostic disable-next-line: param-type-mismatch
   local success, result = pcall(vim.cmd, "silent " .. cmd)
 
   -- normal restore failed, source again but with silent! to restore as much as possible
   if not success and Config.continue_restore_on_error then
-    vim.cmd "%bw!"
-    vim.cmd "clearjumps"
+    vim.cmd "silent %bw!"
+    vim.cmd "silent clearjumps"
 
     -- don't capture return values as we'll use success and result from the first call
     ---@diagnostic disable-next-line: param-type-mismatch
