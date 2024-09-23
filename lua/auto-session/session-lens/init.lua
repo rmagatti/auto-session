@@ -46,6 +46,7 @@ SessionLens.search_session = function(custom_opts)
 
       ordinal = session_entry.session_name,
       value = session_entry.session_name,
+      session_name = session_entry.session_name,
       filename = session_entry.file_name,
       path = session_entry.path,
       cwd = session_root_dir,
@@ -106,8 +107,6 @@ SessionLens.search_session = function(custom_opts)
 
   -- add the theme options
   opts = vim.tbl_deep_extend("force", opts, theme_opts)
-
-  Lib.logger.debug(opts)
 
   require("telescope.pickers")
     .new(opts, {
