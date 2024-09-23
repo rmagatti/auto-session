@@ -7,110 +7,77 @@ local AutoSession = require "auto-session"
 local SessionLens = {}
 
 ---@private
----Function generator that returns the function for generating telescope file entries. Only exported
----for testing.
----@param opts table Options for how paths sould be displayed. Only supports opts.shorten
----@return function The function to be set as entry_maker in Telescope picker options
-function SessionLens.make_telescope_callback(opts)
-  local session_root_dir = AutoSession.get_root_dir()
-
-  -- just used for shortening the display_name (if enabled)
-  local path = require "plenary.path"
-  return function(file_name)
-    -- Don't include <session>x.vim files that nvim makes for custom user
-    -- commands
-    if not Lib.is_session_file(session_root_dir .. file_name) then
-      return nil
-    end
-
-    -- the name of the session, to be used for restoring/deleting
-    local session_name
-
-    -- the name to display, possibly with a shortened path
-    local display_name
-
-    -- an annotation about the session, added to display_name after any path processing
-    local annotation = ""
-    if Lib.is_legacy_file_name(file_name) then
-      session_name = (Lib.legacy_unescape_session_name(file_name):gsub("%.vim$", ""))
-      display_name = session_name
-      annotation = " (legacy)"
-    else
-      session_name = Lib.escaped_session_name_to_session_name(file_name)
-      display_name = session_name
-      local name_components = Lib.get_session_display_name_as_table(file_name)
-      if #name_components > 1 then
-        display_name = name_components[1]
-        annotation = " " .. name_components[2]
-      end
-    end
-
-    if opts.path_display and vim.tbl_contains(opts.path_display, "shorten") then
-      display_name = path:new(display_name):shorten()
-      if not display_name then
-        display_name = session_name
-      end
-    end
-    display_name = display_name .. annotation
-
-    return {
-      ordinal = session_name,
-      value = session_name,
-      filename = file_name,
-      cwd = session_root_dir,
-      display = display_name,
-      path = session_root_dir .. file_name,
-    }
-  end
-end
-
----@private
 ---Search session
 ---Triggers the customized telescope picker for switching sessions
----@param custom_opts any
+---@param custom_opts table
 SessionLens.search_session = function(custom_opts)
   local telescope_themes = require "telescope.themes"
   local telescope_actions = require "telescope.actions"
   local telescope_finders = require "telescope.finders"
   local telescope_conf = require("telescope.config").values
 
-  custom_opts = (vim.tbl_isempty(custom_opts or {}) or custom_opts == nil) and Config.session_lens or custom_opts
-
-  -- Use auto_session_root_dir from the Auto Session plugin
-  local session_root_dir = AutoSession.get_root_dir()
-
-  if custom_opts.shorten_path ~= nil then
-    Lib.logger.warn "`shorten_path` config is deprecated, use the new `path_display` config instead"
-    if custom_opts.shorten_path then
-      custom_opts.path_display = { "shorten" }
-    else
-      custom_opts.path_display = nil
-    end
-
-    custom_opts.shorten_path = nil
+  -- use custom_opts if specified and non-empty. Otherwise use the config
+  if not custom_opts or vim.tbl_isempty(custom_opts) then
+    custom_opts = Config.session_lens
   end
+  custom_opts = custom_opts or {}
 
+  -- get the theme defaults, with any overrides in custom_opts.theme_conf
   local theme_opts = telescope_themes.get_dropdown(custom_opts.theme_conf)
 
-  -- Use default previewer config by setting the value to nil if some sets previewer to true in the custom config.
-  -- Passing in the boolean value errors out in the telescope code with the picker trying to index a boolean instead of a table.
-  -- This fixes it but also allows for someone to pass in a table with the actual preview configs if they want to.
-  if custom_opts.previewer ~= false and custom_opts.previewer == true then
-    custom_opts["previewer"] = nil
+  -- path_display could've been in theme_conf but that's not where we put it
+  if custom_opts.path_display then
+    -- copy over to the theme options
+    theme_opts.path_display = custom_opts.path_display
   end
 
-  local finder_opts = {
-    entry_maker = SessionLens.make_telescope_callback(custom_opts),
-    cwd = session_root_dir,
-  }
+  if theme_opts.path_display then
+    -- If there's a path_display setting, we have to force path_display.absolute = true here,
+    -- otherwise the session for the cwd will be displayed as just a dot
+    theme_opts.path_display.absolute = true
+  end
 
-  local find_command
-  if 1 == vim.fn.executable "rg" then
-    find_command = { "rg", "--files", "--color", "never", "--sortr", "modified" }
-  elseif 1 == vim.fn.executable "ls" then
-    find_command = { "ls", "-t" }
-  elseif 1 == vim.fn.executable "cmd" and vim.fn.has "win32" == 1 then
-    find_command = { "cmd", "/C", "dir", "/b", "/o-d" }
+  theme_opts.previewer = custom_opts.previewer
+
+  local session_root_dir = AutoSession.get_root_dir()
+
+  local session_entry_maker = function(session_entry)
+    return {
+
+      ordinal = session_entry.session_name,
+      value = session_entry.session_name,
+      filename = session_entry.file_name,
+      path = session_entry.path,
+      cwd = session_root_dir,
+
+      -- We can't calculate the vaue of display until the picker is acutally displayed
+      -- because telescope.utils.transform_path may depend on the window size,
+      -- specifically with the truncate option. So we use a function that will be
+      -- called when actually displaying the row
+      display = function(_)
+        if session_entry.already_set_display_name then
+          return session_entry.display_name
+        end
+
+        session_entry.already_set_display_name = true
+
+        if not theme_opts or not theme_opts.path_display then
+          return session_entry.display_name
+        end
+
+        local telescope_utils = require "telescope.utils"
+
+        return telescope_utils.transform_path(theme_opts, session_entry.display_name_component)
+          .. session_entry.annotation_component
+      end,
+    }
+  end
+
+  local finder_maker = function()
+    return telescope_finders.new_table {
+      results = Lib.get_session_list(session_root_dir),
+      entry_maker = session_entry_maker,
+    }
   end
 
   local opts = {
@@ -127,7 +94,7 @@ SessionLens.search_session = function(custom_opts)
           post = function()
             local action_state = require "telescope.actions.state"
             local picker = action_state.get_current_picker(prompt_bufnr)
-            picker:refresh(telescope_finders.new_oneshot_job(find_command, finder_opts), { reset_prompt = true })
+            picker:refresh(finder_maker(), { reset_prompt = true })
           end,
         }
 
@@ -136,11 +103,15 @@ SessionLens.search_session = function(custom_opts)
       return true
     end,
   }
-  opts = vim.tbl_deep_extend("force", opts, theme_opts, custom_opts or {})
+
+  -- add the theme options
+  opts = vim.tbl_deep_extend("force", opts, theme_opts)
+
+  Lib.logger.debug(opts)
 
   require("telescope.pickers")
     .new(opts, {
-      finder = telescope_finders.new_oneshot_job(find_command, finder_opts),
+      finder = finder_maker(),
       previewer = telescope_conf.file_previewer(opts),
       sorter = telescope_conf.file_sorter(opts),
     })

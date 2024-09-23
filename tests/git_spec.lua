@@ -62,6 +62,13 @@ describe("The git config", function()
     assert.equals(1, vim.fn.filereadable(branch_session_path))
 
     assert.equals(vim.fn.getcwd() .. " (branch: main)", Lib.current_session_name())
+
+    local sessions = Lib.get_session_list(as.get_root_dir())
+    assert.equal(1, #sessions)
+
+    assert.equal(TL.session_dir .. sessions[1].file_name, branch_session_path)
+    assert.equal(sessions[1].display_name, Lib.current_session_name())
+    assert.equal(sessions[1].session_name, vim.fn.getcwd() .. "|main")
   end)
 
   it("Autorestores a session with the branch name", function()
@@ -108,6 +115,5 @@ describe("The git config", function()
     assert.equals(1, vim.fn.filereadable(session_path))
     assert.equals(vim.fn.getcwd() .. " (branch: slash/branch)", Lib.current_session_name())
     assert.equals(git_test_dir .. " (branch: slash/branch)", Lib.current_session_name(true))
-    print(Lib.current_session_name())
   end)
 end)

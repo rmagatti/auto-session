@@ -185,6 +185,7 @@ local function check_old_config_names(config)
     and type(config["cwd_change_handling"]) == "table"
     and config.cwd_change_handling["restore_upcoming_session"]
   then
+    M.has_old_config = true
     local old_cwd_change_handling = config.cwd_change_handling or {} -- shouldn't be nil but placate LS
     config["cwd_change_handling"] = old_cwd_change_handling.restore_upcoming_session
     if old_cwd_change_handling["pre_cwd_changed_hook"] then
@@ -192,6 +193,13 @@ local function check_old_config_names(config)
     end
     if old_cwd_change_handling["post_cwd_changed_hook"] then
       config.post_cwd_changed_cmds = { old_cwd_change_handling.post_cwd_changed_hook }
+    end
+  end
+
+  if config.session_lens and config.session_lens.shorten_path ~= nil then
+    M.has_old_config = true
+    if config.session_lens.shorten_path then
+      config.session_lens.path_display = { "shorten" }
     end
   end
 end

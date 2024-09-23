@@ -604,4 +604,81 @@ function Lib.flatten_table_and_split_strings(input)
   return output
 end
 
+---Returns the list of files in a directory, sorted by modification time
+---@param dir string the directory to list
+---@return table The filenames, sorted by modification time
+function Lib.sorted_readdir(dir)
+  -- Get list of files
+  local files = vim.fn.readdir(dir)
+
+  -- Create a table with file names and modification times
+  local file_times = {}
+  for _, file in ipairs(files) do
+    local full_path = dir .. "/" .. file
+    local mod_time = vim.fn.getftime(full_path)
+    table.insert(file_times, { name = file, time = mod_time })
+  end
+
+  -- Sort the table based on modification times (most recent first)
+  table.sort(file_times, function(a, b)
+    return a.time > b.time
+  end)
+
+  -- Extract just the file names from the sorted table
+  local sorted_files = {}
+  for _, file in ipairs(file_times) do
+    table.insert(sorted_files, file.name)
+  end
+
+  return sorted_files
+end
+
+---Get the list of session files. Will filter out any extra command session files
+---@param sessions_dir string The directory where the sessions are stored
+---@return table the list of session files
+function Lib.get_session_list(sessions_dir)
+  if vim.fn.isdirectory(sessions_dir) == Lib._VIM_FALSE then
+    return {}
+  end
+
+  local entries = Lib.sorted_readdir(sessions_dir)
+
+  return vim.tbl_map(function(file_name)
+    local session_name
+    local display_name_component
+
+    if not Lib.is_session_file(sessions_dir .. file_name) then
+      return nil
+    end
+
+    -- an annotation about the session, added to display_name after any path processing
+    local annotation = ""
+    if Lib.is_legacy_file_name(file_name) then
+      session_name = (Lib.legacy_unescape_session_name(file_name):gsub("%.vim$", ""))
+      display_name_component = session_name
+      annotation = " (legacy)"
+    else
+      session_name = Lib.escaped_session_name_to_session_name(file_name)
+      display_name_component = session_name
+      local name_components = Lib.get_session_display_name_as_table(file_name)
+      if #name_components > 1 then
+        display_name_component = name_components[1]
+        annotation = " " .. name_components[2]
+      end
+    end
+
+    local display_name = display_name_component .. annotation
+
+    return {
+      session_name = session_name,
+      -- include the components in case telescope wants to shorten the path
+      display_name_component = display_name_component,
+      annotation_component = annotation,
+      display_name = display_name,
+      file_name = file_name,
+      path = sessions_dir .. file_name,
+    }
+  end, entries)
+end
+
 return Lib

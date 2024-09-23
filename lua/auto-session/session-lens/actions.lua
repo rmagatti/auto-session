@@ -67,7 +67,7 @@ M.delete_session = function(prompt_bufnr)
   local current_picker = action_state.get_current_picker(prompt_bufnr)
   current_picker:delete_selection(function(selection)
     if selection then
-      AutoSession.DeleteSessionFile(selection.path, selection.display)
+      AutoSession.DeleteSessionFile(selection.path, selection.display())
     end
   end)
 end
@@ -100,7 +100,7 @@ M.copy_session = function(_)
   local action_state = require "telescope.actions.state"
   local selection = action_state.get_selected_entry()
 
-  local new_name = vim.fn.input("New session name: ", selection.display)
+  local new_name = vim.fn.input("New session name: ", selection.display())
   local content = vim.fn.readfile(selection.path)
   vim.fn.writefile(content, AutoSession.get_root_dir() .. Lib.escape_session_name(new_name) .. ".vim")
 end

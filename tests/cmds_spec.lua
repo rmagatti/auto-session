@@ -34,6 +34,13 @@ describe("The default config", function()
     -- Make sure there isn't an extra commands file by default
     local default_extra_cmds_path = TL.default_session_path:gsub("%.vim$", "x.vim")
     assert.equals(0, vim.fn.filereadable(default_extra_cmds_path))
+
+    local sessions = Lib.get_session_list(as.get_root_dir())
+    assert.equal(1, #sessions)
+
+    assert.equal(TL.session_dir .. sessions[1].file_name, TL.default_session_path)
+    assert.equal(sessions[1].display_name, Lib.current_session_name())
+    assert.equal(sessions[1].session_name, TL.default_session_name)
   end)
 
   it("can restore a session for the cwd", function()
