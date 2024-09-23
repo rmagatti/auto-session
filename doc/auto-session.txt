@@ -70,6 +70,7 @@ SessionLensMappings                                        *SessionLensMappings*
     Fields: ~
         {delete_session}     (table)  mode and key for deleting a session from the picker
         {alternate_session}  (table)  mode and key for swapping to alertnate session from the picker
+        {copy_session}       (table)  mode and key for copying a session from the picker
 
 
 ==============================================================================
