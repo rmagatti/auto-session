@@ -75,7 +75,9 @@ local function purge_orphaned_sessions()
   local session_files = Lib.get_session_list(M.AutoSession.get_root_dir())
   for _, session in ipairs(session_files) do
     if
-      not Lib.is_named_session(session.session_name) and vim.fn.isdirectory(session.session_name) == Lib._VIM_FALSE
+      not Lib.is_named_session(session.session_name)
+      -- don't want any annotations (e.g. git branch)
+      and vim.fn.isdirectory(session.display_name_component) == Lib._VIM_FALSE
     then
       Lib.logger.debug("purge: " .. session.session_name)
       table.insert(orphaned_sessions, session.session_name)
