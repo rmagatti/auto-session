@@ -321,7 +321,7 @@ end
 ---@private
 ---Gets the root directory of where to save the sessions.
 ---By default this resolves to `vim.fn.stdpath "data" .. "/sessions/"`
----@param with_trailing_separator? boolean whether to incude the trailing separator. A few places (telescope picker don't expect a trailing separator) (Defaults to true)
+---@param with_trailing_separator? boolean whether to incude the trailing separator. A few places (e.g. telescope picker) don't expect a trailing separator (Defaults to true)
 ---@return string
 function AutoSession.get_root_dir(with_trailing_separator)
   if with_trailing_separator == nil then

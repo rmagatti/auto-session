@@ -57,6 +57,7 @@ local M = {}
 ---@class SessionLensMappings
 ---@field delete_session table mode and key for deleting a session from the picker
 ---@field alternate_session table mode and key for swapping to alertnate session from the picker
+---@field copy_session table mode and key for copying a session from the picker
 
 ---@type AutoSession.Config
 local defaults = {
@@ -94,6 +95,7 @@ local defaults = {
       -- Mode can be a string or a table, e.g. {"i", "n"} for both insert and normal mode
       delete_session = { "i", "<C-D>" },
       alternate_session = { "i", "<C-S>" },
+      copy_session = { "i", "<C-Y>" },
     },
 
     ---@type SessionControl

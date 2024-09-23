@@ -69,8 +69,10 @@ end
 ---Triggers the customized telescope picker for switching sessions
 ---@param custom_opts any
 SessionLens.search_session = function(custom_opts)
-  local themes = require "telescope.themes"
+  local telescope_themes = require "telescope.themes"
   local telescope_actions = require "telescope.actions"
+  local telescope_finders = require "telescope.finders"
+  local telescope_conf = require("telescope.config").values
 
   custom_opts = (vim.tbl_isempty(custom_opts or {}) or custom_opts == nil) and Config.session_lens or custom_opts
 
@@ -88,7 +90,7 @@ SessionLens.search_session = function(custom_opts)
     custom_opts.shorten_path = nil
   end
 
-  local theme_opts = themes.get_dropdown(custom_opts.theme_conf)
+  local theme_opts = telescope_themes.get_dropdown(custom_opts.theme_conf)
 
   -- Use default previewer config by setting the value to nil if some sets previewer to true in the custom config.
   -- Passing in the boolean value errors out in the telescope code with the picker trying to index a boolean instead of a table.
@@ -97,45 +99,50 @@ SessionLens.search_session = function(custom_opts)
     custom_opts["previewer"] = nil
   end
 
-  local opts = {
-    prompt_title = "Sessions",
+  local finder_opts = {
     entry_maker = SessionLens.make_telescope_callback(custom_opts),
     cwd = session_root_dir,
-    attach_mappings = function(_, map)
+  }
+
+  local find_command
+  if 1 == vim.fn.executable "rg" then
+    find_command = { "rg", "--files", "--color", "never", "--sortr", "modified" }
+  elseif 1 == vim.fn.executable "ls" then
+    find_command = { "ls", "-t" }
+  elseif 1 == vim.fn.executable "cmd" and vim.fn.has "win32" == 1 then
+    find_command = { "cmd", "/C", "dir", "/b", "/o-d" }
+  end
+
+  local opts = {
+    prompt_title = "Sessions",
+    attach_mappings = function(prompt_bufnr, map)
       telescope_actions.select_default:replace(Actions.source_session)
 
       local mappings = Config.session_lens.mappings
       if mappings then
         map(mappings.delete_session[1], mappings.delete_session[2], Actions.delete_session)
         map(mappings.alternate_session[1], mappings.alternate_session[2], Actions.alternate_session)
+
+        Actions.copy_session:enhance {
+          post = function()
+            local action_state = require "telescope.actions.state"
+            local picker = action_state.get_current_picker(prompt_bufnr)
+            picker:refresh(telescope_finders.new_oneshot_job(find_command, finder_opts), { reset_prompt = true })
+          end,
+        }
+
+        map(mappings.copy_session[1], mappings.copy_session[2], Actions.copy_session)
       end
       return true
     end,
   }
   opts = vim.tbl_deep_extend("force", opts, theme_opts, custom_opts or {})
 
-  local find_command = (function()
-    if opts.find_command then
-      if type(opts.find_command) == "function" then
-        return opts.find_command(opts)
-      end
-      return opts.find_command
-    elseif 1 == vim.fn.executable "rg" then
-      return { "rg", "--files", "--color", "never", "--sortr", "modified" }
-    elseif 1 == vim.fn.executable "ls" then
-      return { "ls", "-t" }
-    elseif 1 == vim.fn.executable "cmd" and vim.fn.has "win32" == 1 then
-      return { "cmd", "/C", "dir", "/b", "/o-d" }
-    end
-  end)()
-
-  local finders = require "telescope.finders"
-  local conf = require("telescope.config").values
   require("telescope.pickers")
     .new(opts, {
-      finder = finders.new_oneshot_job(find_command, opts),
-      previewer = conf.grep_previewer(opts),
-      sorter = conf.file_sorter(opts),
+      finder = telescope_finders.new_oneshot_job(find_command, finder_opts),
+      previewer = telescope_conf.file_previewer(opts),
+      sorter = telescope_conf.file_sorter(opts),
     })
     :find()
 end
