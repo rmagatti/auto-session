@@ -37,39 +37,6 @@ end
 ---@field display_name string
 ---@field path string
 
----@return PickerItem[]
-local function get_session_files()
-  local files = {}
-  local sessions_dir = M.AutoSession.get_root_dir()
-
-  if vim.fn.isdirectory(sessions_dir) == Lib._VIM_FALSE then
-    return files
-  end
-
-  local entries = vim.fn.readdir(sessions_dir, function(item)
-    return Lib.is_session_file(sessions_dir .. item)
-  end)
-
-  return vim.tbl_map(function(file_name)
-    --  sessions_dir is guaranteed to have a trailing separator so don't need to add another one here
-    local session_name
-    local display_name
-    if Lib.is_legacy_file_name(file_name) then
-      session_name = (Lib.legacy_unescape_session_name(file_name):gsub("%.vim$", ""))
-      display_name = session_name .. " (legacy)"
-    else
-      session_name = Lib.escaped_session_name_to_session_name(file_name)
-      display_name = Lib.get_session_display_name(file_name)
-    end
-
-    return {
-      session_name = session_name,
-      display_name = display_name,
-      path = sessions_dir .. file_name,
-    }
-  end, entries)
-end
-
 ---@param files string[]
 ---@param prompt string
 ---@param callback fun(choice: PickerItem)
@@ -89,7 +56,7 @@ end
 
 ---@param data table
 local function handle_autosession_command(data)
-  local files = get_session_files()
+  local files = Lib.get_session_list(M.AutoSession.get_root_dir())
   if data.args:match "search" then
     open_picker(files, "Select a session:", function(choice)
       M.AutoSession.autosave_and_restore(choice.session_name)
@@ -105,9 +72,12 @@ end
 local function purge_orphaned_sessions()
   local orphaned_sessions = {}
 
-  for _, session in ipairs(get_session_files()) do
+  local session_files = Lib.get_session_list(M.AutoSession.get_root_dir())
+  for _, session in ipairs(session_files) do
     if
-      not Lib.is_named_session(session.session_name) and vim.fn.isdirectory(session.session_name) == Lib._VIM_FALSE
+      not Lib.is_named_session(session.session_name)
+      -- don't want any annotations (e.g. git branch)
+      and vim.fn.isdirectory(session.display_name_component) == Lib._VIM_FALSE
     then
       Lib.logger.debug("purge: " .. session.session_name)
       table.insert(orphaned_sessions, session.session_name)

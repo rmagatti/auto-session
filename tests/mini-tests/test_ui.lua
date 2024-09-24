@@ -63,6 +63,25 @@ T["session lens"]["can load a session"] = function()
   expect.equality(1, child.fn.bufexists(TL.other_file))
 end
 
+T["session lens"]["can copy a session"] = function()
+  expect.equality(0, child.fn.bufexists(TL.test_file))
+  child.cmd "SessionSearch"
+  -- give the UI time to come up
+  local session_name = "project_x"
+  vim.loop.sleep(250)
+  child.type_keys(session_name)
+  vim.loop.sleep(20)
+  child.type_keys "<C-Y>"
+  vim.loop.sleep(20)
+
+  -- will append to session_name
+  local copy_name = "copy"
+  child.type_keys(copy_name .. "<cr>")
+  -- give the session time to load
+  vim.loop.sleep(500)
+  expect.equality(1, vim.fn.filereadable(TL.makeSessionPath(session_name .. copy_name)))
+end
+
 T["session lens"]["can delete a session"] = function()
   expect.equality(1, vim.fn.filereadable(TL.named_session_path))
   child.cmd "SessionSearch"

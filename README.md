@@ -88,6 +88,7 @@ Here are the default settings:
       -- Mode can be a string or a table, e.g. {"i", "n"} for both insert and normal mode
       delete_session = { "i", "<C-D>" },
       alternate_session = { "i", "<C-S>" },
+      copy_session = { "i", "<C-Y>" },
     },
 
     session_control = {
@@ -176,8 +177,10 @@ You can use Telescope to see, load, and delete your sessions. It's enabled by de
         -- Mode can be a string or a table, e.g. {"i", "n"} for both insert and normal mode
         delete_session = { "i", "<C-D>" },
         alternate_session = { "i", "<C-S>" },
+        copy_session = { "i", "<C-Y>" },
       },
       -- Can also set some Telescope picker options
+      -- For all options, see: https://github.com/nvim-telescope/telescope.nvim/blob/master/doc/telescope.txt#L112
       theme_conf = {
         border = true,
         -- layout_config = {
