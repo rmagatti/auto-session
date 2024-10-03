@@ -221,6 +221,8 @@ Both options are a table of directories, with support for globs:
 
 With those options, sessions would only be auto-saved for `/some/dir` and any direct child of `/projects` (e.g. `/projects/myproject` but not `/projects/myproject/submodule`) except `/projects/secret`
 
+If you want even more fine-grained control, you can instead set `auto_create` to a function to [conditionally create a session](#conditionally-creating-a-session).
+
 ## 🚶 Current Working Directory
 
 AutoSession can track `cwd` changes!
@@ -380,7 +382,9 @@ Now last session will be restored only when Neovim is launched in the home direc
 
 ## Conditionally creating a session
 
-`auto_create` doesn't just have to be a boolean, it can also take a function that returns if a session should be created or not as part of auto saving. As one example, you could use this to only create new session files for git projects:
+With `auto_create = false`, AutoSession won't create a session automatically. If you manually save a session via `:SessionSave`, though, it will automatically update it whenever you exit `nvim`. You can use that to manually control where sessions are created.
+
+`auto_create` doesn't just have to be a boolean, it can also take a function that returns if a session should be created or not as part of auto saving. As one example, you could use this to only automatically create new session files inside of git projects:
 
 ```lua
 
@@ -392,6 +396,8 @@ require('auto-session').setup({
 })
 
 ```
+
+With the above, AutoSession will allow automatically creating a session inside of a git project but won't automatically create a session in any other directory. If you manually save a session in a directory, though, it will then update that session automatically whenever you exit `nvim`.
 
 ## 🗃️ Argument Handling
 
