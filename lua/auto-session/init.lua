@@ -298,8 +298,16 @@ function AutoSession.AutoSaveSession()
     return false
   end
 
+  -- If there's a manually named session, use that on exit instead of one named for cwd
+  local current_session = nil
+
+  if AutoSession.manually_named_session then
+    current_session = Lib.escaped_session_name_to_session_name(vim.fn.fnamemodify(vim.v.this_session, ":t"))
+    Lib.logger.debug("Using existing session name: " .. current_session)
+  end
+
   if not is_auto_create_enabled() then
-    local session_file_name = get_session_file_name()
+    local session_file_name = get_session_file_name(current_session)
     if vim.fn.filereadable(AutoSession.get_root_dir() .. session_file_name) == 0 then
       Lib.logger.debug "Create not enabled and no existing session, not creating session"
       return false
@@ -312,13 +320,6 @@ function AutoSession.AutoSaveSession()
     if not success then
       Lib.logger.debug("Error closing unsupported windows: " .. result)
     end
-  end
-
-  -- If there's a manually named session, use that on exit instead of one named for cwd
-  local current_session = nil
-  if AutoSession.manually_named_session then
-    current_session = Lib.escaped_session_name_to_session_name(vim.fn.fnamemodify(vim.v.this_session, ":t"))
-    Lib.logger.debug("Using existing session name: " .. current_session)
   end
 
   -- Don't try to show a message as we're exiting
