@@ -2,7 +2,7 @@
 local TL = require "tests/test_lib"
 
 describe("Manually named sessions", function()
-  require("auto-session").setup {}
+  require("auto-session").setup { auto_create = false }
 
   it("can autosave", function()
     TL.clearSessionFilesAndBuffers()
