@@ -298,8 +298,16 @@ function AutoSession.AutoSaveSession()
     return false
   end
 
+  -- If there's a manually named session, use that on exit instead of one named for cwd
+  local current_session = nil
+
+  if AutoSession.manually_named_session then
+    current_session = Lib.escaped_session_name_to_session_name(vim.fn.fnamemodify(vim.v.this_session, ":t"))
+    Lib.logger.debug("Using existing session name: " .. current_session)
+  end
+
   if not is_auto_create_enabled() then
-    local session_file_name = get_session_file_name()
+    local session_file_name = get_session_file_name(current_session)
     if vim.fn.filereadable(AutoSession.get_root_dir() .. session_file_name) == 0 then
       Lib.logger.debug "Create not enabled and no existing session, not creating session"
       return false
@@ -315,7 +323,7 @@ function AutoSession.AutoSaveSession()
   end
 
   -- Don't try to show a message as we're exiting
-  return AutoSession.SaveSession(nil, false)
+  return AutoSession.SaveSession(current_session, false)
 end
 
 ---@private
@@ -526,6 +534,18 @@ function AutoSession.SaveSessionToDir(session_dir, session_name, show_message)
 
   Lib.logger.debug("SaveSessionToDir escaped session name: " .. escaped_session_name)
 
+  -- If a session_name was passed in and it's different than the one for
+  -- the cwd, we know it's a manually named session. We track that so we
+  -- can write to that session on exit
+  if session_name then
+    local cwd_escaped_session_name = get_session_file_name(nil)
+
+    if escaped_session_name ~= cwd_escaped_session_name then
+      AutoSession.manually_named_session = true
+      Lib.logger.debug "Session is manually named"
+    end
+  end
+
   local session_path = session_dir .. escaped_session_name
 
   AutoSession.run_cmds "pre_save"
@@ -580,6 +600,18 @@ function AutoSession.RestoreSessionFromDir(session_dir, session_name, show_messa
   Lib.logger.debug("RestoreSessionFromDir escaped session name: " .. escaped_session_name)
 
   local session_path = session_dir .. escaped_session_name
+
+  -- If a session_name was passed in and it's different than the one for
+  -- the cwd, we know it's a manually named session. We track that so we
+  -- can write to that session on exit
+  if session_name then
+    local cwd_escaped_session_name = get_session_file_name(nil)
+
+    if escaped_session_name ~= cwd_escaped_session_name then
+      AutoSession.manually_named_session = true
+      Lib.logger.debug "Session is manually named"
+    end
+  end
 
   if vim.fn.filereadable(session_path) ~= 1 then
     Lib.logger.debug("RestoreSessionFromDir session does not exist: " .. session_path)

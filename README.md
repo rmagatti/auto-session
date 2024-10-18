@@ -145,6 +145,8 @@ AutoSession exposes the following commands that can be used or mapped to any key
 :Autosession delete " open a vim.ui.select picker to choose a session to delete.
 ```
 
+If you create a manually named session via `SessionSave my_session` or you restore one, that same session will be auto-saved (assuming that's enabled) when you exit.
+
 # 📖 More Configuration Details
 
 ## 🔭 Session Lens
