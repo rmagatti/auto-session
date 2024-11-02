@@ -60,17 +60,17 @@ SessionLens                                                        *SessionLens*
 SessionControl                                                  *SessionControl*
 
     Fields: ~
-        {control_dir}       (string)
-        {control_filename}  (string)
+        {control_dir?}       (string)
+        {control_filename?}  (string)
 
 
 SessionLensMappings                                        *SessionLensMappings*
     Session Lens Mapping
 
     Fields: ~
-        {delete_session}     (table)  mode and key for deleting a session from the picker
-        {alternate_session}  (table)  mode and key for swapping to alertnate session from the picker
-        {copy_session}       (table)  mode and key for copying a session from the picker
+        {delete_session?}     (table)  mode and key for deleting a session from the picker
+        {alternate_session?}  (table)  mode and key for swapping to alertnate session from the picker
+        {copy_session?}       (table)  mode and key for copying a session from the picker
 
 
 ==============================================================================
