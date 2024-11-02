@@ -50,14 +50,14 @@ local M = {}
 ---@field mappings? SessionLensMappings
 
 ---@class SessionControl
----@field control_dir string
----@field control_filename string
+---@field control_dir? string
+---@field control_filename? string
 
 ---Session Lens Mapping
 ---@class SessionLensMappings
----@field delete_session table mode and key for deleting a session from the picker
----@field alternate_session table mode and key for swapping to alertnate session from the picker
----@field copy_session table mode and key for copying a session from the picker
+---@field delete_session? table mode and key for deleting a session from the picker
+---@field alternate_session? table mode and key for swapping to alertnate session from the picker
+---@field copy_session? table mode and key for copying a session from the picker
 
 ---@type AutoSession.Config
 local defaults = {
