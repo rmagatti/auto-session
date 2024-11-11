@@ -59,7 +59,11 @@ local function handle_autosession_command(data)
   local files = Lib.get_session_list(M.AutoSession.get_root_dir())
   if data.args:match "search" then
     open_picker(files, "Select a session:", function(choice)
-      M.AutoSession.autosave_and_restore(choice.session_name)
+      -- Defer session loading function to fix issue with Fzf and terminal sessions:
+      -- https://github.com/rmagatti/auto-session/issues/391
+      vim.defer_fn(function()
+        M.AutoSession.autosave_and_restore(choice.session_name)
+      end, 50)
     end)
   elseif data.args:match "delete" then
     open_picker(files, "Delete a session:", function(choice)
