@@ -258,7 +258,7 @@ function M.setup_autocmds(AutoSession)
       return
     end
 
-    handle_autosession_command { "search" }
+    handle_autosession_command { args = "search" }
   end, {
     desc = "Open a session picker",
   })
