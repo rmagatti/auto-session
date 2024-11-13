@@ -416,7 +416,7 @@ For `args_allow_single_directory`, if you frequently use `netrw` to look at dire
       bypass_save_filetypes = { 'netrw' }
 ```
 
-Also, if you use a plugin that handles directory arguments (e.g. [Oil](https://github.com/stevearc/oil.nvim)), it may prevent AutoSession from loading the session when launched with a directory argument. You can avoid that by [lazy loading that plugin](https://github.com/rmagatti/auto-session/issues/372#issuecomment-2471077783).
+Also, if you use a plugin that handles directory arguments (e.g. file trees/explorers), it may prevent AutoSession from loading or saving sessions when launched with a directory argument. You can avoid that by lazy loading that plugin (e.g. [Oil](https://github.com/rmagatti/auto-session/issues/372#issuecomment-2471077783), [NvimTree](https://github.com/rmagatti/auto-session/issues/393#issuecomment-2474797271)).
 
 If `args_allow_files_auto_save` is true, AutoSession won't load any session when `nvim` is launched with file argument(s) but it will save on exit. What's probably more useful is to set `args_allow_files_auto_save` to a function that returns true if a session should be saved and false otherwise. AutoSession will call that function on auto save when run with arguments. Here's one example config where it will save the session if at least two buffers are open after being launched with arguments:
 
