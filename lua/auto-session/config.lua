@@ -23,6 +23,7 @@ local M = {}
 ---@field args_allow_single_directory? boolean Follow normal sesion save/load logic if launched with a single directory as the only argument
 ---@field args_allow_files_auto_save? boolean|function Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. While you can just set this to true, you probably want to set it to a function that decides when to save a session when launched with file args. See documentation for more detail
 ---@field continue_restore_on_error? boolean Keep loading the session even if there's an error. Set to false to get the line number of an error when loading a session
+---@field show_auto_restore_notif? boolean Whether to show a notification when auto-restoring
 ---@field log_level? string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
 ---@field cwd_change_handling? boolean Follow cwd changes, saving a session before change and restoring after
 ---@field session_lens? SessionLens Session lens configuration options
@@ -76,6 +77,7 @@ local defaults = {
   args_allow_single_directory = true, -- Follow normal sesion save/load logic if launched with a single directory as the only argument
   args_allow_files_auto_save = false, -- Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. While you can just set this to true, you probably want to set it to a function that decides when to save a session when launched with file args. See documentation for more detail
   continue_restore_on_error = true, -- Keep loading the session even if there's an error
+  show_auto_restore_notif = false, -- Whether to show a notification when auto-restoring
   cwd_change_handling = false, -- Follow cwd changes, saving a session before change and restoring after
   log_level = "error", -- Sets the log level of the plugin (debug, info, warn, error).
 

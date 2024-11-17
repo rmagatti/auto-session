@@ -445,7 +445,7 @@ function AutoSession.AutoRestoreSession(session_name)
     return false
   end
 
-  return AutoSession.RestoreSession(session_name, false)
+  return AutoSession.RestoreSession(session_name, Config.show_auto_restore_notif)
 end
 
 ---@private
@@ -493,7 +493,7 @@ function AutoSession.auto_restore_session_at_vim_enter()
       local last_session_name = Lib.get_latest_session(AutoSession.get_root_dir())
       if last_session_name then
         Lib.logger.debug("Found last session: " .. last_session_name)
-        if AutoSession.RestoreSession(last_session_name, false) then
+        if AutoSession.RestoreSession(last_session_name, Config.show_auto_restore_notif) then
           return true
         end
       end
