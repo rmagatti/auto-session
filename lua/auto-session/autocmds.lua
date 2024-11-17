@@ -187,14 +187,14 @@ local function setup_dirchanged_autocmds(AutoSession)
         return
       end
 
-      local success = AutoSession.AutoRestoreSession()
-
-      if not success then
-        Lib.logger.info("Could not load session for: " .. vim.fn.getcwd())
-        -- Don't return, still dispatch the hook below
-      end
-
-      AutoSession.run_cmds "post_cwd_changed"
+      -- If we're restoring a session with a terminal, we can get an
+      -- "Invalid argument: buftype=terminal" error when restoring the
+      -- session directly in this callback. To workaround, we schedule
+      -- the restore for the next run of the event loop
+      vim.schedule(function()
+        AutoSession.AutoRestoreSession()
+        AutoSession.run_cmds "post_cwd_changed"
+      end)
     end,
     pattern = "global",
   })
