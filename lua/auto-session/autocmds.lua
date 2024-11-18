@@ -59,7 +59,11 @@ local function handle_autosession_command(data)
   local files = Lib.get_session_list(M.AutoSession.get_root_dir())
   if data.args:match "search" then
     open_picker(files, "Select a session:", function(choice)
-      M.AutoSession.autosave_and_restore(choice.session_name)
+      -- Defer session loading function to fix issue with Fzf and terminal sessions:
+      -- https://github.com/rmagatti/auto-session/issues/391
+      vim.defer_fn(function()
+        M.AutoSession.autosave_and_restore(choice.session_name)
+      end, 50)
     end)
   elseif data.args:match "delete" then
     open_picker(files, "Delete a session:", function(choice)
@@ -183,14 +187,14 @@ local function setup_dirchanged_autocmds(AutoSession)
         return
       end
 
-      local success = AutoSession.AutoRestoreSession()
-
-      if not success then
-        Lib.logger.info("Could not load session for: " .. vim.fn.getcwd())
-        -- Don't return, still dispatch the hook below
-      end
-
-      AutoSession.run_cmds "post_cwd_changed"
+      -- If we're restoring a session with a terminal, we can get an
+      -- "Invalid argument: buftype=terminal" error when restoring the
+      -- session directly in this callback. To workaround, we schedule
+      -- the restore for the next run of the event loop
+      vim.schedule(function()
+        AutoSession.AutoRestoreSession()
+        AutoSession.run_cmds "post_cwd_changed"
+      end)
     end,
     pattern = "global",
   })
@@ -258,7 +262,7 @@ function M.setup_autocmds(AutoSession)
       return
     end
 
-    handle_autosession_command { "search" }
+    handle_autosession_command { args = "search" }
   end, {
     desc = "Open a session picker",
   })

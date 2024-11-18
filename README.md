@@ -41,8 +41,8 @@ use {
 # 💡 Behaviour
 
 1. When starting `nvim` with no arguments, AutoSession will try to restore an existing session for the current `cwd` if one exists.
-2. When starting `nvim .` (or another directory), AutoSession will try to restore the session for that directory.
-3. When starting `nvim some_file.txt` (or multiple files), by default, AutoSession won't do anything. See [argument handling](#argument-handling) for more details.
+2. When starting `nvim .` (or another directory), AutoSession will try to restore the session for that directory. See [argument handling](#🗃%EF%B8%8F-argument-handling) for more details.
+3. When starting `nvim some_file.txt` (or multiple files), by default, AutoSession won't do anything. See [argument handling](#🗃%EF%B8%8F-argument-handling) for more details.
 4. Even after starting `nvim` with a file argument, a session can still be manually restored by running `:SessionRestore`.
 5. Any session saving and restoration takes into consideration the current working directory `cwd`.
 6. When piping to `nvim`, e.g: `cat myfile | nvim`, AutoSession won't do anything.
@@ -71,6 +71,7 @@ Here are the default settings:
   args_allow_single_directory = true, -- Follow normal sesion save/load logic if launched with a single directory as the only argument
   args_allow_files_auto_save = false, -- Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. While you can just set this to true, you probably want to set it to a function that decides when to save a session when launched with file args. See documentation for more detail
   continue_restore_on_error = true, -- Keep loading the session even if there's an error
+  show_auto_restore_notif = false, -- Whether to show a notification when auto-restoring
   cwd_change_handling = false, -- Follow cwd changes, saving a session before change and restoring after
   log_level = "error", -- Sets the log level of the plugin (debug, info, warn, error).
 
@@ -415,6 +416,8 @@ For `args_allow_single_directory`, if you frequently use `netrw` to look at dire
 ```lua
       bypass_save_filetypes = { 'netrw' }
 ```
+
+Also, if you use a plugin that handles directory arguments (e.g. file trees/explorers), it may prevent AutoSession from loading or saving sessions when launched with a directory argument. You can avoid that by lazy loading that plugin (e.g. [Oil](https://github.com/rmagatti/auto-session/issues/372#issuecomment-2471077783), [NvimTree](https://github.com/rmagatti/auto-session/issues/393#issuecomment-2474797271)).
 
 If `args_allow_files_auto_save` is true, AutoSession won't load any session when `nvim` is launched with file argument(s) but it will save on exit. What's probably more useful is to set `args_allow_files_auto_save` to a function that returns true if a session should be saved and false otherwise. AutoSession will call that function on auto save when run with arguments. Here's one example config where it will save the session if at least two buffers are open after being launched with arguments:
 

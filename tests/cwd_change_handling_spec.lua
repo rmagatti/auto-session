@@ -38,6 +38,7 @@ describe("The cwd_change_handling config", function()
     assert.equals(false, post_cwd_changed_hook_called)
 
     vim.cmd "cd tests"
+    vim.wait(0)
 
     assert.equals(0, vim.fn.bufexists(TL.test_file))
     assert.equals(true, pre_cwd_changed_hook_called)
@@ -48,6 +49,7 @@ describe("The cwd_change_handling config", function()
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 
     vim.cmd "cd .."
+    vim.wait(0)
 
     assert.equals(vim.fn.getcwd(), require("auto-session.lib").current_session_name())
 
@@ -57,6 +59,7 @@ describe("The cwd_change_handling config", function()
   it("does not double load a session when using SessionRestore", function()
     -- Move to different directory
     vim.cmd "cd tests"
+    vim.wait(0)
 
     pre_cwd_changed_hook_called = false
     post_cwd_changed_hook_called = false
