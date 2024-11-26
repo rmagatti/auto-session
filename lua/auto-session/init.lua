@@ -438,14 +438,19 @@ end
 
 ---Function called by AutoSession when automatically restoring a session.
 ---@param session_name? string An optional session to load
+---@param is_startup? boolean|nil Is this autorestore happening on startup
 ---@return boolean boolean returns whether restoring the session was successful or not.
-function AutoSession.AutoRestoreSession(session_name)
+function AutoSession.AutoRestoreSession(session_name, is_startup)
   -- WARN: should this be checking is_allowed_dir as well?
   if not is_enabled() or not auto_restore() or suppress_session(session_name) then
     return false
   end
 
-  return AutoSession.RestoreSession(session_name, Config.show_auto_restore_notif)
+  local opts = {
+    show_message = Config.show_auto_restore_notif,
+    is_startup_autorestore = is_startup,
+  }
+  return AutoSession.RestoreSession(session_name, opts)
 end
 
 ---@private
@@ -471,7 +476,7 @@ function AutoSession.auto_restore_session_at_vim_enter()
     local session_name = Lib.remove_trailing_separator(vim.fn.fnamemodify(launch_argv[1], ":p"))
     Lib.logger.debug("Launched with single directory, using as session_dir: " .. session_name)
 
-    if AutoSession.AutoRestoreSession(session_name) then
+    if AutoSession.AutoRestoreSession(session_name, true) then
       return true
     end
 
@@ -482,7 +487,7 @@ function AutoSession.auto_restore_session_at_vim_enter()
       Config.auto_save = false
     end
   else
-    if AutoSession.AutoRestoreSession() then
+    if AutoSession.AutoRestoreSession(nil, true) then
       return true
     end
 
@@ -493,7 +498,12 @@ function AutoSession.auto_restore_session_at_vim_enter()
       local last_session_name = Lib.get_latest_session(AutoSession.get_root_dir())
       if last_session_name then
         Lib.logger.debug("Found last session: " .. last_session_name)
-        if AutoSession.RestoreSession(last_session_name, Config.show_auto_restore_notif) then
+        if
+          AutoSession.RestoreSession(
+            last_session_name,
+            { show_message = Config.show_auto_restore_notif, is_startup_autorestore = true }
+          )
+        then
           return true
         end
       end
@@ -576,21 +586,26 @@ function AutoSession.SaveSessionToDir(session_dir, session_name, show_message)
   return true
 end
 
+---@class RestoreOpts
+---@field show_message boolean|nil Should messages be shown
+---@field is_startup_autorestore boolean|nil True if this is the the startup autorestore
+
 ---Restores a session from the passed in directory. If no optional session name
 ---is passed in, it uses the cwd as the session name
 ---@param session_name? string|nil Optional session name
----@param show_message? boolean Optional, whether to show a message on restore (true by default)
-function AutoSession.RestoreSession(session_name, show_message)
-  return AutoSession.RestoreSessionFromDir(AutoSession.get_root_dir(), session_name, show_message)
+---@param opts? RestoreOpts|nil restore options
+function AutoSession.RestoreSession(session_name, opts)
+  return AutoSession.RestoreSessionFromDir(AutoSession.get_root_dir(), session_name, opts)
 end
 
 ---Restores a session from the passed in directory. If no optional session name
 ---is passed in, it uses the cwd as the session name
 ---@param session_dir string Directory to write the session file to
 ---@param session_name? string|nil Optional session name
----@param show_message? boolean Optional, whether to show a message on restore (true by default)
-function AutoSession.RestoreSessionFromDir(session_dir, session_name, show_message)
+---@param opts? RestoreOpts|nil restore options
+function AutoSession.RestoreSessionFromDir(session_dir, session_name, opts)
   Lib.logger.debug("RestoreSessionFromDir start", { session_dir, session_name })
+  opts = opts or {}
   -- Canonicalize and create session_dir if needed
   session_dir = Lib.validate_root_dir(session_dir)
   Lib.logger.debug("RestoreSessionFromDir validated session_dir: ", session_dir)
@@ -623,7 +638,7 @@ function AutoSession.RestoreSessionFromDir(session_dir, session_name, show_messa
     local legacy_session_path = session_dir .. legacy_escaped_session_name
 
     if vim.fn.filereadable(legacy_session_path) ~= 1 then
-      if show_message == nil or show_message then
+      if opts.show_message == nil or opts.show_message then
         vim.notify("Could not restore session: " .. Lib.get_session_display_name(escaped_session_name))
       end
       return false
@@ -653,18 +668,34 @@ function AutoSession.RestoreSessionFromDir(session_dir, session_name, show_messa
     end
   end
 
-  return AutoSession.RestoreSessionFile(session_path, show_message)
+  return AutoSession.RestoreSessionFile(session_path, opts)
 end
 
 ---Restores a session from a specific file
 ---@param session_path string The session file to load
----@param show_message? boolean Optional, whether to show a message on restore (true by default)
+---@param opts? RestoreOpts|nil restore options
 ---@return boolean Was a session restored
-function AutoSession.RestoreSessionFile(session_path, show_message)
+function AutoSession.RestoreSessionFile(session_path, opts)
+  Lib.logger.debug("RestoreSessionFile restoring session from: " .. session_path)
+  opts = opts or {}
+
   AutoSession.run_cmds "pre_restore"
 
-  Lib.logger.debug("RestoreSessionFile restoring session from: " .. session_path)
-
+  -- Stop any language servers if config is set but don't do
+  -- this on startup as it causes a perceptible delay (and we
+  -- know there aren't any language servers anyway)
+  if not opts.is_startup_autorestore then
+    if Config.lsp_stop_on_restore then
+      if type(Config.lsp_stop_on_restore) == "function" then
+        Config.lsp_stop_on_restore()
+      else
+        local clients = vim.lsp.get_clients()
+        if #clients > 0 then
+          vim.lsp.stop_client(clients)
+        end
+      end
+    end
+  end
   -- Vim cmds require escaping any % with a \ but we don't want to do that
   -- for direct filesystem operations (like in save_extra_cmds_new) so we
   -- that here, as late as possible and only for this operation
@@ -709,7 +740,7 @@ Error: ]] .. result)
 
   local session_name = Lib.escaped_session_name_to_session_name(vim.fn.fnamemodify(session_path, ":t"))
   Lib.logger.debug("Restored session: " .. session_name)
-  if show_message == nil or show_message then
+  if opts.show_message == nil or opts.show_message then
     vim.notify("Restored session: " .. session_name)
   end
 
