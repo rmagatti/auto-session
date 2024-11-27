@@ -30,6 +30,7 @@ AutoSession.Config                                          *AutoSession.Config*
         {show_auto_restore_notif?}      (boolean)           Whether to show a notification when auto-restoring
         {log_level?}                    (string|integer)    "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
         {cwd_change_handling?}          (boolean)           Follow cwd changes, saving a session before change and restoring after
+        {lsp_stop_on_restore?}          (boolean|function)  Should language servers be stopped when restoring a session. Can also be a function that will be called if set. Not called on autorestore from startup
         {session_lens?}                 (SessionLens)       Session lens configuration options
         {pre_save_cmds?}                (table)             executes before a session is saved
 
@@ -124,11 +125,12 @@ AutoSession.AutoSaveSession()                      *AutoSession.AutoSaveSession*
 
 
                                                 *AutoSession.AutoRestoreSession*
-AutoSession.AutoRestoreSession({session_name?})
+AutoSession.AutoRestoreSession({session_name?}, {is_startup?})
     Function called by AutoSession when automatically restoring a session.
 
     Parameters: ~
-        {session_name?}  (string)  An optional session to load
+        {session_name?}  (string)       An optional session to load
+        {is_startup?}    (boolean|nil)  Is this autorestore happening on startup
 
     Returns: ~
         (boolean)  returns whether restoring the session was successful or not.
@@ -161,34 +163,41 @@ AutoSession.SaveSessionToDir({session_dir}, {session_name?}, {show_message?})
         (boolean)
 
 
+RestoreOpts                                                        *RestoreOpts*
+
+    Fields: ~
+        {show_message}            (boolean|nil)  Should messages be shown
+        {is_startup_autorestore}  (boolean|nil)  True if this is the the startup autorestore
+
+
                                                     *AutoSession.RestoreSession*
-AutoSession.RestoreSession({session_name?}, {show_message?})
+AutoSession.RestoreSession({session_name?}, {opts?})
     Restores a session from the passed in directory. If no optional session name
     is passed in, it uses the cwd as the session name
 
     Parameters: ~
-        {session_name?}  (string|nil)  Optional session name
-        {show_message?}  (boolean)     Optional, whether to show a message on restore (true by default)
+        {session_name?}  (string|nil)       Optional session name
+        {opts?}          (RestoreOpts|nil)  restore options
 
 
                                              *AutoSession.RestoreSessionFromDir*
-AutoSession.RestoreSessionFromDir({session_dir}, {session_name?}, {show_message?})
+AutoSession.RestoreSessionFromDir({session_dir}, {session_name?}, {opts?})
     Restores a session from the passed in directory. If no optional session name
     is passed in, it uses the cwd as the session name
 
     Parameters: ~
-        {session_dir}    (string)      Directory to write the session file to
-        {session_name?}  (string|nil)  Optional session name
-        {show_message?}  (boolean)     Optional, whether to show a message on restore (true by default)
+        {session_dir}    (string)           Directory to write the session file to
+        {session_name?}  (string|nil)       Optional session name
+        {opts?}          (RestoreOpts|nil)  restore options
 
 
                                                 *AutoSession.RestoreSessionFile*
-AutoSession.RestoreSessionFile({session_path}, {show_message?})
+AutoSession.RestoreSessionFile({session_path}, {opts?})
     Restores a session from a specific file
 
     Parameters: ~
-        {session_path}   (string)   The session file to load
-        {show_message?}  (boolean)  Optional, whether to show a message on restore (true by default)
+        {session_path}  (string)           The session file to load
+        {opts?}         (RestoreOpts|nil)  restore options
 
     Returns: ~
         (boolean)  a session restored

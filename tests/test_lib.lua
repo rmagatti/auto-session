@@ -1,3 +1,4 @@
+require "plenary"
 local asLib = require "auto-session.lib"
 local M = {}
 
