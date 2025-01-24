@@ -6,34 +6,6 @@ local transform_mod = require("telescope.actions.mt").transform_mod
 local M = {}
 
 ---@private
-local function get_alternate_session()
-  ---@diagnostic disable-next-line: undefined-field
-  local session_control_conf = Config.session_lens.session_control
-
-  if not session_control_conf then
-    Lib.logger.error "No session_control in config!"
-    return
-  end
-
-  local filepath = vim.fn.expand(session_control_conf.control_dir) .. session_control_conf.control_filename
-
-  if vim.fn.filereadable(filepath) == 1 then
-    local json = Lib.load_session_control_file(filepath)
-
-    local sessions = {
-      current = json.current,
-      alternate = json.alternate,
-    }
-
-    Lib.logger.debug("get_alternate_session", { sessions = sessions, json = json })
-
-    if sessions.current ~= sessions.alternate then
-      return sessions.alternate
-    end
-
-    Lib.logger.info "Current session is the same as alternate!"
-  end
-end
 
 local function source_session(session_name, prompt_bufnr)
   if prompt_bufnr then
@@ -74,23 +46,14 @@ end
 
 ---@private
 M.alternate_session = function(prompt_bufnr)
-  local alternate_session = get_alternate_session()
-
-  if not alternate_session then
+  local alternate_session_name = Lib.get_alternate_session_name(Config.session_lens.session_control)
+  if not alternate_session_name then
     vim.notify "There is no alternate session"
     -- Keep the picker open in case they want to select a session to load
     return
   end
 
-  local file_name = vim.fn.fnamemodify(alternate_session, ":t")
-  local session_name
-  if Lib.is_legacy_file_name(file_name) then
-    session_name = (Lib.legacy_unescape_session_name(file_name):gsub("%.vim$", ""))
-  else
-    session_name = Lib.escaped_session_name_to_session_name(file_name)
-  end
-
-  source_session(session_name, prompt_bufnr)
+  source_session(alternate_session_name, prompt_bufnr)
 end
 
 ---@private

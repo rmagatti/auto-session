@@ -141,7 +141,7 @@ AutoSession exposes the following commands that can be used or mapped to any key
 
 :SessionPurgeOrphaned " removes all orphaned sessions with no working directory left.
 
-:SessionSearch " open a session picker, uses Telescope if installed, vim.ui.select otherwise
+:SessionSearch " open a session picker, uses Telescope or Snacks if installed, vim.ui.select otherwise
 
 :Autosession search " open a vim.ui.select picker to choose a session to load.
 :Autosession delete " open a vim.ui.select picker to choose a session to delete.
@@ -153,7 +153,7 @@ If you create a manually named session via `SessionSave my_session` or you resto
 
 ## 🔭 Session Lens
 
-You can use Telescope to see, load, and delete your sessions. It's enabled by default if you have Telescope, but here's the Lazy config that shows the configuration options:
+You can use Telescope or [snacks.nvim](https://github.com/folke/snacks.nvim) to see, load, and delete your sessions. It's enabled by default if you have Telescope, but here's the Lazy config that shows the configuration options:
 
 ```lua
 
@@ -198,7 +198,7 @@ You can use Telescope to see, load, and delete your sessions. It's enabled by de
 ```
 
 You can use `:SessionSearch` to launch the session picker. If `load_on_setup = false`, `:SessionSearch` will initialize the Telescope extension when called. You can also use
-`:Telescope session-lens` to launch the session picker but only if `load_on_setup = true` or you've previously called `SessionSearch`.
+`:Telescope session-lens` to launch the session picker but only if `load_on_setup = true` or you've previously called `SessionSearch`. If you don't have Telescope installed but do have Snacks installed (and the picker enabled), AutoSession will use Snacks as the session picker. No change in configuration is needed (e.g. it will use the same keymap config).
 
 The following default keymaps are available when the session-lens picker is open:
 

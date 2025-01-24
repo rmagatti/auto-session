@@ -21,7 +21,7 @@ local SessionLens -- will be initialized later
 ---
 ---  `:SessionPurgeOrphaned` - removes all orphaned sessions with no working directory left.
 ---
----  `:SessionSearch` - open a session picker, uses Telescope if installed, vim.ui.select otherwise
+---  `:SessionSearch` - open a session picker, uses Telescope or Snacks if installed, vim.ui.select otherwise
 ---@brief ]]
 
 local M = {}
@@ -120,6 +120,79 @@ local function setup_session_lens()
   -- Register session-lens as an extension so :Telescope will complete on session-lens
   telescope.load_extension "session-lens"
   return true
+end
+
+local function has_snacks()
+  local success, snacks_picker_enabled = pcall(function()
+    ---@diagnostic disable-next-line: undefined-field
+    return Snacks.config.picker.enabled
+  end)
+  return success and snacks_picker_enabled
+end
+
+local function snacks_session_search()
+  local mappings = Config.session_lens.mappings or {}
+  Snacks.picker.pick {
+    title = "Sessions",
+    finder = function()
+      return Lib.get_session_list(M.AutoSession.get_root_dir())
+    end,
+    format = "text",
+    transform = function(item)
+      item.text = item.display_name
+    end,
+    layout = {
+      preview = Config.session_lens.theme_conf.preview,
+    },
+    win = {
+      input = {
+        keys = {
+          ["dd"] = "session_delete",
+          [mappings.delete_session[2]] = { "session_delete", mode = mappings.delete_session[1] },
+          [mappings.alternate_session[2]] = { "session_alternate", mode = mappings.alternate_session[1] },
+          [mappings.copy_session[2]] = { "session_copy", mode = mappings.copy_session[1] },
+        },
+      },
+      list = { keys = { ["dd"] = "session_delete" } },
+    },
+    actions = {
+      confirm = function(picker, item)
+        picker:close()
+        vim.schedule(function()
+          M.AutoSession.autosave_and_restore(item.session_name)
+        end)
+      end,
+      session_delete = function(picker, item)
+        vim.schedule(function()
+          M.AutoSession.DeleteSessionFile(item.path, item.display_name)
+          picker:find() -- refresh picker
+        end)
+      end,
+      session_alternate = function(picker, _)
+        vim.schedule(function()
+          local altername_session_name = Lib.get_alternate_session_name(Config.session_lens.session_control)
+          if not altername_session_name then
+            return
+          end
+          picker:close()
+          vim.defer_fn(function()
+            M.AutoSession.autosave_and_restore(altername_session_name)
+          end, 50)
+        end)
+      end,
+      session_copy = function(picker, item)
+        vim.schedule(function()
+          local new_name = vim.fn.input("New session name: ", item.text)
+          if not new_name or new_name == "" or new_name == item.text then
+            return
+          end
+          local content = vim.fn.readfile(item.path)
+          vim.fn.writefile(content, M.AutoSession.get_root_dir() .. Lib.escape_session_name(new_name) .. ".vim")
+          picker:find() -- refresh picker
+        end)
+      end,
+    },
+  }
 end
 
 local function setup_dirchanged_autocmds(AutoSession)
@@ -256,9 +329,14 @@ function M.setup_autocmds(AutoSession)
   })
 
   vim.api.nvim_create_user_command("SessionSearch", function()
-    -- If Telescope is installed, use that otherwise use vim.ui.select
+    -- Use telescope if installed, otherwise snacks, otherwise vim.ui.select
     if setup_session_lens() and SessionLens then
       vim.cmd "Telescope session-lens"
+      return
+    end
+
+    if has_snacks() then
+      snacks_session_search()
       return
     end
 
