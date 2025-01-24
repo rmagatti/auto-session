@@ -95,7 +95,7 @@ This plugin provides the following commands:
 
   `:SessionPurgeOrphaned` - removes all orphaned sessions with no working directory left.
 
-  `:SessionSearch` - open a session picker, uses Telescope if installed, vim.ui.select otherwise
+  `:SessionSearch` - open a session picker, uses Telescope or Snacks if installed, vim.ui.select otherwise
 
 ==============================================================================
 API                                                           *auto-session.api*
