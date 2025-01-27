@@ -229,6 +229,9 @@ local function setup_dirchanged_autocmds(AutoSession)
 
       AutoSession.AutoSaveSession()
       AutoSession.run_cmds "pre_cwd_changed"
+
+      -- Clear the current session, fixes #399
+      vim.v.this_session = ""
     end,
     pattern = "global",
   })
