@@ -37,12 +37,17 @@ describe("The cwd_change_handling config", function()
     assert.equals(false, pre_cwd_changed_hook_called)
     assert.equals(false, post_cwd_changed_hook_called)
 
+    assert.True(vim.v.this_session ~= "")
+
     vim.cmd "cd tests"
     vim.wait(0)
 
     assert.equals(0, vim.fn.bufexists(TL.test_file))
     assert.equals(true, pre_cwd_changed_hook_called)
     assert.equals(true, post_cwd_changed_hook_called)
+
+    -- Changing to a directory without a session should clear this_session
+    assert.True(vim.v.this_session == "")
   end)
 
   it("does load the session for the base dir", function()
