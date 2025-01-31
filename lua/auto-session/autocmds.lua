@@ -294,6 +294,7 @@ function M.setup_autocmds(AutoSession)
   vim.api.nvim_create_user_command("SessionSave", function(args)
     return AutoSession.SaveSession(args.args)
   end, {
+    complete = complete_session,
     bang = true,
     nargs = "?",
     desc = "Save session using current working directory as the session name or an optional session name",
