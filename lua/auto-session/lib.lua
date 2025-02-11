@@ -520,7 +520,7 @@ function Lib.find_matching_directory(dirToFind, dirs)
     ---@diagnostic disable-next-line: param-type-mismatch
     for path in string.gmatch(dir, "[^\r\n]+") do
       local simplified_path = vim.fn.simplify(path)
-      local path_without_trailing_slashes = string.gsub(simplified_path, "/+$", "")
+      local path_without_trailing_slashes = string.gsub(simplified_path, "([/~].*)/+$", "%1")
 
       -- Lib.logger.debug("find_matching_directory simplified: " .. simplified_path)
 
