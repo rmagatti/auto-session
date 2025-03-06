@@ -97,6 +97,7 @@ end
 ---Removes the trailing separator (if any) from a directory, for both unix and windows
 ---This is needed in some places to avoid duplicate separators that complicate
 ---the path and make equality checks fail (e.g. session control alternate)
+-- Will return '/' if that's the only part of the path
 ---@param dir string The directory path to make sure doesn't have a trailing separator
 ---@return string Dir guaranteed to not have a trailing separator
 function Lib.remove_trailing_separator(dir)
@@ -105,7 +106,7 @@ function Lib.remove_trailing_separator(dir)
     dir = dir:gsub("\\$", "")
   end
 
-  return (dir:gsub("/$", ""))
+  return (dir:gsub("(.)/$", "%1"))
 end
 
 ---Legacy decoding function for windows. Replaces ++ with : and - with \
