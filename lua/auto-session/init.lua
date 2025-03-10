@@ -173,7 +173,7 @@ local function suppress_session(session_dir)
 
   -- If session_dir is set, use that otherwise use cwd
   -- session_dir will be set when loading a session from a directory at lauch (i.e. from argv)
-  local cwd = session_dir or vim.fn.getcwd()
+  local cwd = session_dir or vim.fn.getcwd(-1)
 
   if Lib.find_matching_directory(cwd, dirs) then
     Lib.logger.debug "suppress_session found a match, suppressing"
@@ -190,7 +190,7 @@ local function is_allowed_dir()
   end
 
   local dirs = Config.allowed_dirs or {}
-  local cwd = vim.fn.getcwd()
+  local cwd = vim.fn.getcwd(-1)
 
   if Lib.find_matching_directory(cwd, dirs) then
     Lib.logger.debug "is_allowed_dir found a match, allowing"
@@ -209,7 +209,7 @@ end
 ---@return string Returns the escaped version of the name with .vim appended.
 local function get_session_file_name(session_name, legacy)
   if not session_name or session_name == "" then
-    session_name = vim.fn.getcwd()
+    session_name = vim.fn.getcwd(-1)
     Lib.logger.debug("get_session_file_name no session_name, using cwd: " .. session_name)
 
     local git_branch_name = get_git_branch_name()
@@ -279,13 +279,13 @@ end
 ---unless a session for the current working directory exists.
 ---@return boolean True if a session exists for the cwd
 function AutoSession.session_exists_for_cwd()
-  local session_file = get_session_file_name(vim.fn.getcwd())
+  local session_file = get_session_file_name(vim.fn.getcwd(-1))
   if vim.fn.filereadable(AutoSession.get_root_dir() .. session_file) ~= 0 then
     return true
   end
 
   -- Check legacy sessions
-  session_file = get_session_file_name(vim.fn.getcwd(), true)
+  session_file = get_session_file_name(vim.fn.getcwd(-1), true)
   return vim.fn.filereadable(AutoSession.get_root_dir() .. session_file) ~= 0
 end
 
@@ -482,7 +482,7 @@ function AutoSession.auto_restore_session_at_vim_enter()
 
     -- We failed to load a session for the other directory. Unless session name matches cwd, we don't
     -- want to enable autosaving since it might replace the session for the cwd
-    if vim.fn.getcwd() ~= session_name then
+    if vim.fn.getcwd(-1) ~= session_name then
       Lib.logger.debug "Not enabling autosave because launch argument didn't load session and doesn't match cwd"
       Config.auto_save = false
     end
