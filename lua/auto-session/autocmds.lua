@@ -79,9 +79,9 @@ local function purge_orphaned_sessions()
   local session_files = Lib.get_session_list(M.AutoSession.get_root_dir())
   for _, session in ipairs(session_files) do
     if
-      not Lib.is_named_session(session.session_name)
-      -- don't want any annotations (e.g. git branch)
-      and vim.fn.isdirectory(session.display_name_component) == Lib._VIM_FALSE
+        not Lib.is_named_session(session.session_name)
+        -- don't want any annotations (e.g. git branch)
+        and vim.fn.isdirectory(session.display_name_component) == Lib._VIM_FALSE
     then
       Lib.logger.debug("purge: " .. session.session_name)
       table.insert(orphaned_sessions, session.session_name)
@@ -205,7 +205,7 @@ local function setup_dirchanged_autocmds(AutoSession)
     callback = function()
       Lib.logger.debug "DirChangedPre"
       Lib.logger.debug {
-        cwd = vim.fn.getcwd(),
+        cwd = vim.fn.getcwd(-1, -1),
         target = vim.v.event.directory,
         ["changed window"] = tostring(vim.v.event.changed_window),
         scope = vim.v.event.scope,
@@ -239,7 +239,7 @@ local function setup_dirchanged_autocmds(AutoSession)
   vim.api.nvim_create_autocmd("DirChanged", {
     callback = function()
       Lib.logger.debug "DirChanged"
-      Lib.logger.debug("  cwd: " .. vim.fn.getcwd())
+      Lib.logger.debug("  cwd: " .. vim.fn.getcwd(-1, -1))
       Lib.logger.debug("  changed window: " .. tostring(vim.v.event.changed_window))
       Lib.logger.debug("  scope: " .. vim.v.event.scope)
 
