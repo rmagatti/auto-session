@@ -24,6 +24,7 @@ describe("Lib / Helper functions", function()
   it("remove_trailing_separator works", function()
     assert.equals("/tmp/blah", Lib.remove_trailing_separator "/tmp/blah/")
     assert.equals("/tmp/blah", Lib.remove_trailing_separator "/tmp/blah")
+    assert.equals("/", Lib.remove_trailing_separator "/")
 
     if vim.fn.has "win32" == 1 then
       assert.equals("c:\\temp\\blah", Lib.remove_trailing_separator "c:\\temp\\blah\\")
