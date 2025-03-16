@@ -79,9 +79,9 @@ local function purge_orphaned_sessions()
   local session_files = Lib.get_session_list(M.AutoSession.get_root_dir())
   for _, session in ipairs(session_files) do
     if
-        not Lib.is_named_session(session.session_name)
-        -- don't want any annotations (e.g. git branch)
-        and vim.fn.isdirectory(session.display_name_component) == Lib._VIM_FALSE
+      not Lib.is_named_session(session.session_name)
+      -- don't want any annotations (e.g. git branch)
+      and vim.fn.isdirectory(session.display_name_component) == Lib._VIM_FALSE
     then
       Lib.logger.debug("purge: " .. session.session_name)
       table.insert(orphaned_sessions, session.session_name)
@@ -140,9 +140,10 @@ local function snacks_session_search()
     format = "text",
     transform = function(item)
       item.text = item.display_name
+      item.file = item.path
     end,
     layout = {
-      preview = Config.session_lens.theme_conf.preview,
+      preview = Config.session_lens.previewer,
     },
     win = {
       input = {
