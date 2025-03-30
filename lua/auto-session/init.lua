@@ -671,6 +671,23 @@ function AutoSession.RestoreSessionFromDir(session_dir, session_name, opts)
   return AutoSession.RestoreSessionFile(session_path, opts)
 end
 
+---Handles erorrs on restore. Will ignore fold errors but will pop a notification for all other
+---errors and return false, which will disable auto-save
+---@param error_msg string error message
+---@return boolean enable_auto_save Return false to disable auto-saving, true to leave it on
+local function restore_error_handler(error_msg)
+  -- Ignore fold errors as discussed in https://github.com/rmagatti/auto-session/issues/409
+  if error_msg and string.find(error_msg, "E490: No fold found") then
+    Lib.logger.debug "Ignoring fold error on restore"
+    return true
+  end
+
+  Lib.logger.error([[
+Error restoring session, disabling auto save.
+Error: ]] .. error_msg)
+  return false
+end
+
 ---Restores a session from a specific file
 ---@param session_path string The session file to load
 ---@param opts? RestoreOpts|nil restore options
@@ -731,11 +748,14 @@ function AutoSession.RestoreSessionFile(session_path, opts)
   launch_argv = nil
 
   if not success then
-    Lib.logger.error([[
-Error restoring session, disabling auto save.
-Error: ]] .. result)
-    Config.auto_save = false
-    return false
+    if
+      (type(Config.restore_error_handler) == "function" and not Config.restore_error_handler(result))
+      or not restore_error_handler(result)
+    then
+      Lib.logger.debug "Error while restoring, disabling autosave"
+      Config.auto_save = false
+      return false
+    end
   end
 
   local session_name = Lib.escaped_session_name_to_session_name(vim.fn.fnamemodify(session_path, ":t"))

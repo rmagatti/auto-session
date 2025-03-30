@@ -27,6 +27,10 @@ local M = {}
 ---@field log_level? string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
 ---@field cwd_change_handling? boolean Follow cwd changes, saving a session before change and restoring after
 ---@field lsp_stop_on_restore? boolean|function Should language servers be stopped when restoring a session. Can also be a function that will be called if set. Not called on autorestore from startup
+---
+---@alias restore_error_fn fun(error_msg:string): disable_auto_save:boolean
+---@field restore_error_handler? restore_error_fn Called when there's an error restoring. By default, it ignores fold errors otherwise it displays the error and returns false to disable auto_save
+---
 ---@field session_lens? SessionLens Session lens configuration options
 ---
 ---Hooks
@@ -81,6 +85,7 @@ local defaults = {
   show_auto_restore_notif = false, -- Whether to show a notification when auto-restoring
   cwd_change_handling = false, -- Follow cwd changes, saving a session before change and restoring after
   lsp_stop_on_restore = false, -- Should language servers be stopped when restoring a session. Can also be a function that will be called if set. Not called on autorestore from startup
+  restore_error_handler = nil, -- Called when there's an error restoring. By default, it ignores fold errors otherwise it displays the error and returns false to disable auto_save
   log_level = "error", -- Sets the log level of the plugin (debug, info, warn, error).
 
   ---@type SessionLens
