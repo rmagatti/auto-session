@@ -473,8 +473,12 @@ function AutoSession.auto_restore_session_at_vim_enter()
   then
     -- Get the full path of the directory and make sure it doesn't have a trailing path_separator
     -- to make sure we find the session
-    local session_name = Lib.remove_trailing_separator(vim.fn.fnamemodify(launch_argv[1], ":p"))
-    Lib.logger.debug("Launched with single directory, using as session_dir: " .. session_name)
+    local session_name = nil
+    if launch_argv[1] ~= "." then
+      session_name = Lib.remove_trailing_separator(vim.fn.fnamemodify(launch_argv[1], ":p"))
+      Lib.logger.debug("Launched with single directory, using as session_dir: " .. session_name)
+    end
+    Lib.logger.debug "Launched with cwd: using nil session_name"
 
     if AutoSession.AutoRestoreSession(session_name, true) then
       return true
