@@ -31,16 +31,26 @@ AutoSession.Config                                          *AutoSession.Config*
         {log_level?}                    (string|integer)    "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
         {cwd_change_handling?}          (boolean)           Follow cwd changes, saving a session before change and restoring after
         {lsp_stop_on_restore?}          (boolean|function)  Should language servers be stopped when restoring a session. Can also be a function that will be called if set. Not called on autorestore from startup
+        {restore_error_handler?}        (restore_error_fn)  Called when there's an error restoring. By default, it ignores fold errors otherwise it displays the error and returns false to disable auto_save
 
+        {session_lens?}                 (SessionLens)       Session lens configuration options
 
-restore_error_fn                                              *restore_error_fn*
+        {pre_save_cmds?}                (table)             executes before a session is saved
 
-
-    Type: ~
-        fun(error_msg:string):disable_auto_save
+                                                            Hooks
+        {save_extra_cmds?}              (table)             executes before a session is saved
+        {post_save_cmds?}               (table)             executes after a session is saved
+        {pre_restore_cmds?}             (table)             executes before a session is restored
+        {post_restore_cmds?}            (table)             executes after a session is restored
+        {pre_delete_cmds?}              (table)             executes before a session is deleted
+        {post_delete_cmds?}             (table)             executes after a session is deleted
+        {no_restore_cmds?}              (table)             executes at VimEnter when no session is restored
+        {pre_cwd_changed_cmds?}         (table)             executes before cwd is changed if cwd_change_handling is true
+        {post_cwd_changed_cmds?}        (table)             executes after cwd is changed if cwd_change_handling is true
 
 
 SessionLens                                                        *SessionLens*
+
     Sessien Lens Cenfig
 
     Fields: ~
@@ -55,18 +65,27 @@ SessionLens                                                        *SessionLens*
 
 SessionControl                                                  *SessionControl*
 
+
     Fields: ~
         {control_dir?}       (string)
         {control_filename?}  (string)
 
 
 SessionLensMappings                                        *SessionLensMappings*
+
     Session Lens Mapping
 
     Fields: ~
         {delete_session?}     (table)  mode and key for deleting a session from the picker
         {alternate_session?}  (table)  mode and key for swapping to alertnate session from the picker
         {copy_session?}       (table)  mode and key for copying a session from the picker
+
+
+restore_error_fn                                              *restore_error_fn*
+
+
+    Type: ~
+        fun(error_msg:string):disable_auto_save
 
 
 ==============================================================================
