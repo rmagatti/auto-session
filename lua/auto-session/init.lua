@@ -40,21 +40,6 @@ local function is_auto_create_enabled()
   return result
 end
 
--- get the current git branch name, if any, and only if configured to do so
-local function get_git_branch_name()
-  if not Config.use_git_branch then
-    return ""
-  end
-
-  -- WARN: this assumes you want the branch of the cwd
-  local out = vim.fn.systemlist "git rev-parse --abbrev-ref HEAD"
-  if vim.v.shell_error ~= 0 then
-    Lib.logger.debug(string.format("git failed with: %s", table.concat(out, "\n")))
-    return ""
-  end
-  return out[1]
-end
-
 local in_pager_mode = function()
   return vim.g.in_pager_mode == Lib._VIM_TRUE
 end
@@ -212,22 +197,9 @@ local function get_session_file_name(session_name, legacy)
     session_name = vim.fn.getcwd(-1, -1)
     Lib.logger.debug("get_session_file_name no session_name, using cwd: " .. session_name)
 
-    local git_branch_name = get_git_branch_name()
-    if git_branch_name and git_branch_name ~= "" then
-      -- NOTE: By including it in the session name, there's the possibility of a collision
-      -- with an actual directory named session_name|branch_name. Meaning, that if someone
-      -- created a session in session_name (while branch_name is checked out) and then also
-      -- went to edit in a directory literally called session_name|branch_name. the sessions
-      -- would collide. Obviously, that's not perfect but I think it's an ok price to pay to
-      -- get branch specific sessions and still have a cwd derived text key to identify sessions
-      -- that can be used everywhere, incuding :SessionRestore
-      if legacy then
-        session_name = session_name .. "_" .. git_branch_name
-      else
-        -- now that we're percent encoding, we can pick a less likely character, even if it doesn't
-        -- avoid the problem entirely
-        session_name = session_name .. "|" .. git_branch_name
-      end
+    if Config.use_git_branch then
+      session_name = Lib.combine_session_name_with_git_branch(session_name, Lib.get_git_branch_name(), legacy)
+      Lib.logger.debug("git enabled, session_name:" .. session_name)
     end
   end
 
@@ -475,6 +447,13 @@ function AutoSession.auto_restore_session_at_vim_enter()
     -- to make sure we find the session
     local session_name = Lib.remove_trailing_separator(vim.fn.fnamemodify(launch_argv[1], ":p"))
     Lib.logger.debug("Launched with single directory, using as session_dir: " .. session_name)
+
+    if Config.use_git_branch then
+      -- Get the git branch for that directory, no legacy git name support
+      session_name =
+        Lib.combine_session_name_with_git_branch(session_name, Lib.get_git_branch_name(session_name), false)
+      Lib.logger.debug("git enabled, launch argument with potential git branch: " .. session_name)
+    end
 
     if AutoSession.AutoRestoreSession(session_name, true) then
       return true
