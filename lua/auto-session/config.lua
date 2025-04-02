@@ -27,6 +27,9 @@ local M = {}
 ---@field log_level? string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
 ---@field cwd_change_handling? boolean Follow cwd changes, saving a session before change and restoring after
 ---@field lsp_stop_on_restore? boolean|function Should language servers be stopped when restoring a session. Can also be a function that will be called if set. Not called on autorestore from startup
+---
+---@field restore_error_handler? restore_error_fn Called when there's an error restoring. By default, it ignores fold errors otherwise it displays the error and returns false to disable auto_save
+---
 ---@field session_lens? SessionLens Session lens configuration options
 ---
 ---Hooks
@@ -40,7 +43,7 @@ local M = {}
 ---@field no_restore_cmds? table executes at VimEnter when no session is restored
 ---@field pre_cwd_changed_cmds? table executes before cwd is changed if cwd_change_handling is true
 ---@field post_cwd_changed_cmds? table executes after cwd is changed if cwd_change_handling is true
-
+---
 ---Sessien Lens Cenfig
 ---@class SessionLens
 ---@field load_on_setup? boolean
@@ -50,16 +53,18 @@ local M = {}
 ---@field previewer? boolean Whether to show a preview of the session file (not very useful to most people)
 ---@field session_control? SessionControl
 ---@field mappings? SessionLensMappings
-
+---
 ---@class SessionControl
 ---@field control_dir? string
 ---@field control_filename? string
-
+---
 ---Session Lens Mapping
 ---@class SessionLensMappings
 ---@field delete_session? table mode and key for deleting a session from the picker
 ---@field alternate_session? table mode and key for swapping to alertnate session from the picker
 ---@field copy_session? table mode and key for copying a session from the picker
+---
+---@alias restore_error_fn fun(error_msg:string): disable_auto_save:boolean
 
 ---@type AutoSession.Config
 local defaults = {
@@ -81,6 +86,7 @@ local defaults = {
   show_auto_restore_notif = false, -- Whether to show a notification when auto-restoring
   cwd_change_handling = false, -- Follow cwd changes, saving a session before change and restoring after
   lsp_stop_on_restore = false, -- Should language servers be stopped when restoring a session. Can also be a function that will be called if set. Not called on autorestore from startup
+  restore_error_handler = nil, -- Called when there's an error restoring. By default, it ignores fold errors otherwise it displays the error and returns false to disable auto_save
   log_level = "error", -- Sets the log level of the plugin (debug, info, warn, error).
 
   ---@type SessionLens
