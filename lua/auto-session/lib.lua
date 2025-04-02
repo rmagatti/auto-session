@@ -716,4 +716,46 @@ function Lib.get_alternate_session_name(session_control_conf)
   return Lib.escaped_session_name_to_session_name(file_name)
 end
 
+---Returns git branch name, if any, for the path (if passed in) or the cwd
+---@param path string? Optional path to use when checking for git branch
+---@return string # Name of git branch or empty string
+function Lib.get_git_branch_name(path)
+  local git_cmd = string.format("git%s rev-parse --abbrev-ref HEAD", path and (" -C " .. path) or "")
+
+  local out = vim.fn.systemlist(git_cmd)
+  if vim.v.shell_error ~= 0 then
+    Lib.logger.debug(string.format("git failed with: %s", table.concat(out, "\n")))
+    return ""
+  end
+  return out[1]
+end
+
+---Adds the git branch name to the passwed in session name
+---@param session_name string session name to add the git branch to
+---@param git_branch_name string? git branch name to use
+---@param legacy boolean? whether to use current or legacy naming convention
+---@return string # Session name with the git branch name added on (if there is one)
+function Lib.combine_session_name_with_git_branch(session_name, git_branch_name, legacy)
+  legacy = legacy or false
+
+  if not git_branch_name or git_branch_name == "" then
+    return session_name
+  end
+
+  -- NOTE: By including it in the session name, there's the possibility of a collision
+  -- with an actual directory named session_name|branch_name. Meaning, that if someone
+  -- created a session in session_name (while branch_name is checked out) and then also
+  -- went to edit in a directory literally called session_name|branch_name. the sessions
+  -- would collide. Obviously, that's not perfect but I think it's an ok price to pay to
+  -- get branch specific sessions and still have a cwd derived text key to identify sessions
+  -- that can be used everywhere, incuding :SessionRestore
+  if legacy then
+    return session_name .. "_" .. git_branch_name
+  end
+
+  -- now that we're percent encoding, we can pick a less likely character, even if it doesn't
+  -- avoid the problem entirely
+  return session_name .. "|" .. git_branch_name
+end
+
 return Lib

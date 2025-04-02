@@ -1,9 +1,11 @@
 ---@diagnostic disable: undefined-field
 local TL = require "tests/test_lib"
+local stub = require "luassert.stub"
 
 describe("The git config", function()
   local as = require "auto-session"
   local Lib = require "auto-session.lib"
+  local c = require "auto-session.config"
   as.setup {
     auto_session_use_git_branch = true,
     -- log_level = "debug",
@@ -21,7 +23,7 @@ describe("The git config", function()
   -- get a file in that dir
   vim.cmd("e " .. TL.test_file)
   vim.cmd("w! " .. git_test_path .. "/test.txt")
-  vim.cmd "%bw"
+  vim.cmd "silent %bw"
 
   -- change to that dir
   vim.cmd("cd " .. git_test_path)
@@ -72,7 +74,7 @@ describe("The git config", function()
   end)
 
   it("Autorestores a session with the branch name", function()
-    vim.cmd "%bw!"
+    vim.cmd "silent %bw!"
     assert.equals(0, vim.fn.bufexists "test.txt")
 
     as.AutoRestoreSession()
@@ -93,7 +95,7 @@ describe("The git config", function()
     assert.equals(1, vim.fn.filereadable(legacy_branch_session_path))
     assert.equals(0, vim.fn.filereadable(branch_session_path))
 
-    vim.cmd "%bw!"
+    vim.cmd "silent %bw!"
     assert.equals(0, vim.fn.bufexists "test.txt")
 
     as.AutoRestoreSession()
@@ -115,5 +117,49 @@ describe("The git config", function()
     assert.equals(1, vim.fn.filereadable(session_path))
     assert.equals(vim.fn.getcwd() .. " (branch: slash/branch)", Lib.current_session_name())
     assert.equals(git_test_dir .. " (branch: slash/branch)", Lib.current_session_name(true))
+  end)
+
+  it("load a session named with git branch from . directory", function()
+    c.args_allow_single_directory = true
+    c.log_level = "debug"
+
+    -- delete all buffers
+    vim.cmd "silent %bw"
+
+    local s = stub(vim.fn, "argv")
+    s.returns { "." }
+
+    -- only exported because we set the unit testing env in TL
+    assert.True(as.auto_restore_session_at_vim_enter())
+
+    assert.equals(1, vim.fn.bufexists "test.txt")
+
+    -- Revert the stub
+    vim.fn.argv:revert()
+    c.auto_save = false
+  end)
+
+  it("load a session named with git branch from directory argument", function()
+    c.args_allow_single_directory = true
+    c.log_level = "debug"
+    c.cwd_change_handling = false
+
+    -- delete all buffers
+    vim.cmd "silent %bw"
+
+    -- change to parent directory
+    vim.cmd "cd .."
+
+    local s = stub(vim.fn, "argv")
+    s.returns { git_test_dir }
+
+    -- only exported because we set the unit testing env in TL
+    assert.True(as.auto_restore_session_at_vim_enter())
+
+    assert.equals(1, vim.fn.bufexists "test.txt")
+
+    -- Revert the stub
+    vim.fn.argv:revert()
+    c.auto_save = false
   end)
 end)
