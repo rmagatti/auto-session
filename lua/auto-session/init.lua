@@ -435,13 +435,13 @@ function AutoSession.start()
   if Config.purge_after_days then
     local work = vim.uv.new_work(Lib.purge_old_sessions, function(purged_sessions_json)
       vim.schedule(function()
-        Lib.logger.info(
-          "Deleted old sessions:\n"
-            .. table.concat(
-              vim.tbl_map(Lib.escaped_session_name_to_session_name, vim.json.decode(purged_sessions_json)),
-              "\n"
-            )
-        )
+        local purged_sessions = vim.json.decode(purged_sessions_json)
+        if not vim.tbl_isempty(purged_sessions) then
+          Lib.logger.info(
+            "Deleted old sessions:\n"
+              .. table.concat(vim.tbl_map(Lib.escaped_session_name_to_session_name, purged_sessions), "\n")
+          )
+        end
       end)
     end)
     work:queue(AutoSession.get_root_dir(), Config.purge_after_days)
