@@ -41,8 +41,8 @@ use {
 # 💡 Behaviour
 
 1. When starting `nvim` with no arguments, AutoSession will try to restore an existing session for the current `cwd` if one exists.
-2. When starting `nvim .` (or another directory), AutoSession will try to restore the session for that directory. See [argument handling](#🗃%EF%B8%8F-argument-handling) for more details.
-3. When starting `nvim some_file.txt` (or multiple files), by default, AutoSession won't do anything. See [argument handling](#🗃%EF%B8%8F-argument-handling) for more details.
+2. When starting `nvim .` (or another directory), AutoSession will try to restore the session for that directory. See [argument handling](#%EF%B8%8F-argument-handling) for more details.
+3. When starting `nvim some_file.txt` (or multiple files), by default, AutoSession won't do anything. See [argument handling](#%EF%B8%8F-argument-handling) for more details.
 4. Even after starting `nvim` with a file argument, a session can still be manually restored by running `:SessionRestore`.
 5. Any session saving and restoration takes into consideration the current working directory `cwd`.
 6. When piping to `nvim`, e.g: `cat myfile | nvim`, AutoSession won't do anything.
