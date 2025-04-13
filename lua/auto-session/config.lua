@@ -29,6 +29,7 @@ local M = {}
 ---@field lsp_stop_on_restore? boolean|function Should language servers be stopped when restoring a session. Can also be a function that will be called if set. Not called on autorestore from startup
 ---
 ---@field restore_error_handler? restore_error_fn Called when there's an error restoring. By default, it ignores fold errors otherwise it displays the error and returns false to disable auto_save
+---@field purge_after_days? number|nil Sessions older than purge_after_days will be deleted asynchronously on startup, defaults to off (no purging)
 ---
 ---@field session_lens? SessionLens Session lens configuration options
 ---
@@ -87,6 +88,7 @@ local defaults = {
   cwd_change_handling = false, -- Follow cwd changes, saving a session before change and restoring after
   lsp_stop_on_restore = false, -- Should language servers be stopped when restoring a session. Can also be a function that will be called if set. Not called on autorestore from startup
   restore_error_handler = nil, -- Called when there's an error restoring. By default, it ignores fold errors otherwise it displays the error and returns false to disable auto_save
+  purge_after_days = nil, -- Sessions older than purge_after_days will be deleted asynchronously on startup, defaults to off (no purging)
   log_level = "error", -- Sets the log level of the plugin (debug, info, warn, error).
 
   ---@type SessionLens

@@ -758,4 +758,39 @@ function Lib.combine_session_name_with_git_branch(session_name, git_branch_name,
   return session_name .. "|" .. git_branch_name
 end
 
+---Delete sessions that have access times older than purge_days_old old
+---@param session_dir string The session directory to look for sessions in
+---@param purge_days_old number E.g. 3, delete sessions older than 3 days ago
+---@return string # json encoded string of escaped session filenames removed
+function Lib.purge_old_sessions(session_dir, purge_days_old)
+  local seconds_per_day = 24 * 3600
+  local epoch = os.time()
+  local garbage_collect_seconds = purge_days_old * seconds_per_day
+  local scan_dir = assert(vim.uv.fs_scandir(session_dir))
+  local out = {}
+
+  if purge_days_old == 0 or garbage_collect_seconds == 0 then
+    return "[]"
+  end
+
+  local file = vim.uv.fs_scandir_next(scan_dir)
+  while file do
+    local abs_path = session_dir .. file
+    local fd = assert(vim.uv.fs_open(abs_path, "r", 0))
+    local stat = assert(vim.uv.fs_fstat(fd))
+    local atime = stat["atime"]["sec"]
+    assert(vim.uv.fs_close(fd))
+    local age = epoch - atime
+    -- print("file: " .. abs_path .. " age: " .. age)
+    if age > garbage_collect_seconds then
+      assert(vim.uv.fs_unlink(abs_path))
+      table.insert(out, file)
+    end
+
+    file = vim.uv.fs_scandir_next(scan_dir)
+  end
+
+  return vim.json.encode(out)
+end
+
 return Lib

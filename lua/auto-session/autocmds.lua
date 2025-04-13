@@ -389,7 +389,7 @@ function M.setup_autocmds(AutoSession)
 
       if not Config.lazy_support then
         -- If auto_restore_lazy_delay_enabled is false, just restore the session as normal
-        AutoSession.auto_restore_session_at_vim_enter()
+        AutoSession.start()
         return
       end
 
@@ -397,14 +397,14 @@ function M.setup_autocmds(AutoSession)
       local ok, lazy_view = pcall(require, "lazy.view")
       if not ok then
         -- No Lazy, load as usual
-        AutoSession.auto_restore_session_at_vim_enter()
+        AutoSession.start()
         return
       end
 
       if not lazy_view.visible() then
         -- Lazy isn't visible, load as usual
         Lib.logger.debug "Lazy is loaded, but not visible, will try to restore session"
-        AutoSession.auto_restore_session_at_vim_enter()
+        AutoSession.start()
         return
       end
 
@@ -449,7 +449,7 @@ function M.setup_autocmds(AutoSession)
         -- Schedule restoration for the next pass in the event loop to time for the window to close
         -- Not doing this could create a blank buffer in the restored session
         vim.schedule(function()
-          AutoSession.auto_restore_session_at_vim_enter()
+          AutoSession.start()
         end)
       end,
     })
