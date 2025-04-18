@@ -760,16 +760,15 @@ end
 
 ---Delete sessions that have access times older than purge_days_old old
 ---@param session_dir string The session directory to look for sessions in
----@param purge_days_old number E.g. 3, delete sessions older than 3 days ago
+---@param purge_older_than_minutes number in minutes, e.g. 14400, delete sessions older than 10 days ago
 ---@return string # json encoded string of escaped session filenames removed
-function Lib.purge_old_sessions(session_dir, purge_days_old)
-  local seconds_per_day = 24 * 3600
+function Lib.purge_old_sessions(session_dir, purge_older_than_minutes)
   local epoch = os.time()
-  local garbage_collect_seconds = purge_days_old * seconds_per_day
+  local garbage_collect_seconds = purge_older_than_minutes * 60
   local scan_dir = assert(vim.uv.fs_scandir(session_dir))
   local out = {}
 
-  if purge_days_old == 0 or garbage_collect_seconds == 0 then
+  if purge_older_than_minutes == 0 or garbage_collect_seconds == 0 then
     return "[]"
   end
 

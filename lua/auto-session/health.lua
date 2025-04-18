@@ -74,8 +74,8 @@ local function check_lazy_settings()
 end
 
 function check_features()
-  if Config.purge_after_days and vim.fn.has "nvim-0.10" ~= 1 then
-    warn "The purge_after_days config option requires nvim 0.10 or greater to work"
+  if Config.purge_after_minutes and vim.fn.has "nvim-0.10" ~= 1 then
+    warn "The purge_after_minutes config option requires nvim 0.10 or greater to work"
   end
 end
 

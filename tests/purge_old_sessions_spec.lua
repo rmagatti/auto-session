@@ -2,14 +2,14 @@
 local TL = require "tests/test_lib"
 local stub = require "luassert.stub"
 
-describe("Setting purge_after_days", function()
+describe("Setting purge_after_minutes", function()
   local as = require "auto-session"
 
   -- old session 10 days ago
   local old_session = 10
 
   as.setup {
-    purge_after_days = 3,
+    purge_after_minutes = 60 * 24 * 3,
   }
 
   TL.clearSessionFilesAndBuffers()

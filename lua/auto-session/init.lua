@@ -432,7 +432,7 @@ end
 function AutoSession.start()
   local did_auto_restore = AutoSession.auto_restore_session_at_vim_enter()
 
-  if Config.purge_after_days then
+  if Config.purge_after_minutes then
     local work = vim.uv.new_work(Lib.purge_old_sessions, function(purged_sessions_json)
       vim.schedule(function()
         local purged_sessions = vim.json.decode(purged_sessions_json)
@@ -444,7 +444,7 @@ function AutoSession.start()
         end
       end)
     end)
-    work:queue(AutoSession.get_root_dir(), Config.purge_after_days)
+    work:queue(AutoSession.get_root_dir(), Config.purge_after_minutes)
   end
 
   return did_auto_restore
