@@ -426,11 +426,36 @@ function AutoSession.AutoRestoreSession(session_name, is_startup)
 end
 
 ---@private
+---Called at VimEnter to start AutoSession
+---Will call auto_restore_session_at_vim_enter and also purge sessions (if enabled)
+---@return boolean # Was a session restored
+function AutoSession.start()
+  local did_auto_restore = AutoSession.auto_restore_session_at_vim_enter()
+
+  if Config.purge_after_minutes then
+    local work = vim.uv.new_work(Lib.purge_old_sessions, function(purged_sessions_json)
+      vim.schedule(function()
+        local purged_sessions = vim.json.decode(purged_sessions_json)
+        if not vim.tbl_isempty(purged_sessions) then
+          Lib.logger.info(
+            "Deleted old sessions:\n"
+              .. table.concat(vim.tbl_map(Lib.escaped_session_name_to_session_name, purged_sessions), "\n")
+          )
+        end
+      end)
+    end)
+    work:queue(AutoSession.get_root_dir(), Config.purge_after_minutes)
+  end
+
+  return did_auto_restore
+end
+
+---@private
 ---Called at VimEnter (after Lazy is done) to see if we should automatically restore a session
 ---If launched with a single directory parameter and Config.args_allow_single_directory is true, pass
 ---that in as the session_dir. Handles both 'nvim .' and 'nvim some/dir'
 ---Also make sure to call no_restore if no session was restored
----@return boolean Was a session restored
+---@return boolean # Was a session restored
 function AutoSession.auto_restore_session_at_vim_enter()
   -- Save the launch args here as restoring a session will replace vim.fn.argv. We clear
   -- launch_argv in restore session so it's only used for the session launched from the command

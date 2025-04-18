@@ -75,6 +75,7 @@ Here are the default settings:
   cwd_change_handling = false, -- Follow cwd changes, saving a session before change and restoring after
   lsp_stop_on_restore = false, -- Should language servers be stopped when restoring a session. Can also be a function that will be called if set. Not called on autorestore from startup
   restore_error_handler = nil, -- Called when there's an error restoring. By default, it ignores fold errors otherwise it displays the error and returns false to disable auto_save
+  purge_after_minutes = nil, -- Sessions older than purge_after_minutes will be deleted asynchronously on startup, e.g. set to 14400 to delete sessions that haven't been accessed for more than 10 days, defaults to off (no purging), requires >= nvim 0.10
   log_level = "error", -- Sets the log level of the plugin (debug, info, warn, error).
 
   session_lens = {
@@ -500,5 +501,5 @@ Neovim > 0.7
 Tested with:
 
 ```
-NVIM v0.7.2 - NVIM 0.10.1
+NVIM v0.7.2 - NVIM 0.11.0
 ```
