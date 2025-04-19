@@ -792,4 +792,25 @@ function Lib.purge_old_sessions(session_dir, purge_older_than_minutes)
   return vim.json.encode(out)
 end
 
+---Checks to see if there are only empty/unnamed buffers left
+---@return boolean # True if there are only empty/unnamed buffers left
+function Lib.only_blank_buffers_left()
+  local bufs = vim.api.nvim_list_bufs()
+  for _, bufnr in ipairs(bufs) do
+    -- Only consider listed buffers
+    if vim.fn.buflisted(bufnr) == 1 then
+      local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+      local is_empty = #lines <= 1 and (lines[1] == nil or lines[1] == "")
+      local is_modified = vim.api.nvim_get_option_value("modified", { buf = bufnr })
+      local has_name = vim.api.nvim_buf_get_name(bufnr) ~= ""
+
+      -- If buffer has a name, is modified, or has content, it's meaningful
+      if has_name or is_modified or not is_empty then
+        return false
+      end
+    end
+  end
+  return true
+end
+
 return Lib
