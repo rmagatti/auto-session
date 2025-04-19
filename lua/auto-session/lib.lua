@@ -801,7 +801,8 @@ function Lib.only_blank_buffers_left()
     if vim.fn.buflisted(bufnr) == 1 then
       local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
       local is_empty = #lines <= 1 and (lines[1] == nil or lines[1] == "")
-      local is_modified = vim.api.nvim_get_option_value("modified", { buf = bufnr })
+      -- Use deprecated version for 0.7 support
+      local is_modified = vim.api.nvim_buf_get_option(bufnr, "modified")
       local has_name = vim.api.nvim_buf_get_name(bufnr) ~= ""
 
       -- If buffer has a name, is modified, or has content, it's meaningful
