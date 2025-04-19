@@ -286,6 +286,11 @@ function AutoSession.AutoSaveSession()
     end
   end
 
+  if Config.auto_delete_empty_sessions and Lib.only_blank_buffers_left() then
+    AutoSession.DeleteSession(current_session)
+    return false
+  end
+
   if Config.close_unsupported_windows then
     -- Wrap in pcall in case there's an error while trying to close windows
     local success, result = pcall(Lib.close_unsupported_windows)

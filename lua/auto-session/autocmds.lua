@@ -112,7 +112,6 @@ local function setup_session_lens()
   local has_telescope, telescope = pcall(require, "telescope")
 
   if not has_telescope then
-    Lib.logger.info "Telescope.nvim is not installed. Session Lens cannot be setup!"
     return false
   end
 

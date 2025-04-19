@@ -12,6 +12,7 @@ local M = {}
 ---@field auto_save? boolean Enables/disables auto saving session on exit
 ---@field auto_restore? boolean Enables/disables auto restoring session on start
 ---@field auto_create? boolean|function Enables/disables auto creating new session files. Can take a function that should return true/false if a new session file should be created or not
+---@field auto_delete_empty_sessions? boolean Enables/disables deleting the session if there no named, non-empty buffers when auto-saving
 ---@field suppressed_dirs? table Suppress auto session for directories
 ---@field allowed_dirs? table Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
 ---@field auto_restore_last_session? boolean On startup, loads the last saved session if session for cwd does not exist
@@ -74,6 +75,7 @@ local defaults = {
   auto_save = true, -- Enables/disables auto saving session on exit
   auto_restore = true, -- Enables/disables auto restoring session on start
   auto_create = true, -- Enables/disables auto creating new session files. Can take a function that should return true/false if a new session file should be created or not
+  auto_delete_empty_sessions = true, -- Enables/disables deleting the session if there no named, non-empty buffers when auto-saving
   suppressed_dirs = nil, -- Suppress session restore/create in certain directories
   allowed_dirs = nil, -- Allow session restore/create in certain directories
   auto_restore_last_session = false, -- On startup, loads the last saved session if session for cwd does not exist
