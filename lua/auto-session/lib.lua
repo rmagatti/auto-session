@@ -814,4 +814,15 @@ function Lib.only_blank_buffers_left()
   return true
 end
 
+---Returns true if there are any modified buffers
+---@return boolean # True if there are any modified buffers
+function Lib.has_modified_buffers()
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_get_option(buf, "modified") then
+      return true
+    end
+  end
+  return false
+end
+
 return Lib

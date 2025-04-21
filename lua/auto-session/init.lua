@@ -197,7 +197,7 @@ local function get_session_file_name(session_name, legacy)
     session_name = vim.fn.getcwd(-1, -1)
     Lib.logger.debug("get_session_file_name no session_name, using cwd: " .. session_name)
 
-    if Config.use_git_branch then
+    if Config.git_use_branch_name then
       session_name = Lib.combine_session_name_with_git_branch(session_name, Lib.get_git_branch_name(), legacy)
       Lib.logger.debug("git enabled, session_name:" .. session_name)
     end
@@ -478,7 +478,7 @@ function AutoSession.auto_restore_session_at_vim_enter()
     local session_name = Lib.remove_trailing_separator(vim.fn.fnamemodify(launch_argv[1], ":p"))
     Lib.logger.debug("Launched with single directory, using as session_dir: " .. session_name)
 
-    if Config.use_git_branch then
+    if Config.git_use_branch_name then
       -- Get the git branch for that directory, no legacy git name support
       session_name =
         Lib.combine_session_name_with_git_branch(session_name, Lib.get_git_branch_name(session_name), false)
@@ -734,6 +734,10 @@ function AutoSession.RestoreSessionFile(session_path, opts)
   -- safer to have our own flag as well, in case the vim flag changes
   AutoSession.restore_in_progress = true
 
+  if Config.git_auto_restore_on_branch_change then
+    require("auto-session.git").stop_watcher()
+  end
+
   -- Clear the buffers and jumps
   vim.cmd "silent %bw!"
   vim.cmd "silent clearjumps"
@@ -771,6 +775,11 @@ function AutoSession.RestoreSessionFile(session_path, opts)
   Lib.logger.debug("Restored session: " .. session_name)
   if opts.show_message == nil or opts.show_message then
     vim.notify("Restored session: " .. session_name)
+  end
+
+  if Config.git_use_branch_name and Config.git_auto_restore_on_branch_change then
+    -- start watching for branch changes
+    require("auto-session.git").start_watcher(vim.fn.getcwd(-1, -1), ".git/HEAD")
   end
 
   AutoSession.run_cmds "post_restore"
