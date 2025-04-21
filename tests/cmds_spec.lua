@@ -104,7 +104,7 @@ describe("The default config", function()
     assert.True(vim.tbl_contains(sessions, TL.default_session_name))
     assert.True(vim.tbl_contains(sessions, TL.named_session_name))
 
-    print(vim.inspect(sessions))
+    -- print(vim.inspect(sessions))
     -- With my prefix, only named session should be present
     sessions = Lib.complete_session_for_dir(TL.session_dir, "my")
     assert.False(vim.tbl_contains(sessions, TL.default_session_name))
@@ -187,10 +187,31 @@ describe("The default config", function()
     as.DisableAutoSave()
 
     vim.cmd "SessionPurgeOrphaned"
-    print(TL.default_session_path)
+    -- print(TL.default_session_path)
 
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
     assert.equals(1, vim.fn.filereadable(TL.named_session_path))
     assert.equals(0, vim.fn.filereadable(TL.makeSessionPath(session_name)))
+  end)
+
+  -- test that closes all buffers, calls autosave, checks to see if file is deleted
+  it("can auto-delete empty session on auto-save", function()
+    -- make sure auto-save is on (previous test disables it)
+    c.auto_save = true
+
+    -- make sure default session exists
+    assert.equals(1, vim.fn.bufexists(TL.test_file))
+    assert.True(as.SaveSession())
+
+    -- clear buffers so only an empty,unnamed buffer is left
+    vim.cmd "silent %bw"
+
+    -- Make sure session exists
+    assert.equals(1, vim.fn.filereadable(TL.default_session_path))
+
+    assert.False(as.AutoSaveSession())
+
+    -- Make sure session is now gone
+    assert.equals(0, vim.fn.filereadable(TL.default_session_path))
   end)
 end)
