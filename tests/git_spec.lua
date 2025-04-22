@@ -6,6 +6,11 @@ describe("The git config", function()
   local as = require "auto-session"
   local Lib = require "auto-session.lib"
   local c = require "auto-session.config"
+  -- NOTE: need to load the git module here because we change the directory later which
+  -- I tihnk messes up the relative module load path. a bit of a hack but oh well
+  ---@diagnostic disable-next-line: unused-local
+  local g = require "auto-session.git"
+
   as.setup {
     auto_session_use_git_branch = true,
     -- log_level = "debug",
@@ -23,6 +28,7 @@ describe("The git config", function()
   -- get a file in that dir
   vim.cmd("e " .. TL.test_file)
   vim.cmd("w! " .. git_test_path .. "/test.txt")
+  vim.cmd("w! " .. git_test_path .. "/other.txt")
   vim.cmd "silent %bw"
 
   -- change to that dir
@@ -137,11 +143,12 @@ describe("The git config", function()
     -- Revert the stub
     vim.fn.argv:revert()
     c.auto_save = false
+
+    vim.fn.system "git switch main"
   end)
 
   it("load a session named with git branch from directory argument", function()
     c.args_allow_single_directory = true
-    c.log_level = "debug"
     c.cwd_change_handling = false
 
     -- delete all buffers
@@ -161,5 +168,71 @@ describe("The git config", function()
     -- Revert the stub
     vim.fn.argv:revert()
     c.auto_save = false
+  end)
+
+  it("auto-restores after a branch change", function()
+    c.auto_save = true
+    c.git_auto_restore_on_branch_change = true
+
+    -- make sure we're on the main branch
+    vim.fn.system "git switch -c main"
+
+    -- delete all buffers
+    vim.cmd "silent %bw"
+
+    -- branch change monitoring is only turned on when we've loaded a session
+    as.RestoreSession()
+    assert.equals("test_git (branch: main)", Lib.current_session_name(true))
+
+    -- save main branch session
+    assert.equals(1, vim.fn.bufexists "test.txt")
+    as.SaveSession()
+
+    -- stub out on_git_watch_event so we know when the watcher is triggered
+    -- we can't use post_restore_cmds because there's no session restored
+    -- for other-branch the first time
+    local git_watch_triggered = false
+    local on_git_watch_event = g.on_git_watch_event
+    stub(g, "on_git_watch_event", function(cwd, current_branch)
+      on_git_watch_event(cwd, current_branch)
+      git_watch_triggered = true
+    end)
+
+    -- switch to other-branch just to set it up
+    vim.fn.system "git switch -c other-branch"
+    vim.wait(1000, function()
+      return git_watch_triggered
+    end)
+
+    vim.cmd "silent %bw"
+    vim.cmd "e other.txt"
+
+    assert.equals(0, vim.fn.bufexists "test.txt")
+    assert.equals(1, vim.fn.bufexists "other.txt")
+
+    git_watch_triggered = false
+    vim.fn.system "git switch main"
+    vim.wait(1000, function()
+      return git_watch_triggered
+    end)
+
+    assert.equals("test_git (branch: main)", Lib.current_session_name(true))
+    -- other branch should now exist but the main branch is our current session
+
+    assert.equals(1, vim.fn.bufexists "test.txt")
+    assert.equals(0, vim.fn.bufexists "other.txt")
+
+    git_watch_triggered = false
+    vim.fn.system "git switch other-branch"
+    vim.wait(1000, function()
+      return git_watch_triggered
+    end)
+
+    assert.equals("test_git (branch: other-branch)", Lib.current_session_name(true))
+    assert.equals(0, vim.fn.bufexists "test.txt")
+    assert.equals(1, vim.fn.bufexists "other.txt")
+
+    c.auto_save = false
+    g.on_git_watch_event:revert()
   end)
 end)

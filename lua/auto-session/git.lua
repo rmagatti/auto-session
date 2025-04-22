@@ -8,6 +8,49 @@ local M = {}
 
 M.uv_git_watcher = nil
 
+function M.on_git_watch_event(cwd, current_branch)
+  local new_branch = Lib.get_git_branch_name(cwd)
+
+  if new_branch == current_branch then
+    return
+  end
+
+  Lib.logger.debug "Git: branch changed!"
+
+  -- need to save session for existing branch but can't use normal flow since
+  -- the branch name has already changed so we make the session name here and pass it in
+
+  -- NOTE: Generating the session name this way won't work with named sessions but we
+  -- don't support named sessions + git branch names together anyway
+
+  if Config.auto_save then
+    local session_name = Lib.combine_session_name_with_git_branch(cwd, current_branch)
+    AutoSession.SaveSession(session_name)
+  end
+
+  if Lib.has_modified_buffers() then
+    vim.ui.select({ "Yes", "No" }, {
+      prompt = 'Unsaved changes! Really restore session for branch: "' .. new_branch .. '"?',
+      format_item = function(item)
+        return item
+      end,
+    }, function(choice)
+      if choice == "Yes" then
+        AutoSession.AutoRestoreSession()
+      else
+        AutoSession.DisableAutoSave()
+        vim.notify(
+          "Session restore cancelled. Auto-save disabled.\nAfter saving your changes, run :SessionRestore\nto load the session for branch: "
+            .. new_branch
+        )
+      end
+    end)
+  else
+    -- No modified buffers, proceed with auto-restore
+    AutoSession.AutoRestoreSession()
+  end
+end
+
 ---Watch for git branch changes
 ---@param cwd string current working directory
 ---@param towatch string file to watch, should be something like .git/HEAD
@@ -32,44 +75,7 @@ function M.start_watcher(cwd, towatch)
     end
 
     vim.schedule(function()
-      local new_branch = Lib.get_git_branch_name(cwd)
-
-      if new_branch ~= current_branch then
-        Lib.logger.debug "Git: branch changed!"
-
-        -- need to save session for existing branch but can't use normal flow since
-        -- the branch name has already changed so we make the session name here and pass it in
-
-        -- NOTE: Generating the session name this won't work with named sessions but we
-        -- don't support named sessions + git branch names together anyway
-
-        if Config.auto_save then
-          local session_name = Lib.combine_session_name_with_git_branch(cwd, current_branch)
-          AutoSession.SaveSession(session_name)
-        end
-
-        if Lib.has_modified_buffers() then
-          vim.ui.select({ "Yes", "No" }, {
-            prompt = 'Unsaved changes! Really restore session for branch: "' .. new_branch .. '"?',
-            format_item = function(item)
-              return item
-            end,
-          }, function(choice)
-            if choice == "Yes" then
-              AutoSession.AutoRestoreSession()
-            else
-              AutoSession.DisableAutoSave()
-              vim.notify(
-                "Session restore cancelled. Auto-save disabled.\nAfter saving your changes, run :SessionRestore\nto load the session for branch: "
-                  .. new_branch
-              )
-            end
-          end)
-        else
-          -- No modified buffers, proceed with auto-restore
-          AutoSession.AutoRestoreSession()
-        end
-      end
+      M.on_git_watch_event(cwd, current_branch)
 
       -- git often (always?) replaces .git/HEAD which can change the inode being
       -- watched so we need to stop the current watcher and start another one to
