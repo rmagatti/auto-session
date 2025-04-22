@@ -12,6 +12,8 @@ function Lib.setup(log_level)
   }
 end
 
+local uv = vim.uv or vim.loop
+
 ---Returns the current session name. For an automatically generated session name, it
 ---will just be the same as vim.fn.getcwd(). For a named session, it will be the name
 ---without .vim
@@ -823,6 +825,19 @@ function Lib.has_modified_buffers()
     end
   end
   return false
+end
+
+---Snacks (https://github.com/folke/snacks.nvim) debounce function
+---@generic T
+---@param fn T
+---@param opts? {ms?:number}
+---@return T
+function Lib.debounce(fn, opts)
+  local timer = assert(uv.new_timer())
+  local ms = opts and opts.ms or 20
+  return function()
+    timer:start(ms, 0, vim.schedule_wrap(fn))
+  end
 end
 
 return Lib

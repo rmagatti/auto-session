@@ -15,7 +15,7 @@ function M.on_git_watch_event(cwd, current_branch)
     return
   end
 
-  Lib.logger.debug "Git: branch changed!"
+  Lib.logger.debug("Git: branch changed, cur: " .. current_branch .. ", new: " .. new_branch)
 
   -- need to save session for existing branch but can't use normal flow since
   -- the branch name has already changed so we make the session name here and pass it in
@@ -66,23 +66,27 @@ function M.start_watcher(cwd, towatch)
   Lib.logger.debug("Git: starting watcher", { cwd, current_branch })
 
   -- Watch .git/HEAD to detect branch changes
-  M.uv_git_watcher:start(towatch, {}, function(err)
-    if err then
+  M.uv_git_watcher:start(
+    towatch,
+    {},
+    Lib.debounce(function(err)
+      if err then
+        vim.schedule(function()
+          Lib.logger.err "Error watching for git branch changes"
+        end)
+        return
+      end
+
       vim.schedule(function()
-        Lib.logger.err "Error watching for git branch changes"
+        M.on_git_watch_event(cwd, current_branch)
+
+        -- git often (always?) replaces .git/HEAD which can change the inode being
+        -- watched so we need to stop the current watcher and start another one to
+        -- make sure we keep getting future events
+        M.start_watcher(cwd, towatch)
       end)
-      return
-    end
-
-    vim.schedule(function()
-      M.on_git_watch_event(cwd, current_branch)
-
-      -- git often (always?) replaces .git/HEAD which can change the inode being
-      -- watched so we need to stop the current watcher and start another one to
-      -- make sure we keep getting future events
-      M.start_watcher(cwd, towatch)
-    end)
-  end)
+    end, { ms = 100 })
+  )
 end
 
 function M.stop_watcher()
