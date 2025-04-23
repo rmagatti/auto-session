@@ -17,15 +17,20 @@ function M.on_git_watch_event(cwd, current_branch)
 
   Lib.logger.debug("Git: branch changed, cur: " .. current_branch .. ", new: " .. new_branch)
 
-  -- need to save session for existing branch but can't use normal flow since
-  -- the branch name has already changed so we make the session name here and pass it in
-
   -- NOTE: Generating the session name this way won't work with named sessions but we
   -- don't support named sessions + git branch names together anyway
 
   if Config.auto_save then
     local session_name = Lib.combine_session_name_with_git_branch(cwd, current_branch)
-    AutoSession.SaveSession(session_name)
+
+    -- Set vim.v.this_session to one named for current_branch (otherwise it would save to new_branch)
+    -- And set manually_named_session = true so we use that name
+    vim.v.this_session = AutoSession.get_root_dir() .. Lib.escape_session_name(session_name) .. ".vim"
+    AutoSession.manually_named_session = true
+    AutoSession.AutoSaveSession()
+
+    -- We don't want to keep using this name so clear the flag here
+    AutoSession.manually_named_session = false
   end
 
   if Lib.has_modified_buffers() then
