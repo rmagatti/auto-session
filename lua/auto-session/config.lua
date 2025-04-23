@@ -16,7 +16,8 @@ local M = {}
 ---@field suppressed_dirs? table Suppress auto session for directories
 ---@field allowed_dirs? table Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
 ---@field auto_restore_last_session? boolean On startup, loads the last saved session if session for cwd does not exist
----@field use_git_branch? boolean Include git branch name in session name to differentiate between sessions for different git branches
+---@field git_use_branch_name? boolean Include git branch name in session name to differentiate between sessions for different git branches
+---@field git_auto_restore_on_branch_change? boolean Should we auto-restore the session when the git branch changes. Requires git_use_branch_name
 ---@field lazy_support? boolean Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used. Can be disabled if a problem is suspected or for debugging
 ---@field bypass_save_filetypes? table List of file types to bypass auto save when the only buffer open is one of the file types listed, useful to ignore dashboards
 ---@field close_unsupported_windows? boolean Whether to close windows that aren't backed by a real file
@@ -79,7 +80,8 @@ local defaults = {
   suppressed_dirs = nil, -- Suppress session restore/create in certain directories
   allowed_dirs = nil, -- Allow session restore/create in certain directories
   auto_restore_last_session = false, -- On startup, loads the last saved session if session for cwd does not exist
-  use_git_branch = false, -- Include git branch name in session name
+  git_use_branch_name = false, -- Include git branch name in session name
+  git_auto_restore_on_branch_change = false, -- Should we auto-restore the session when the git branch changes. Requires git_use_branch_name
   lazy_support = true, -- Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used. Can be disabled if a problem is suspected or for debugging
   bypass_save_filetypes = nil, -- List of filetypes to bypass auto save when the only buffer open is one of the file types listed, useful to ignore dashboards
   close_unsupported_windows = true, -- Close windows that aren't backed by normal file before autosaving a session
@@ -142,7 +144,7 @@ local function check_for_vim_globals(config)
     auto_session_suppress_dirs = "suppressed_dirs",
     auto_session_create_enabled = "auto_create",
     auto_session_enable_last_session = "auto_restore_last_session",
-    auto_session_use_git_branch = "use_git_branch",
+    auto_session_use_git_branch = "git_use_branch_name",
     pre_save_cmds = "pre_save_cmds",
     save_extra_cmds = "save_extra_cmds",
     post_save_cmds = "post_save_cmds",
@@ -176,7 +178,8 @@ local function check_old_config_names(config)
     auto_session_suppress_dirs = "suppressed_dirs",
     auto_session_create_enabled = "auto_create",
     auto_session_enable_last_session = "auto_restore_last_session",
-    auto_session_use_git_branch = "use_git_branch",
+    auto_session_use_git_branch = "git_use_branch_name",
+    use_git_branch = "git_use_branch_name",
     auto_restore_lazy_delay_enabled = "lazy_support",
     bypass_session_save_file_types = "bypass_save_filetypes",
     silent_restore = "continue_restore_on_error",
@@ -242,6 +245,10 @@ function M.check(logger)
 
   if M.purge_after_minutes and vim.fn.has "nvim-0.10" ~= 1 then
     logger.warn "the purge_after_minutes options requires nvim >= 0.10"
+  end
+
+  if not M.git_use_branch_name and M.git_auto_restore_on_branch_change then
+    logger.error "git_auto_restore_on_branch_change requires git_use_branch_name = true"
   end
 
   -- TODO: At some point, we should pop up a warning about old config if
