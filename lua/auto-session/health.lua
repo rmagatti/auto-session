@@ -15,27 +15,14 @@ local error = vim.health.error or vim.health.report_error
 ---@diagnostic disable-next-line: deprecated
 local info = vim.health.info or vim.health.report_info
 
-local function check_session_options()
-  if not vim.tbl_contains(vim.split(vim.o.sessionoptions, ","), "localoptions") then
-    warn(
-      "`vim.o.sessionoptions` should contain 'localoptions' to make sure\nfiletype and highlighting work correctly after a session is restored.\n\n"
-        .. "Recommended setting is:\n\n"
-        .. 'vim.o.sessionoptions="blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"\n'
-    )
-  else
-    ok "vim.o.sessionoptions"
-  end
-end
-
 local function check_lazy_settings()
   local success, lazy = pcall(require, "lazy")
 
-  start "Lazy.nvim settings"
-
   if not success or not lazy then
-    info "Lazy.nvim not loaded"
     return
   end
+
+  start "Lazy.nvim settings"
 
   if not Config.lazy_support then
     warn(
@@ -73,23 +60,36 @@ local function check_lazy_settings()
   end
 end
 
-local function check_features()
+local function check_config()
+  start "Config"
   local loggerObj = {
     error = error,
     info = info,
     warn = warn,
   }
 
-  Config.check(loggerObj)
+  if not Config.check(loggerObj, true) then
+    ok "No config issues detected"
+  end
 end
 
 function M.check()
-  start "vim options"
-  check_session_options()
-  check_lazy_settings()
-  check_features()
+  start "Setup"
+  if not Config.root_dir or vim.tbl_isempty(Lib.logger) then
+    error(
+      "Setup was not called. Auto-session will not work unless you call setup() somewhere, e.g.:\n\n"
+        .. "require('auto-session').setup({})"
+    )
+    return
+  else
+    ok "setup() called"
+  end
 
-  start "Config"
+  check_lazy_settings()
+
+  check_config()
+
+  start "Current Config"
   if Config.has_old_config then
     info(
       "You have old config names. You can update your config to:\n"
@@ -97,7 +97,7 @@ function M.check()
         .. "\n\nYou can also remove any vim global config settings"
     )
   else
-    ok("\n" .. vim.inspect(Config.options_without_defaults))
+    info("\n" .. vim.inspect(Config.options_without_defaults))
   end
 
   start "General Info"
