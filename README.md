@@ -38,6 +38,8 @@ use {
 }
 ```
 
+Note: For other plugin managers, make sure setup is called somewhere, e.g. `require('auto-session').setup({})`
+
 # 💡 Behaviour
 
 1. When starting `nvim` with no arguments, AutoSession will try to restore an existing session for the current `cwd` if one exists.
