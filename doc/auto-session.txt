@@ -54,14 +54,11 @@ AutoSession.Config                                          *AutoSession.Config*
 
 SessionLens                                                        *SessionLens*
 
-    Sessien Lens Cenfig
+    Session Lens Cenfig
 
     Fields: ~
         {load_on_setup?}    (boolean)
-        {shorten_path?}     (boolean)              Deprecated, pass { 'shorten' } to path_display
-        {path_display?}     (table)                An array that specifies how to handle paths. Read :h telescope.defaults.path_display
-        {theme_conf?}       (table)                Telescope theme options
-        {previewer?}        (boolean)              Whether to show a preview of the session file (not very useful to most people)
+        {picker_opts?}      (table)                Telescope/Snacks picker options
         {session_control?}  (SessionControl)
         {mappings?}         (SessionLensMappings)
 

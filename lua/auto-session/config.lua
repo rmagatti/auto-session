@@ -47,13 +47,10 @@ local M = {}
 ---@field pre_cwd_changed_cmds? table executes before cwd is changed if cwd_change_handling is true
 ---@field post_cwd_changed_cmds? table executes after cwd is changed if cwd_change_handling is true
 ---
----Sessien Lens Cenfig
+---Session Lens Cenfig
 ---@class SessionLens
 ---@field load_on_setup? boolean
----@field shorten_path? boolean Deprecated, pass { 'shorten' } to path_display
----@field path_display? table An array that specifies how to handle paths. Read :h telescope.defaults.path_display
----@field theme_conf? table Telescope theme options
----@field previewer? boolean Whether to show a preview of the session file (not very useful to most people)
+---@field picker_opts? table Telescope/Snacks picker options
 ---@field session_control? SessionControl
 ---@field mappings? SessionLensMappings
 ---
@@ -98,13 +95,7 @@ local defaults = {
   ---@type SessionLens
   session_lens = {
     load_on_setup = true, -- Initialize on startup (requires Telescope)
-    theme_conf = { -- Pass through for Telescope theme options
-      -- layout_config = { -- As one example, can change width/height of picker
-      --   width = 0.8,    -- percent of window
-      --   height = 0.5,
-      -- },
-    },
-    previewer = false, -- File preview for session picker
+    picker_opts = nil, -- Table passed to Telescope / Snacks to configure the picker
 
     ---@type SessionLensMappings
     mappings = {
@@ -213,10 +204,32 @@ local function check_old_config_names(config)
     end
   end
 
-  if config.session_lens and config.session_lens.shorten_path ~= nil then
-    M.has_old_config = true
+  -- check session_lens for old config
+  if config.session_lens then
+    -- check for theme_conf first
+    ---@diagnostic disable-next-line: undefined-field
+    if config.session_lens.theme_conf then
+      M.has_old_config = true
+      config.session_lens.picker_opts = config.session_lens.theme_conf
+      config.session_lens.theme_conf = nil
+    end
+
     if config.session_lens.shorten_path then
-      config.session_lens.path_display = { "shorten" }
+      M.has_old_config = true
+      if not config.session_lens.picker_opts then
+        config.session_lens.picker_opts = {}
+      end
+      config.session_lens.picker_opts.path_display = { "shorten" }
+      config.session_lens.shorten_path = nil
+    end
+
+    if config.session_lens.path_display then
+      M.has_old_config = true
+      if not config.session_lens.picker_opts then
+        config.session_lens.picker_opts = {}
+      end
+      config.session_lens.picker_opts.path_display = config.session_lens.path_display
+      config.session_lens.path_display = nil
     end
   end
 end

@@ -83,14 +83,7 @@ Here are the default settings:
 
   session_lens = {
     load_on_setup = true, -- Initialize on startup (requires Telescope)
-    theme_conf = { -- Pass through for Telescope theme options
-      -- layout_config = { -- As one example, can change width/height of picker
-      --   width = 0.8,    -- percent of window
-      --   height = 0.5,
-      -- },
-    },
-    previewer = false, -- File preview for session picker
-
+    picker_opts = nil, -- Table passed to Telescope / Snacks to configure the picker. See below for more information
     mappings = {
       -- Mode can be a string or a table, e.g. {"i", "n"} for both insert and normal mode
       delete_session = { "i", "<C-D>" },
@@ -156,9 +149,9 @@ If you create a manually named session via `SessionSave my_session` or you resto
 
 # 📖 More Configuration Details
 
-## 🔭 Session Lens
+## 🔭 Session Picker
 
-You can use Telescope or [snacks.nvim](https://github.com/folke/snacks.nvim) to see, load, and delete your sessions. It's enabled by default if you have Telescope, but here's the Lazy config that shows the configuration options:
+You can use Telescope or [snacks.nvim](https://github.com/folke/snacks.nvim) to see, load, and delete your sessions. The configuration options are in the `session_lens` section:
 
 ```lua
 
@@ -176,40 +169,56 @@ You can use Telescope or [snacks.nvim](https://github.com/folke/snacks.nvim) to 
   ---@module "auto-session"
   ---@type AutoSession.Config
   opts = {
-    -- ⚠️ This will only work if Telescope.nvim is installed
     -- The following are already the default values, no need to provide them if these are already the settings you want.
     session_lens = {
-      -- If load_on_setup is false, make sure you use `:SessionSearch` to open the picker as it will initialize everything first
-      load_on_setup = true,
-      previewer = false,
       mappings = {
         -- Mode can be a string or a table, e.g. {"i", "n"} for both insert and normal mode
         delete_session = { "i", "<C-D>" },
         alternate_session = { "i", "<C-S>" },
         copy_session = { "i", "<C-Y>" },
       },
-      -- Can also set some Telescope picker options
-      -- For all options, see: https://github.com/nvim-telescope/telescope.nvim/blob/master/doc/telescope.txt#L112
-      theme_conf = {
-        border = true,
+
+      picker_opts = {
+        -- For Telescope, you can set theme options here, see:
+        -- https://github.com/nvim-telescope/telescope.nvim/blob/master/doc/telescope.txt#L112
+        -- https://github.com/nvim-telescope/telescope.nvim/blob/master/lua/telescope/themes.lua
+        --
+        -- border = true,
         -- layout_config = {
         --   width = 0.8, -- Can set width and height as percent of window
         --   height = 0.5,
         -- },
+
+        -- For Snacks, you can set layout options here, see:
+        -- https://github.com/folke/snacks.nvim/blob/main/docs/picker.md#%EF%B8%8F-layouts
+        --
+        -- preset = "dropdown",
+        -- preview = false,
+        -- layout = {
+        --   width = 0.4,
+        --   height = 0.4,
+        -- },
       },
+
+
+      -- Telescope only: If load_on_setup is false, make sure you use `:SessionSearch` to open the picker as it will initialize everything first
+      load_on_setup = true,
     },
   }
 }
 ```
 
-You can use `:SessionSearch` to launch the session picker. If `load_on_setup = false`, `:SessionSearch` will initialize the Telescope extension when called. You can also use
-`:Telescope session-lens` to launch the session picker but only if `load_on_setup = true` or you've previously called `SessionSearch`. If you don't have Telescope installed but do have Snacks installed (and the picker enabled), AutoSession will use Snacks as the session picker. No change in configuration is needed (e.g. it will use the same keymap config).
+Use `:SessionSearch` to launch the session picker. It will look for Telescope or Snacks and, if it can't find either, fall back to `vim.select`.
+
+If you're using Telescope and want to launch the picker via `:Telescope session-lens`, set `load_on_setup = true` or make sure you've called `:SessionSearch` first.
 
 The following default keymaps are available when the session-lens picker is open:
 
 - `<CR>` loads the currently highlighted session.
 - `<C-S>` swaps to the previously opened session. This can give you a nice flow if you're constantly switching between two projects.
 - `<C-D>` will delete the currently highlighted session. This makes it easy to keep the session list clean.
+
+When using Telescope or Snacks, you can customize the picker using `picker_opts`. Refer to the links above for the specific picker configuration options.
 
 NOTE: If you previously installed `rmagatti/session-lens`, you should remove it from your config as it is no longer necessary.
 

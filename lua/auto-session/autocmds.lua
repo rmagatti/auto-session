@@ -131,6 +131,13 @@ end
 
 local function snacks_session_search()
   local mappings = Config.session_lens.mappings or {}
+
+  -- If layout is nil or empty, default to select preset
+  local layout = Config.session_lens.picker_opts or {}
+  if vim.tbl_isempty(layout) then
+    layout = { preset = "select" }
+  end
+
   Snacks.picker.pick {
     title = "Sessions",
     finder = function()
@@ -141,9 +148,7 @@ local function snacks_session_search()
       item.text = item.display_name
       item.file = item.path
     end,
-    layout = {
-      preview = Config.session_lens.previewer,
-    },
+    layout = layout,
     win = {
       input = {
         keys = {

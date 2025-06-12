@@ -22,22 +22,23 @@ SessionLens.search_session = function(custom_opts)
   end
   custom_opts = custom_opts or {}
 
-  -- get the theme defaults, with any overrides in custom_opts.theme_conf
-  local theme_opts = telescope_themes.get_dropdown(custom_opts.theme_conf)
-
-  -- path_display could've been in theme_conf but that's not where we put it
-  if custom_opts.path_display then
-    -- copy over to the theme options
-    theme_opts.path_display = custom_opts.path_display
+  if not custom_opts.picker_opts then
+    -- If there are no picker options, default to previewer off
+    custom_opts.picker_opts = { previewer = false }
+  elseif custom_opts.picker_opts.previewer == nil then
+    -- If there are picker options but previewer wasn't explicitly set on,
+    -- default it to off
+    custom_opts.picker_opts.previewer = false
   end
+
+  -- get the theme defaults, with any overrides in custom_opts.picker_opts
+  local theme_opts = telescope_themes.get_dropdown(custom_opts.picker_opts)
 
   if theme_opts.path_display then
     -- If there's a path_display setting, we have to force path_display.absolute = true here,
     -- otherwise the session for the cwd will be displayed as just a dot
     theme_opts.path_display.absolute = true
   end
-
-  theme_opts.previewer = custom_opts.previewer
 
   local session_root_dir = AutoSession.get_root_dir()
 
