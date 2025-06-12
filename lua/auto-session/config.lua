@@ -238,21 +238,40 @@ function M.setup(config)
   M.options = vim.tbl_deep_extend("force", defaults, M.options_without_defaults)
 end
 
-function M.check(logger)
+---Show configuration warnings / errors. Used at startup and as part of checkhealth
+---@param logger any object with a warn, info, error method
+---@param show_full_message boolean? show short messages (e.g. used startup) or full messages (checkhealth)
+function M.check(logger, show_full_message)
+  show_full_message = show_full_message or false
+
+  local has_issues = false
   if not vim.tbl_contains(vim.split(vim.o.sessionoptions, ","), "localoptions") then
-    logger.warn "vim.o.sessionoptions is missing localoptions. \nUse `:checkhealth autosession` for more info."
+    if show_full_message then
+      logger.warn(
+        "`vim.o.sessionoptions` should contain 'localoptions' to make sure\nfiletype and highlighting work correctly after a session is restored.\n\n"
+          .. "Recommended setting is:\n\n"
+          .. 'vim.o.sessionoptions="blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"'
+      )
+    else
+      logger.warn "vim.o.sessionoptions is missing localoptions. \nUse `:checkhealth autosession` for more info."
+    end
+    has_issues = true
   end
 
   if M.purge_after_minutes and vim.fn.has "nvim-0.10" ~= 1 then
     logger.warn "the purge_after_minutes options requires nvim >= 0.10"
+    has_issues = true
   end
 
   if not M.git_use_branch_name and M.git_auto_restore_on_branch_change then
     logger.error "git_auto_restore_on_branch_change requires git_use_branch_name = true"
+    has_issues = true
   end
 
   -- TODO: At some point, we should pop up a warning about old config if
   -- M.has_old_config but let's make sure everything is working well before doing that
+
+  return has_issues
 end
 
 ---@export Config
