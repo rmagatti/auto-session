@@ -52,7 +52,7 @@ SessionLens.search_session = function(custom_opts)
       path = session_entry.path,
       cwd = session_root_dir,
 
-      -- We can't calculate the vaue of display until the picker is acutally displayed
+      -- We can't calculate the value of display until the picker is actually displayed
       -- because telescope.utils.transform_path may depend on the window size,
       -- specifically with the truncate option. So we use a function that will be
       -- called when actually displaying the row

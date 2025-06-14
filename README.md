@@ -71,7 +71,7 @@ Here are the default settings:
   lazy_support = true, -- Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used. Can be disabled if a problem is suspected or for debugging
   bypass_save_filetypes = nil, -- List of filetypes to bypass auto save when the only buffer open is one of the file types listed, useful to ignore dashboards
   close_unsupported_windows = true, -- Close windows that aren't backed by normal file before autosaving a session
-  args_allow_single_directory = true, -- Follow normal sesion save/load logic if launched with a single directory as the only argument
+  args_allow_single_directory = true, -- Follow normal session save/load logic if launched with a single directory as the only argument
   args_allow_files_auto_save = false, -- Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. While you can just set this to true, you probably want to set it to a function that decides when to save a session when launched with file args. See documentation for more detail
   continue_restore_on_error = true, -- Keep loading the session even if there's an error
   show_auto_restore_notif = false, -- Whether to show a notification when auto-restoring
@@ -131,7 +131,7 @@ AutoSession exposes the following commands that can be used or mapped to any key
 :SessionRestore my_session " restores `my_session` from `root_dir`
 
 :SessionDelete " deletes a session based on the `cwd` from `root_dir`
-:SessionDelete my_session " deletes `my_sesion` from `root_dir`
+:SessionDelete my_session " deletes `my_session` from `root_dir`
 
 :SessionDisableAutoSave " disables autosave
 :SessionDisableAutoSave! " enables autosave (still does all checks in the config)
@@ -422,7 +422,7 @@ With the above, AutoSession will allow automatically creating a session inside o
 By default, when `nvim` is run with a single directory argument, AutoSession will try to restore the session for that directory. If `nvim` is run with multiple directories or any file arguments, AutoSession won't try to restore a session and won't auto-save a session on exit (if enabled). Those behaviors can be changed with these config parameters:
 
 ```lua
-  args_allow_single_directory = true, -- boolean Follow normal sesion save/load logic if launched with a single directory as the only argument
+  args_allow_single_directory = true, -- boolean Follow normal session save/load logic if launched with a single directory as the only argument
   args_allow_files_auto_save = false, -- boolean|function Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. While you can just set this to true, you probably want to set it to a function that decides when to save a session when launched with file args. See documentation for more detail
 ```
 
@@ -513,5 +513,5 @@ Neovim > 0.7
 Tested with:
 
 ```
-NVIM v0.7.2 - NVIM 0.11.0
+NVIM v0.7.2 - NVIM 0.11.2
 ```
