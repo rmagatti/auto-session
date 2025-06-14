@@ -22,7 +22,7 @@ local M = {}
 ---@field bypass_save_filetypes? table List of file types to bypass auto save when the only buffer open is one of the file types listed, useful to ignore dashboards
 ---@field close_unsupported_windows? boolean Whether to close windows that aren't backed by a real file
 ---Argv Handling
----@field args_allow_single_directory? boolean Follow normal sesion save/load logic if launched with a single directory as the only argument
+---@field args_allow_single_directory? boolean Follow normal session save/load logic if launched with a single directory as the only argument
 ---@field args_allow_files_auto_save? boolean|function Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. While you can just set this to true, you probably want to set it to a function that decides when to save a session when launched with file args. See documentation for more detail
 ---@field continue_restore_on_error? boolean Keep loading the session even if there's an error. Set to false to get the line number of an error when loading a session
 ---@field show_auto_restore_notif? boolean Whether to show a notification when auto-restoring
@@ -82,7 +82,7 @@ local defaults = {
   lazy_support = true, -- Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used. Can be disabled if a problem is suspected or for debugging
   bypass_save_filetypes = nil, -- List of filetypes to bypass auto save when the only buffer open is one of the file types listed, useful to ignore dashboards
   close_unsupported_windows = true, -- Close windows that aren't backed by normal file before autosaving a session
-  args_allow_single_directory = true, -- Follow normal sesion save/load logic if launched with a single directory as the only argument
+  args_allow_single_directory = true, -- Follow normal session save/load logic if launched with a single directory as the only argument
   args_allow_files_auto_save = false, -- Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. While you can just set this to true, you probably want to set it to a function that decides when to save a session when launched with file args. See documentation for more detail
   continue_restore_on_error = true, -- Keep loading the session even if there's an error
   show_auto_restore_notif = false, -- Whether to show a notification when auto-restoring

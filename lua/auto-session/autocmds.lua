@@ -13,7 +13,7 @@ local SessionLens -- will be initialized later
 ---  `:SessionRestore my_session` - restores `my_session` from `root_dir`
 ---
 ---  `:SessionDelete` - deletes a session based on the `cwd` from `root_dir`
----  `:SessionDelete my_session` - deletes `my_sesion` from `root_dir`
+---  `:SessionDelete my_session` - deletes `my_session` from `root_dir`
 ---
 ---  `:SessionDisableAutoSave` - disables autosave
 ---  `:SessionDisableAutoSave!` - enables autosave (still does all checks in the config)
@@ -26,7 +26,7 @@ local SessionLens -- will be initialized later
 
 local M = {}
 
----Calls lib function for completeing session names with session dir
+---Calls lib function for completing session names with session dir
 local function complete_session(ArgLead, CmdLine, CursorPos)
   return Lib.complete_session_for_dir(M.AutoSession.get_root_dir(), ArgLead, CmdLine, CursorPos)
 end
@@ -412,7 +412,7 @@ function M.setup_autocmds(AutoSession)
         return
       end
 
-      -- If the Lazy window is visibile, hold onto it for later
+      -- If the Lazy window is visible, hold onto it for later
       lazy_view_win = lazy_view.view.win
       Lib.logger.debug "Lazy window is still visible, waiting for it to close"
     end,

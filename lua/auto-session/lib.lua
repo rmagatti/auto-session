@@ -145,7 +145,7 @@ end
 local IS_WIN32 = vim.fn.has "win32" == Lib._VIM_TRUE
 
 -- Modified from: https://gist.github.com/liukun/f9ce7d6d14fa45fe9b924a3eed5c3d99
----Convers a character to it's hex representation
+---Converts a character to it's hex representation
 ---@param c string The single character to convert
 ---@return string The hex representation of that character
 local char_to_hex = function(c)
@@ -168,7 +168,7 @@ function Lib.percent_encode(str)
   return (str:gsub("([/\\:*?\"'<>+ |%.%%])", char_to_hex))
 end
 
----Convers a hex representation to a single character
+---Converts a hex representation to a single character
 ---@param x string The hex representation of a character to convert
 ---@return string The single character
 local hex_to_char = function(x)
@@ -187,14 +187,14 @@ end
 
 ---Returns a string with path characters escaped. Works with both *nix and Windows
 ---This string is not escaped for use in Vim commands. For that, call Lib.escape_for_vim
----@param session_name string The sesion name to escape
+---@param session_name string The session name to escape
 ---@return string The escaped string
 function Lib.escape_session_name(session_name)
   return Lib.percent_encode(session_name)
 end
 
 ---Returns a string with path characters unescaped. Works with both *nix and Windows
----@param escaped_session_name string The sesion name to unescape
+---@param escaped_session_name string The session name to unescape
 ---@return string The unescaped string
 function Lib.unescape_session_name(escaped_session_name)
   return Lib.percent_decode(escaped_session_name)
@@ -750,7 +750,7 @@ function Lib.combine_session_name_with_git_branch(session_name, git_branch_name,
   -- went to edit in a directory literally called session_name|branch_name. the sessions
   -- would collide. Obviously, that's not perfect but I think it's an ok price to pay to
   -- get branch specific sessions and still have a cwd derived text key to identify sessions
-  -- that can be used everywhere, incuding :SessionRestore
+  -- that can be used everywhere, including :SessionRestore
   if legacy then
     return session_name .. "_" .. git_branch_name
   end
