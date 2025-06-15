@@ -43,7 +43,7 @@ AutoSession.Config                                          *AutoSession.Config*
                                                                   Hooks
         {save_extra_cmds?}                    (table)             executes before a session is saved
         {post_save_cmds?}                     (table)             executes after a session is saved
-        {pre_restore_cmds?}                   (table)             executes before a session is restored
+        {pre_restore_cmds?}                   (fun(args: AutoSession.PreRestoreArgs)[])             executes before a session is restored
         {post_restore_cmds?}                  (table)             executes after a session is restored
         {pre_delete_cmds?}                    (table)             executes before a session is deleted
         {post_delete_cmds?}                   (table)             executes after a session is deleted
