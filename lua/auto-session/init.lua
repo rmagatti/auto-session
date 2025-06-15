@@ -710,7 +710,9 @@ function AutoSession.RestoreSessionFile(session_path, session_name, opts)
   Lib.logger.debug("RestoreSessionFile restoring session from: " .. session_path)
   opts = opts or {}
 
-  AutoSession.run_cmds("pre_restore", { restored_session_name = session_name })
+  ---@type AutoSession.PreRestoreArgs
+  local args = { restored_session_name = session_name }
+  AutoSession.run_cmds("pre_restore", args)
 
   -- Stop any language servers if config is set but don't do
   -- this on startup as it causes a perceptible delay (and we
