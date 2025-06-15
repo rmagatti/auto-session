@@ -329,10 +329,11 @@ end
 ---@private
 ---Get the hook commands from the config and run them
 ---@param hook_name string
+---@param args table?
 ---@return table|nil Results of the commands
-function AutoSession.run_cmds(hook_name)
+function AutoSession.run_cmds(hook_name, args)
   local cmds = Config[hook_name .. "_cmds"]
-  return Lib.run_hook_cmds(cmds, hook_name)
+  return Lib.run_hook_cmds(cmds, hook_name, args)
 end
 
 ---Calls a hook to get any user/extra commands and if any, saves them to *x.vim
@@ -677,7 +678,7 @@ function AutoSession.RestoreSessionFromDir(session_dir, session_name, opts)
     end
   end
 
-  return AutoSession.RestoreSessionFile(session_path, opts)
+  return AutoSession.RestoreSessionFile(session_path, session_name, opts)
 end
 
 ---Handles errors on restore. Will ignore fold errors but will pop a notification for all other
@@ -697,15 +698,19 @@ Error: ]] .. error_msg)
   return false
 end
 
+---@class AutoSession.PreRestoreArgs
+---@field restored_session_name string?
+
 ---Restores a session from a specific file
 ---@param session_path string The session file to load
+---@param session_name string?
 ---@param opts? RestoreOpts|nil restore options
 ---@return boolean Was a session restored
-function AutoSession.RestoreSessionFile(session_path, opts)
+function AutoSession.RestoreSessionFile(session_path, session_name, opts)
   Lib.logger.debug("RestoreSessionFile restoring session from: " .. session_path)
   opts = opts or {}
 
-  AutoSession.run_cmds "pre_restore"
+  AutoSession.run_cmds("pre_restore", { restored_session_name = session_name })
 
   -- Stop any language servers if config is set but don't do
   -- this on startup as it causes a perceptible delay (and we

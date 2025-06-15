@@ -539,8 +539,9 @@ end
 
 ---@param cmds table Cmds to run
 ---@param hook_name string Name of the hook being run
+---@param args table?
 ---@return table|nil Results of the cmds
-function Lib.run_hook_cmds(cmds, hook_name)
+function Lib.run_hook_cmds(cmds, hook_name, args)
   if Lib.is_empty_table(cmds) then
     return nil
   end
@@ -551,7 +552,7 @@ function Lib.run_hook_cmds(cmds, hook_name)
     local success, result
 
     if type(cmd) == "function" then
-      success, result = pcall(cmd)
+      success, result = pcall(cmd, args)
     else
       ---@diagnostic disable-next-line: param-type-mismatch
       success, result = pcall(vim.cmd, cmd)
