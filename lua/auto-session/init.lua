@@ -157,7 +157,7 @@ local function suppress_session(session_dir)
   local dirs = Config.suppressed_dirs or {}
 
   -- If session_dir is set, use that otherwise use cwd
-  -- session_dir will be set when loading a session from a directory at lauch (i.e. from argv)
+  -- session_dir will be set when loading a session from a directory at launch (i.e. from argv)
   local cwd = session_dir or vim.fn.getcwd(-1, -1)
 
   if Lib.find_matching_directory(cwd, dirs) then
@@ -306,7 +306,7 @@ end
 ---@private
 ---Gets the root directory of where to save the sessions.
 ---By default this resolves to `vim.fn.stdpath "data" .. "/sessions/"`
----@param with_trailing_separator? boolean whether to incude the trailing separator. A few places (e.g. telescope picker) don't expect a trailing separator (Defaults to true)
+---@param with_trailing_separator? boolean whether to include the trailing separator. A few places (e.g. telescope picker) don't expect a trailing separator (Defaults to true)
 ---@return string
 function AutoSession.get_root_dir(with_trailing_separator)
   if with_trailing_separator == nil then
@@ -641,8 +641,8 @@ function AutoSession.RestoreSessionFromDir(session_dir, session_name, opts)
     Lib.logger.debug("RestoreSessionFromDir session does not exist: " .. session_path)
 
     -- NOTE: This won't work for legacy window session names containing dashes because
-    -- information was lost (i.e. was the dash part of the original parth or was it
-    -- a parth separator).
+    -- information was lost (i.e. was the dash part of the original path or was it
+    -- a path separator).
     local legacy_escaped_session_name = get_session_file_name(session_name, true)
     local legacy_session_path = session_dir .. legacy_escaped_session_name
 
@@ -680,7 +680,7 @@ function AutoSession.RestoreSessionFromDir(session_dir, session_name, opts)
   return AutoSession.RestoreSessionFile(session_path, opts)
 end
 
----Handles erorrs on restore. Will ignore fold errors but will pop a notification for all other
+---Handles errors on restore. Will ignore fold errors but will pop a notification for all other
 ---errors and return false, which will disable auto-save
 ---@param error_msg string error message
 ---@return boolean enable_auto_save Return false to disable auto-saving, true to leave it on
@@ -834,7 +834,7 @@ end
 ---Delete a session file
 ---@param session_path string The filename to delete
 ---@param session_name string Session name being deleted, just use to display messages
----@return boolean Was the session file delted
+---@return boolean # Was the session file deleted
 function AutoSession.DeleteSessionFile(session_path, session_name)
   AutoSession.run_cmds "pre_delete"
 
@@ -868,8 +868,8 @@ function AutoSession.DeleteSessionFile(session_path, session_name)
 end
 
 ---Disables autosave. Enables autosave if enable is true
----@param enable? boolean Optional paramter to enable autosaving
----@return boolean Whether autosaving is enabled or not
+---@param enable? boolean Optional parameter to enable autosaving
+---@return boolean # Whether autosaving is enabled or not
 function AutoSession.DisableAutoSave(enable)
   Config.auto_save = enable or false
   if Config.auto_save then
