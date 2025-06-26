@@ -39,7 +39,7 @@ local M = {}
 ---@field pre_save_cmds? table executes before a session is saved
 ---@field save_extra_cmds? table executes before a session is saved
 ---@field post_save_cmds? table executes after a session is saved
----@field pre_restore_cmds? fun(args: AutoSession.PreRestoreArgs)[] executes before a session is restored
+---@field pre_restore_cmds? (string|fun(args: AutoSession.PreRestoreArgs))[] executes before a session is restored
 ---@field post_restore_cmds? table executes after a session is restored
 ---@field pre_delete_cmds? table executes before a session is deleted
 ---@field post_delete_cmds? table executes after a session is deleted

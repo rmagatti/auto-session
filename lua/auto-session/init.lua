@@ -678,7 +678,7 @@ function AutoSession.RestoreSessionFromDir(session_dir, session_name, opts)
     end
   end
 
-  return AutoSession.RestoreSessionFile(session_path, session_name, opts)
+  return AutoSession.RestoreSessionFile(session_path, opts)
 end
 
 ---Handles errors on restore. Will ignore fold errors but will pop a notification for all other
@@ -703,12 +703,13 @@ end
 
 ---Restores a session from a specific file
 ---@param session_path string The session file to load
----@param session_name string?
 ---@param opts? RestoreOpts|nil restore options
 ---@return boolean Was a session restored
-function AutoSession.RestoreSessionFile(session_path, session_name, opts)
+function AutoSession.RestoreSessionFile(session_path, opts)
   Lib.logger.debug("RestoreSessionFile restoring session from: " .. session_path)
   opts = opts or {}
+
+  local session_name = Lib.escaped_session_name_to_session_name(vim.fn.fnamemodify(session_path, ":t"))
 
   ---@type AutoSession.PreRestoreArgs
   local args = { restored_session_name = session_name }
@@ -778,7 +779,6 @@ function AutoSession.RestoreSessionFile(session_path, session_name, opts)
     end
   end
 
-  local session_name = Lib.escaped_session_name_to_session_name(vim.fn.fnamemodify(session_path, ":t"))
   Lib.logger.debug("Restored session: " .. session_name)
   if opts.show_message == nil or opts.show_message then
     vim.notify("Restored session: " .. session_name)
