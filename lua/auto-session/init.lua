@@ -131,7 +131,7 @@ local function bypass_save_by_filetype()
   for _, current_window in ipairs(windows) do
     local buf = vim.api.nvim_win_get_buf(current_window)
 
-      local buf_ft = vim.bo[buf].filetype
+    local buf_ft = vim.bo[buf].filetype
 
     local local_return = false
     for _, ft_to_bypass in ipairs(filetypes_to_bypass) do
@@ -161,7 +161,7 @@ local function close_ignored_filetypes()
 
   for _, buf in ipairs(buffers) do
     if vim.api.nvim_buf_is_loaded(buf) then
-        local buf_ft = vim.bo[buf].filetype
+      local buf_ft = vim.bo[buf].filetype
       for _, ft_to_ignore in ipairs(filetypes_to_ignore) do
         if buf_ft == ft_to_ignore then
           vim.api.nvim_buf_delete(buf, { force = true })
@@ -676,7 +676,7 @@ function AutoSession.RestoreSessionFromDir(session_dir, session_name, opts)
 
     Lib.logger.debug("RestoreSessionFromDir renaming legacy session: " .. legacy_escaped_session_name)
     ---@diagnostic disable-next-line: undefined-field
-      if not vim.uv.fs_rename(legacy_session_path, session_path) then
+    if not vim.uv.fs_rename(legacy_session_path, session_path) then
       Lib.logger.debug(
         "RestoreSessionFromDir rename failed!",
         { session_path = session_path, legacy_session_path = legacy_session_path }
@@ -693,7 +693,7 @@ function AutoSession.RestoreSessionFromDir(session_dir, session_name, opts)
     if vim.fn.filereadable(legacy_user_commands_path) == 1 and not Lib.is_session_file(legacy_user_commands_path) then
       if vim.fn.filereadable(user_commands_path) == 0 then
         Lib.logger.debug("RestoreSessionFromDir Renaming legacy user commands" .. legacy_user_commands_path)
-          vim.uv.fs_rename(legacy_user_commands_path, user_commands_path)
+        vim.uv.fs_rename(legacy_user_commands_path, user_commands_path)
       end
     end
   end
