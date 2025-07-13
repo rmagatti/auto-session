@@ -153,6 +153,27 @@ local function bypass_save_by_filetype()
   return true
 end
 
+local function close_ignored_filetypes()
+  local filetypes_to_ignore = Config.ignore_filetypes_on_save or {}
+  if vim.tbl_isempty(filetypes_to_ignore) then
+    return
+  end
+
+  local buffers = vim.api.nvim_list_bufs()
+
+  for _, buf in ipairs(buffers) do
+    if vim.api.nvim_buf_is_loaded(buf) then
+      local buf_ft = vim.api.nvim_buf_get_option(buf, "filetype")
+      for _, ft_to_ignore in ipairs(filetypes_to_ignore) do
+        if buf_ft == ft_to_ignore then
+          vim.cmd("bdelete! " .. buf)
+          break
+        end
+      end
+    end
+  end
+end
+
 local function suppress_session(session_dir)
   local dirs = Config.suppressed_dirs or {}
 
@@ -298,6 +319,8 @@ function AutoSession.AutoSaveSession()
       Lib.logger.debug("Error closing unsupported windows: " .. result)
     end
   end
+
+  close_ignored_filetypes()
 
   -- Don't try to show a message as we're exiting
   return AutoSession.SaveSession(current_session, false)
