@@ -131,9 +131,7 @@ local function bypass_save_by_filetype()
   for _, current_window in ipairs(windows) do
     local buf = vim.api.nvim_win_get_buf(current_window)
 
-    -- Deprecated as 0.9.0, should update to following when we only want to support 0.9.0+
-    -- local buf_ft = vim.bo[buf].filetype
-    local buf_ft = vim.api.nvim_buf_get_option(buf, "filetype")
+    local buf_ft = vim.bo[buf].filetype
 
     local local_return = false
     for _, ft_to_bypass in ipairs(filetypes_to_bypass) do
@@ -151,6 +149,27 @@ local function bypass_save_by_filetype()
 
   Lib.logger.debug "bypass_save_by_filetype: true"
   return true
+end
+
+local function close_ignored_filetypes()
+  local filetypes_to_ignore = Config.ignore_filetypes_on_save or {}
+  if vim.tbl_isempty(filetypes_to_ignore) then
+    return
+  end
+
+  local buffers = vim.api.nvim_list_bufs()
+
+  for _, buf in ipairs(buffers) do
+    if vim.api.nvim_buf_is_loaded(buf) then
+      local buf_ft = vim.bo[buf].filetype
+      for _, ft_to_ignore in ipairs(filetypes_to_ignore) do
+        if buf_ft == ft_to_ignore then
+          vim.api.nvim_buf_delete(buf, { force = true })
+          break
+        end
+      end
+    end
+  end
 end
 
 local function suppress_session(session_dir)
@@ -444,7 +463,7 @@ function AutoSession.start()
         if not vim.tbl_isempty(purged_sessions) then
           Lib.logger.info(
             "Deleted old sessions:\n"
-              .. table.concat(vim.tbl_map(Lib.escaped_session_name_to_session_name, purged_sessions), "\n")
+            .. table.concat(vim.tbl_map(Lib.escaped_session_name_to_session_name, purged_sessions), "\n")
           )
         end
       end)
@@ -469,9 +488,9 @@ function AutoSession.auto_restore_session_at_vim_enter()
 
   -- Is there exactly one argument and is it a directory?
   if
-    Config.args_allow_single_directory
-    and #launch_argv == 1
-    and vim.fn.isdirectory(launch_argv[1]) == Lib._VIM_TRUE
+      Config.args_allow_single_directory
+      and #launch_argv == 1
+      and vim.fn.isdirectory(launch_argv[1]) == Lib._VIM_TRUE
   then
     -- Get the full path of the directory and make sure it doesn't have a trailing path_separator
     -- to make sure we find the session
@@ -481,7 +500,7 @@ function AutoSession.auto_restore_session_at_vim_enter()
     if Config.git_use_branch_name then
       -- Get the git branch for that directory, no legacy git name support
       session_name =
-        Lib.combine_session_name_with_git_branch(session_name, Lib.get_git_branch_name(session_name), false)
+          Lib.combine_session_name_with_git_branch(session_name, Lib.get_git_branch_name(session_name), false)
       Lib.logger.debug("git enabled, launch argument with potential git branch: " .. session_name)
     end
 
@@ -508,10 +527,10 @@ function AutoSession.auto_restore_session_at_vim_enter()
       if last_session_name then
         Lib.logger.debug("Found last session: " .. last_session_name)
         if
-          AutoSession.RestoreSession(
-            last_session_name,
-            { show_message = Config.show_auto_restore_notif, is_startup_autorestore = true }
-          )
+            AutoSession.RestoreSession(
+              last_session_name,
+              { show_message = Config.show_auto_restore_notif, is_startup_autorestore = true }
+            )
         then
           return true
         end
@@ -566,6 +585,8 @@ function AutoSession.SaveSessionToDir(session_dir, session_name, show_message)
   end
 
   local session_path = session_dir .. escaped_session_name
+
+  close_ignored_filetypes()
 
   AutoSession.run_cmds "pre_save"
 
@@ -655,7 +676,7 @@ function AutoSession.RestoreSessionFromDir(session_dir, session_name, opts)
 
     Lib.logger.debug("RestoreSessionFromDir renaming legacy session: " .. legacy_escaped_session_name)
     ---@diagnostic disable-next-line: undefined-field
-    if not vim.loop.fs_rename(legacy_session_path, session_path) then
+    if not vim.uv.fs_rename(legacy_session_path, session_path) then
       Lib.logger.debug(
         "RestoreSessionFromDir rename failed!",
         { session_path = session_path, legacy_session_path = legacy_session_path }
@@ -672,7 +693,7 @@ function AutoSession.RestoreSessionFromDir(session_dir, session_name, opts)
     if vim.fn.filereadable(legacy_user_commands_path) == 1 and not Lib.is_session_file(legacy_user_commands_path) then
       if vim.fn.filereadable(user_commands_path) == 0 then
         Lib.logger.debug("RestoreSessionFromDir Renaming legacy user commands" .. legacy_user_commands_path)
-        vim.loop.fs_rename(legacy_user_commands_path, user_commands_path)
+        vim.uv.fs_rename(legacy_user_commands_path, user_commands_path)
       end
     end
   end
@@ -762,8 +783,8 @@ function AutoSession.RestoreSessionFile(session_path, opts)
 
   if not success then
     if
-      (type(Config.restore_error_handler) == "function" and not Config.restore_error_handler(result))
-      or not restore_error_handler(result)
+        (type(Config.restore_error_handler) == "function" and not Config.restore_error_handler(result))
+        or not restore_error_handler(result)
     then
       Lib.logger.debug "Error while restoring, disabling autosave"
       Config.auto_save = false

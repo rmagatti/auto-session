@@ -81,6 +81,7 @@ local defaults = {
   git_auto_restore_on_branch_change = false, -- Should we auto-restore the session when the git branch changes. Requires git_use_branch_name
   lazy_support = true, -- Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used. Can be disabled if a problem is suspected or for debugging
   bypass_save_filetypes = nil, -- List of filetypes to bypass auto save when the only buffer open is one of the file types listed, useful to ignore dashboards
+  ignore_filetypes_on_save = nil, -- List of filetypes to close buffers of before saving a session
   close_unsupported_windows = true, -- Close windows that aren't backed by normal file before autosaving a session
   args_allow_single_directory = true, -- Follow normal session save/load logic if launched with a single directory as the only argument
   args_allow_files_auto_save = false, -- Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. While you can just set this to true, you probably want to set it to a function that decides when to save a session when launched with file args. See documentation for more detail
