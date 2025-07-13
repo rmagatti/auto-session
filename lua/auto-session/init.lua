@@ -320,8 +320,6 @@ function AutoSession.AutoSaveSession()
     end
   end
 
-  close_ignored_filetypes()
-
   -- Don't try to show a message as we're exiting
   return AutoSession.SaveSession(current_session, false)
 end
@@ -589,6 +587,8 @@ function AutoSession.SaveSessionToDir(session_dir, session_name, show_message)
   end
 
   local session_path = session_dir .. escaped_session_name
+
+  close_ignored_filetypes()
 
   AutoSession.run_cmds "pre_save"
 
