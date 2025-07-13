@@ -508,10 +508,10 @@ If that doesn't help, you can:
 
 # Compatibility
 
-Neovim > 0.7
+Neovim > 0.10.3
 
 Tested with:
 
 ```
-NVIM v0.7.2 - NVIM 0.11.2
+NVIM v0.10.3 - NVIM 0.11.2
 ```
