@@ -761,10 +761,10 @@ function AutoSession.RestoreSessionFile(session_path, opts)
   launch_argv = nil
 
   if not success then
-    if
-      (type(Config.restore_error_handler) == "function" and not Config.restore_error_handler(result))
-      or not restore_error_handler(result)
-    then
+    ---@type restore_error_fn
+    local error_handler = type(Config.restore_error_handler) == "function" and Config.restore_error_handler
+      or restore_error_handler
+    if not error_handler(result) then
       Lib.logger.debug "Error while restoring, disabling autosave"
       Config.auto_save = false
       return false
