@@ -7,7 +7,7 @@ describe("The git config", function()
   local Lib = require "auto-session.lib"
   local c = require "auto-session.config"
   -- NOTE: need to load the git module here because we change the directory later which
-  -- I tihnk messes up the relative module load path. a bit of a hack but oh well
+  -- I think messes up the relative module load path. a bit of a hack but oh well
   ---@diagnostic disable-next-line: unused-local
   local g = require "auto-session.git"
 
