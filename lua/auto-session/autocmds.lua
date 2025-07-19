@@ -422,7 +422,8 @@ function M.setup_autocmds(AutoSession)
     group = group,
     pattern = "*",
     callback = function()
-      if not vim.g.in_pager_mode then
+      -- If we're in pager mode or we're in a subprocess, don't save on exit
+      if not vim.g.in_pager_mode and not vim.env.NVIM then
         AutoSession.AutoSaveSession()
       end
     end,
