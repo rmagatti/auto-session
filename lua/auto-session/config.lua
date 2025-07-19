@@ -258,12 +258,25 @@ function M.check(logger, show_full_message)
   show_full_message = show_full_message or false
 
   local has_issues = false
+  if not vim.tbl_contains(vim.split(vim.o.sessionoptions, ","), "buffers") then
+    if show_full_message then
+      logger.warn(
+        "`vim.o.sessionoptions` must contain 'buffers' otherwise not all buffers will be restored.\n"
+          .. "Recommended setting is:\n\n"
+          .. 'vim.o.sessionoptions="blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"\n'
+      )
+    else
+      logger.warn "vim.o.sessionoptions is missing buffers. \nUse `:checkhealth autosession` for more info."
+    end
+    has_issues = true
+  end
+
   if not vim.tbl_contains(vim.split(vim.o.sessionoptions, ","), "localoptions") then
     if show_full_message then
       logger.warn(
-        "`vim.o.sessionoptions` should contain 'localoptions' to make sure\nfiletype and highlighting work correctly after a session is restored.\n\n"
+        "`vim.o.sessionoptions` should contain 'localoptions' to make sure\nfiletype and highlighting work correctly after a session is restored.\n"
           .. "Recommended setting is:\n\n"
-          .. 'vim.o.sessionoptions="blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"'
+          .. 'vim.o.sessionoptions="blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"\n'
       )
     else
       logger.warn "vim.o.sessionoptions is missing localoptions. \nUse `:checkhealth autosession` for more info."
