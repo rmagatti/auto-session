@@ -15,11 +15,29 @@ function AutoSession.setup(config)
   Lib.logger.debug("Config at start of setup", tostring(Config))
   Config.check(Lib.logger)
 
+  -- Store the startup cwd for lock_session_to_startup_cwd feature
+  if Config.lock_session_to_startup_cwd then
+    if not AutoSession.startup_cwd then
+      AutoSession.startup_cwd = vim.fn.getcwd(-1, -1)
+      Lib.logger.debug("Startup CWD locked to: " .. AutoSession.startup_cwd)
+    else
+      Lib.logger.debug("Startup CWD already locked to: " .. AutoSession.startup_cwd)
+    end
+  end
+
   -- Validate the root dir here so it's always set up correctly
   AutoSession.get_root_dir()
 
   -- Will also setup session lens
   AutoCmds.setup_autocmds(AutoSession)
+end
+
+local function get_session_cwd()
+  if Config.lock_session_to_startup_cwd and AutoSession.startup_cwd then
+    return AutoSession.startup_cwd
+  end
+
+  return vim.fn.getcwd(-1, -1)
 end
 
 local function is_enabled()
@@ -158,7 +176,7 @@ local function suppress_session(session_dir)
 
   -- If session_dir is set, use that otherwise use cwd
   -- session_dir will be set when loading a session from a directory at launch (i.e. from argv)
-  local cwd = session_dir or vim.fn.getcwd(-1, -1)
+  local cwd = session_dir or get_session_cwd()
 
   if Lib.find_matching_directory(cwd, dirs) then
     Lib.logger.debug "suppress_session found a match, suppressing"
@@ -194,11 +212,11 @@ end
 ---@return string Returns the escaped version of the name with .vim appended.
 local function get_session_file_name(session_name, legacy)
   if not session_name or session_name == "" then
-    session_name = vim.fn.getcwd(-1, -1)
+    session_name = get_session_cwd()
     Lib.logger.debug("get_session_file_name no session_name, using cwd: " .. session_name)
 
     if Config.git_use_branch_name then
-      session_name = Lib.combine_session_name_with_git_branch(session_name, Lib.get_git_branch_name(), legacy)
+      session_name = Lib.combine_session_name_with_git_branch(session_name, Lib.get_git_branch_name(session_name), legacy)
       Lib.logger.debug("git enabled, session_name:" .. session_name)
     end
   end
@@ -251,13 +269,13 @@ end
 ---unless a session for the current working directory exists.
 ---@return boolean True if a session exists for the cwd
 function AutoSession.session_exists_for_cwd()
-  local session_file = get_session_file_name(vim.fn.getcwd(-1, -1))
+  local session_file = get_session_file_name(get_session_cwd())
   if vim.fn.filereadable(AutoSession.get_root_dir() .. session_file) ~= 0 then
     return true
   end
 
   -- Check legacy sessions
-  session_file = get_session_file_name(vim.fn.getcwd(-1, -1), true)
+  session_file = get_session_file_name(get_session_cwd(), true)
   return vim.fn.filereadable(AutoSession.get_root_dir() .. session_file) ~= 0
 end
 
@@ -491,7 +509,7 @@ function AutoSession.auto_restore_session_at_vim_enter()
 
     -- We failed to load a session for the other directory. Unless session name matches cwd, we don't
     -- want to enable autosaving since it might replace the session for the cwd
-    if vim.fn.getcwd(-1, -1) ~= session_name then
+    if get_session_cwd() ~= session_name then
       Lib.logger.debug "Not enabling autosave because launch argument didn't load session and doesn't match cwd"
       Config.auto_save = false
     end
@@ -686,7 +704,7 @@ end
 ---@return boolean enable_auto_save Return false to disable auto-saving, true to leave it on
 local function restore_error_handler(error_msg)
   -- Ignore fold errors as discussed in https://github.com/rmagatti/auto-session/issues/409
-  if error_msg and string.find(error_msg, "E490: No fold found") then
+  if error_msg and (string.find(error_msg, "E490: No fold found") or string.find(error_msg, "E16: Invalid range")) then
     Lib.logger.debug "Ignoring fold error on restore"
     return true
   end
@@ -779,7 +797,7 @@ function AutoSession.RestoreSessionFile(session_path, opts)
 
   if Config.git_use_branch_name and Config.git_auto_restore_on_branch_change then
     -- start watching for branch changes
-    require("auto-session.git").start_watcher(vim.fn.getcwd(-1, -1), ".git/HEAD")
+    require("auto-session.git").start_watcher(get_session_cwd(), ".git/HEAD")
   end
 
   AutoSession.run_cmds "post_restore"

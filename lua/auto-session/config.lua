@@ -28,6 +28,7 @@ local M = {}
 ---@field show_auto_restore_notif? boolean Whether to show a notification when auto-restoring
 ---@field log_level? string|integer "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
 ---@field cwd_change_handling? boolean Follow cwd changes, saving a session before change and restoring after
+---@field lock_session_to_startup_cwd? boolean Lock session to the startup cwd, ensuring consistent single session when cwd changes
 ---@field lsp_stop_on_restore? boolean|function Should language servers be stopped when restoring a session. Can also be a function that will be called if set. Not called on autorestore from startup
 ---
 ---@field restore_error_handler? restore_error_fn Called when there's an error restoring. By default, it ignores fold errors otherwise it displays the error and returns false to disable auto_save
@@ -87,6 +88,7 @@ local defaults = {
   continue_restore_on_error = true, -- Keep loading the session even if there's an error
   show_auto_restore_notif = false, -- Whether to show a notification when auto-restoring
   cwd_change_handling = false, -- Follow cwd changes, saving a session before change and restoring after
+  lock_session_to_startup_cwd = false, -- Lock session to the startup cwd, ensuring consistent single session when cwd changes
   lsp_stop_on_restore = false, -- Should language servers be stopped when restoring a session. Can also be a function that will be called if set. Not called on autorestore from startup
   restore_error_handler = nil, -- Called when there's an error restoring. By default, it ignores fold errors otherwise it displays the error and returns false to disable auto_save
   purge_after_minutes = nil, -- Sessions older than purge_after_minutes will be deleted asynchronously on startup, e.g. set to 14400 to delete sessions that haven't been accessed for more than 10 days, defaults to off (no purging), requires >= nvim 0.10

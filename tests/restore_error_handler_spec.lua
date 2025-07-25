@@ -65,4 +65,37 @@ describe("restore_error_handler", function()
     assert.False(as.RestoreSession())
     assert.True(was_called)
   end)
+
+  -- Test for the default error handler ignoring fold errors
+  as.setup()
+
+  it("ignores E16 Invalid range fold errors", function()
+    TL.clearSessionFilesAndBuffers()
+    vim.cmd("e " .. TL.test_file)
+    as.SaveSession()
+
+    -- add an E16 fold error to the session file
+    local uv = vim.loop
+    local fd = assert(uv.fs_open(TL.default_session_path, "a", 438))
+    uv.fs_write(fd, "100,200fold\n", -1)  -- This will cause E16: Invalid range
+    uv.fs_close(fd)
+
+    -- This should succeed (return true) because E16 errors are ignored
+    assert.True(as.RestoreSession())
+  end)
+
+  it("ignores E490 No fold found errors", function()
+    TL.clearSessionFilesAndBuffers()
+    vim.cmd("e " .. TL.test_file)
+    as.SaveSession()
+
+    -- add an E490 fold error to the session file
+    local uv = vim.loop
+    local fd = assert(uv.fs_open(TL.default_session_path, "a", 438))
+    uv.fs_write(fd, "foldopen\n", -1)  -- This will cause E490: No fold found
+    uv.fs_close(fd)
+
+    -- This should succeed (return true) because E490 errors are ignored
+    assert.True(as.RestoreSession())
+  end)
 end)
