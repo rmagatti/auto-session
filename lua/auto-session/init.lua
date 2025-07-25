@@ -216,7 +216,7 @@ local function get_session_file_name(session_name, legacy)
     Lib.logger.debug("get_session_file_name no session_name, using cwd: " .. session_name)
 
     if Config.git_use_branch_name then
-      session_name = Lib.combine_session_name_with_git_branch(session_name, Lib.get_git_branch_name(), legacy)
+      session_name = Lib.combine_session_name_with_git_branch(session_name, Lib.get_git_branch_name(session_name), legacy)
       Lib.logger.debug("git enabled, session_name:" .. session_name)
     end
   end
