@@ -11,17 +11,17 @@ AutoSession takes advantage of Neovim's existing session management capabilities
 [Lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ```lua
-{
-  'rmagatti/auto-session',
+return {
+  "rmagatti/auto-session",
   lazy = false,
 
   ---enables autocomplete for opts
   ---@module "auto-session"
   ---@type AutoSession.Config
   opts = {
-    suppressed_dirs = { '~/', '~/Projects', '~/Downloads', '/' },
+    suppressed_dirs = { "~/", "~/Projects", "~/Downloads", "/" },
     -- log_level = 'debug',
-  }
+  },
 }
 ```
 
@@ -29,12 +29,12 @@ AutoSession takes advantage of Neovim's existing session management capabilities
 
 ```lua
 use {
-  'rmagatti/auto-session',
+  "rmagatti/auto-session",
   config = function()
     require("auto-session").setup {
-      suppressed_dirs = { "~/", "~/Projects", "~/Downloads", "/"},
+      suppressed_dirs = { "~/", "~/Projects", "~/Downloads", "/" },
     }
-  end
+  end,
 }
 ```
 
@@ -57,7 +57,7 @@ Manually saving a session can still be done by calling `:SessionSave`.
 Here are the default settings:
 
 ```lua
-{
+opts = {
   enabled = true, -- Enables/disables auto creating, saving and restoring
   root_dir = vim.fn.stdpath "data" .. "/sessions/", -- Root dir where sessions will be stored
   auto_save = true, -- Enables/disables auto saving session on exit
@@ -108,7 +108,7 @@ For a better experience with the plugin overall using this config for `sessionop
 **Lua**
 
 ```lua
-vim.o.sessionoptions="blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
+vim.o.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
 ```
 
 **VimL**
@@ -154,15 +154,14 @@ If you create a manually named session via `SessionSave my_session` or you resto
 You can use Telescope or [snacks.nvim](https://github.com/folke/snacks.nvim) to see, load, and delete your sessions. The configuration options are in the `session_lens` section:
 
 ```lua
-
-{
-  'rmagatti/auto-session',
+return {
+  "rmagatti/auto-session",
   lazy = false,
   keys = {
     -- Will use Telescope if installed or a vim.ui.select picker otherwise
-    { '<leader>wr', '<cmd>SessionSearch<CR>', desc = 'Session search' },
-    { '<leader>ws', '<cmd>SessionSave<CR>', desc = 'Save session' },
-    { '<leader>wa', '<cmd>SessionToggleAutoSave<CR>', desc = 'Toggle autosave' },
+    { "<leader>wr", "<cmd>SessionSearch<CR>", desc = "Session search" },
+    { "<leader>ws", "<cmd>SessionSave<CR>", desc = "Save session" },
+    { "<leader>wa", "<cmd>SessionToggleAutoSave<CR>", desc = "Toggle autosave" },
   },
 
   ---enables autocomplete for opts
@@ -200,11 +199,10 @@ You can use Telescope or [snacks.nvim](https://github.com/folke/snacks.nvim) to 
         -- },
       },
 
-
       -- Telescope only: If load_on_setup is false, make sure you use `:SessionSearch` to open the picker as it will initialize everything first
       load_on_setup = true,
     },
-  }
+  },
 }
 ```
 
@@ -233,8 +231,10 @@ There are two config options, `allowed_dirs` and `suppressed_dirs`, that control
 Both options are a table of directories, with support for globs:
 
 ```lua
-  allowed_dirs = { '/some/dir/', '/projects/*' }
-  suppressed_dirs = { '/projects/secret' }
+opts = {
+  allowed_dirs = { "/some/dir/", "/projects/*" },
+  suppressed_dirs = { "/projects/secret" },
+}
 ```
 
 With those options, sessions would only be auto-saved for `/some/dir` and any direct child of `/projects` (e.g. `/projects/myproject` but not `/projects/myproject/submodule`) except `/projects/secret`
@@ -262,22 +262,21 @@ Now when you changes the cwd with `:cd some/new/dir` AutoSession handles it grac
 Hooks are available for custom actions _before_ and _after_ the `cwd` is changed. Here's the config for tracking cwd and a hook example:
 
 ```lua
-require('auto-session').setup({
-  suppressed_dirs = { '~/', '~/Projects', '~/Downloads', '/' },
+require("auto-session").setup {
+  suppressed_dirs = { "~/", "~/Projects", "~/Downloads", "/" },
 
-  cwd_change_handling = true
+  cwd_change_handling = true,
 
   pre_cwd_changed_cmds = {
-    "tabdo NERDTreeClose" -- Close NERDTree before saving session
-  }
+    "tabdo NERDTreeClose", -- Close NERDTree before saving session
+  },
 
   post_cwd_changed_cmds = {
     function()
       require("lualine").refresh() -- example refreshing the lualine status line _after_ the cwd changes
-    end
-  }
-
-})
+    end,
+  },
+}
 ```
 
 ## 🖥️ Dashboards
@@ -285,10 +284,9 @@ require('auto-session').setup({
 If you use a dashboard, you probably don't want to try and save a session when just the dashboard is open. To avoid that, add your dashboard filetype to the bypass list as follows:
 
 ```lua
-require('auto-session').setup({
-  bypass_save_filetypes = { 'alpha', 'dashboard' } -- or whatever dashboard you use
-})
-
+require("auto-session").setup {
+  bypass_save_filetypes = { "alpha", "dashboard" }, -- or whatever dashboard you use
+}
 ```
 
 ## 🪝 Command Hooks
@@ -311,22 +309,22 @@ Command hooks exist in the format: {hook_name}
 Each hook is a table of vim commands or lua functions (or a mix of both):
 
 ```lua
-require('auto-session').setup {
+require("auto-session").setup {
   -- {hook_name}_cmds = {"{hook_command1}", "{hook_command2}"}
 
   pre_save_cmds = {
-    "tabdo NERDTreeClose" -- Close NERDTree before saving session
+    "tabdo NERDTreeClose", -- Close NERDTree before saving session
   },
 
   post_restore_cmds = {
     "someOtherVimCommand",
     function()
       -- Restore nvim-tree after a session is restored
-      local nvim_tree_api = require('nvim-tree.api')
+      local nvim_tree_api = require "nvim-tree.api"
       nvim_tree_api.tree.open()
       nvim_tree_api.tree.change_root(vim.fn.getcwd())
       nvim_tree_api.tree.reload()
-    end
+    end,
   },
 
   -- Save quickfix list and open it when restoring the session
@@ -334,8 +332,10 @@ require('auto-session').setup {
     function()
       local qflist = vim.fn.getqflist()
       -- return nil to clear any old qflist
-      if #qflist == 0 then return nil end
-      local qfinfo = vim.fn.getqflist({ title = 1 })
+      if #qflist == 0 then
+        return nil
+      end
+      local qfinfo = vim.fn.getqflist { title = 1 }
 
       for _, entry in ipairs(qflist) do
         -- use filename instead of bufnr so it can be reloaded
@@ -343,11 +343,12 @@ require('auto-session').setup {
         entry.bufnr = nil
       end
 
-      local setqflist = 'call setqflist(' .. vim.fn.string(qflist) .. ')'
-      local setqfinfo = 'call setqflist([], "a", ' .. vim.fn.string(qfinfo) .. ')'
-      return { setqflist, setqfinfo, 'copen' }
+      local setqflist = "call setqflist(" .. vim.fn.string(qflist) .. ")"
+      local setqfinfo = 'call setqflist([], "a", ' .. vim.fn.string(qfinfo) .. ")"
+      return { setqflist, setqfinfo, "copen" }
     end,
   },
+}
 ```
 
 ## ➖ Statusline
@@ -357,17 +358,17 @@ You can show the current session name in the statusline by using the function `c
 Here's an example using [Lualine](https://github.com/nvim-lualine/lualine.nvim):
 
 ```lua
-require('lualine').setup{
+require("lualine").setup {
   options = {
-    theme = 'tokyonight',
+    theme = "tokyonight",
   },
   sections = {
     lualine_c = {
       function()
-        return require('auto-session.lib').current_session_name(true)
-      end
-    }
-  }
+        return require("auto-session.lib").current_session_name(true)
+      end,
+    },
+  },
 }
 ```
 
@@ -383,16 +384,16 @@ This feature can come in handy when starting Neovim from a GUI for example.
 :warning: This feature is still experimental and as of right now it interferes with the plugin's ability to auto create new sessions when opening Neovim in a new directory.
 
 ```lua
-require('auto-session').setup {
-    auto_restore_last_session = true,
+require("auto-session").setup {
+  auto_restore_last_session = true,
 }
 ```
 
 A quick workaround for inability to auto create new sessions is to conditionally enable last session.
 
 ```lua
-require('auto-session').setup {
-    auto_restore_last_session = vim.loop.cwd() == vim.loop.os_homedir(),
+require("auto-session").setup {
+  auto_restore_last_session = vim.loop.cwd() == vim.loop.os_homedir(),
 }
 ```
 
@@ -406,13 +407,12 @@ With `auto_create = false`, AutoSession won't create a session automatically. If
 
 ```lua
 
-require('auto-session').setup({
+require("auto-session").setup {
   auto_create = function()
-    local cmd = 'git rev-parse --is-inside-work-tree'
-    return vim.fn.system(cmd) == 'true\n'
+    local cmd = "git rev-parse --is-inside-work-tree"
+    return vim.fn.system(cmd) == "true\n"
   end,
-})
-
+}
 ```
 
 With the above, AutoSession will allow automatically creating a session inside of a git project but won't automatically create a session in any other directory. If you manually save a session in a directory, though, it will then update that session automatically whenever you exit `nvim`.
@@ -422,14 +422,18 @@ With the above, AutoSession will allow automatically creating a session inside o
 By default, when `nvim` is run with a single directory argument, AutoSession will try to restore the session for that directory. If `nvim` is run with multiple directories or any file arguments, AutoSession won't try to restore a session and won't auto-save a session on exit (if enabled). Those behaviors can be changed with these config parameters:
 
 ```lua
+opts = {
   args_allow_single_directory = true, -- boolean Follow normal session save/load logic if launched with a single directory as the only argument
   args_allow_files_auto_save = false, -- boolean|function Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. While you can just set this to true, you probably want to set it to a function that decides when to save a session when launched with file args. See documentation for more detail
+}
 ```
 
 For `args_allow_single_directory`, if you frequently use `netrw` to look at directories, you might want to add it to `bypass_save_filetypes` if you don't want to create a session for each directory you look at:
 
 ```lua
-      bypass_save_filetypes = { 'netrw' }
+opts = {
+  bypass_save_filetypes = { "netrw" },
+}
 ```
 
 Also, if you use a plugin that handles directory arguments (e.g. file trees/explorers), it may prevent AutoSession from loading or saving sessions when launched with a directory argument. You can avoid that by lazy loading that plugin (e.g. [Oil](https://github.com/rmagatti/auto-session/issues/372#issuecomment-2471077783), [NvimTree](https://github.com/rmagatti/auto-session/issues/393#issuecomment-2474797271)).
@@ -437,7 +441,7 @@ Also, if you use a plugin that handles directory arguments (e.g. file trees/expl
 If `args_allow_files_auto_save` is true, AutoSession won't load any session when `nvim` is launched with file argument(s) but it will save on exit. What's probably more useful is to set `args_allow_files_auto_save` to a function that returns true if a session should be saved and false otherwise. AutoSession will call that function on auto save when run with arguments. Here's one example config where it will save the session if at least two buffers are open after being launched with arguments:
 
 ```lua
-require('auto-session').setup({
+require("auto-session").setup {
   args_allow_files_auto_save = function()
     local supported = 0
 
@@ -446,20 +450,22 @@ require('auto-session').setup({
       -- Check if the buffer is valid and loaded
       if vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_is_loaded(buf) then
         local path = vim.api.nvim_buf_get_name(buf)
-        if vim.fn.filereadable(path) ~= 0 then supported = supported + 1 end
+        if vim.fn.filereadable(path) ~= 0 then
+          supported = supported + 1
+        end
       end
     end
 
     -- If we have more 2 or more supported buffers, save the session
     return supported >= 2
   end,
-})
+}
 ```
 
 Another possibility is to only save the session if there are at least two windows with buffers backed by normal files:
 
 ```lua
-require('auto-session').setup({
+require("auto-session").setup {
   args_allow_files_auto_save = function()
     local supported = 0
 
@@ -469,14 +475,16 @@ require('auto-session').setup({
       for _, window in ipairs(windows) do
         local buffer = vim.api.nvim_win_get_buf(window)
         local file_name = vim.api.nvim_buf_get_name(buffer)
-        if vim.fn.filereadable(file_name) ~= 0 then supported = supported + 1 end
+        if vim.fn.filereadable(file_name) ~= 0 then
+          supported = supported + 1
+        end
       end
     end
 
     -- If we have 2 or more windows with supported buffers, save the session
     return supported >= 2
   end,
-})
+}
 ```
 
 ## 🚫 Disabling the plugin
