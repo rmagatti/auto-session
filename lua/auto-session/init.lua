@@ -2,6 +2,8 @@ local Lib = require "auto-session.lib"
 local Config = require "auto-session.config"
 local AutoCmds = require "auto-session.autocmds"
 
+local uv = vim.uv or vim.loop
+
 ----------- Setup ----------
 
 ---@mod auto-session.api API
@@ -567,6 +569,8 @@ function AutoSession.SaveSessionToDir(session_dir, session_name, show_message)
 
   local session_path = session_dir .. escaped_session_name
 
+  Lib.close_ignored_filetypes(Config.ignore_filetypes_on_save)
+
   AutoSession.run_cmds "pre_save"
 
   -- We don't want to save arguments to the session as that can cause issues
@@ -655,7 +659,7 @@ function AutoSession.RestoreSessionFromDir(session_dir, session_name, opts)
 
     Lib.logger.debug("RestoreSessionFromDir renaming legacy session: " .. legacy_escaped_session_name)
     ---@diagnostic disable-next-line: undefined-field
-    if not vim.loop.fs_rename(legacy_session_path, session_path) then
+    if not uv.fs_rename(legacy_session_path, session_path) then
       Lib.logger.debug(
         "RestoreSessionFromDir rename failed!",
         { session_path = session_path, legacy_session_path = legacy_session_path }
@@ -672,7 +676,7 @@ function AutoSession.RestoreSessionFromDir(session_dir, session_name, opts)
     if vim.fn.filereadable(legacy_user_commands_path) == 1 and not Lib.is_session_file(legacy_user_commands_path) then
       if vim.fn.filereadable(user_commands_path) == 0 then
         Lib.logger.debug("RestoreSessionFromDir Renaming legacy user commands" .. legacy_user_commands_path)
-        vim.loop.fs_rename(legacy_user_commands_path, user_commands_path)
+        uv.fs_rename(legacy_user_commands_path, user_commands_path)
       end
     end
   end

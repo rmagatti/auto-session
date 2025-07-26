@@ -827,6 +827,27 @@ function Lib.has_modified_buffers()
   return false
 end
 
+---Close any buffers that have a ft that is in ignored_filetypes
+---@param ignored_filetypes table list of filetypes to close
+function Lib.close_ignored_filetypes(ignored_filetypes)
+  local filetypes_to_ignore = ignored_filetypes or {}
+  if vim.tbl_isempty(filetypes_to_ignore) then
+    return
+  end
+
+  local buffers = vim.api.nvim_list_bufs()
+
+  for _, buf in ipairs(buffers) do
+    if vim.api.nvim_buf_is_loaded(buf) then
+      local buf_ft = vim.bo[buf].filetype
+      if buf_ft and vim.tbl_contains(filetypes_to_ignore, buf_ft) then
+        vim.api.nvim_buf_delete(buf, { force = true })
+        break
+      end
+    end
+  end
+end
+
 ---Snacks (https://github.com/folke/snacks.nvim) debounce function
 ---@generic T
 ---@param fn T
