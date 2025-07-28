@@ -686,7 +686,7 @@ end
 ---@return boolean enable_auto_save Return false to disable auto-saving, true to leave it on
 local function restore_error_handler(error_msg)
   -- Ignore fold errors as discussed in https://github.com/rmagatti/auto-session/issues/409
-  if error_msg and string.find(error_msg, "E490: No fold found") then
+  if error_msg and (string.find(error_msg, "E490: No fold found") or string.find(error_msg, "E16: Invalid range")) then
     Lib.logger.debug "Ignoring fold error on restore"
     return true
   end
