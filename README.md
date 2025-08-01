@@ -77,6 +77,7 @@ opts = {
   continue_restore_on_error = true, -- Keep loading the session even if there's an error
   show_auto_restore_notif = false, -- Whether to show a notification when auto-restoring
   cwd_change_handling = false, -- Follow cwd changes, saving a session before change and restoring after
+  lock_session_to_startup_cwd = false, -- Lock session to the startup cwd, ensuring consistent single session even when cwd changes. This means that even if the cwd changes after startup, any buffers open in other cwds will still end up saving to the original startup cwd's session. Do not use this with cwd_change_handling
   lsp_stop_on_restore = false, -- Should language servers be stopped when restoring a session. Can also be a function that will be called if set. Not called on autorestore from startup
   restore_error_handler = nil, -- Called when there's an error restoring. By default, it ignores fold errors otherwise it displays the error and returns false to disable auto_save
   purge_after_minutes = nil, -- Sessions older than purge_after_minutes will be deleted asynchronously on startup, e.g. set to 14400 to delete sessions that haven't been accessed for more than 10 days, defaults to off (no purging), requires >= nvim 0.10

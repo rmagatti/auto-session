@@ -32,6 +32,7 @@ AutoSession.Config                                          *AutoSession.Config*
         {show_auto_restore_notif?}            (boolean)           Whether to show a notification when auto-restoring
         {log_level?}                          (string|integer)    "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
         {cwd_change_handling?}                (boolean)           Follow cwd changes, saving a session before change and restoring after
+        {lock_session_to_startup_cwd?}        (boolean)           Lock session to the startup cwd, ensuring consistent single session even when cwd changes. This means that even if the cwd changes after startup, any buffers open in other cwds will still end up saving to the original startup cwd's session. Do not use this with cwd_change_handling
         {lsp_stop_on_restore?}                (boolean|function)  Should language servers be stopped when restoring a session. Can also be a function that will be called if set. Not called on autorestore from startup
         {restore_error_handler?}              (restore_error_fn)  Called when there's an error restoring. By default, it ignores fold errors otherwise it displays the error and returns false to disable auto_save
 
