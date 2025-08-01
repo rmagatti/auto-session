@@ -646,7 +646,7 @@ function Lib.get_session_list(sessions_dir)
 
   local entries = Lib.sorted_readdir(sessions_dir)
 
-  return vim.tbl_map(function(file_name)
+  local result = vim.tbl_map(function(file_name)
     local session_name
     local display_name_component
 
@@ -682,6 +682,13 @@ function Lib.get_session_list(sessions_dir)
       path = sessions_dir .. file_name,
     }
   end, entries)
+  
+  -- Filter out nil entries (files that didn't pass is_session_file check)
+  local filtered_result = vim.tbl_filter(function(entry)
+    return entry ~= nil
+  end, result)
+
+  return filtered_result
 end
 
 ---Get the name of the altnernate session stored in the session control file
