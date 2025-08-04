@@ -216,4 +216,50 @@ describe("Lib / Helper functions", function()
 
     assert.True(vim.tbl_isempty(output))
   end)
+
+  it("get_session_list filters out nil entries from extra command files", function()
+    local test_sessions_dir = TL.session_dir .. "test_sessions/"
+    vim.fn.mkdir(test_sessions_dir, "p")
+
+    local regular_session1 = test_sessions_dir .. "session1.vim"
+    local regular_session2 = test_sessions_dir .. "session2.vim"
+
+    local extra_cmd1 = test_sessions_dir .. "session1x.vim"
+    local extra_cmd2 = test_sessions_dir .. "session3x.vim"
+
+    -- Create a session file ending in x.vim but with SessionLoad (should be included)
+    local session_ending_x = test_sessions_dir .. "project_x.vim"
+
+    vim.fn.writefile({ "let SessionLoad = 1", '" This is a session file' }, regular_session1)
+    vim.fn.writefile({ "let SessionLoad = 1", '" Another session file' }, regular_session2)
+    vim.fn.writefile({ "let SessionLoad = 1", '" Session ending with x' }, session_ending_x)
+
+    vim.fn.writefile({ '" Extra commands for session1' }, extra_cmd1)
+    vim.fn.writefile({ '" Extra commands for session3' }, extra_cmd2)
+
+    local session_list = Lib.get_session_list(test_sessions_dir)
+    assert.equals(3, #session_list, "Should have exactly 3 sessions")
+
+    for i, entry in ipairs(session_list) do
+      assert.is_not_nil(entry, "Entry " .. i .. " should not be nil")
+      assert.is_not_nil(entry.session_name, "Entry " .. i .. " should have session_name")
+      assert.is_not_nil(entry.file_name, "Entry " .. i .. " should have file_name")
+    end
+
+    -- Verify that array is dense (no gaps)
+    for i = 1, #session_list do
+      assert.is_not_nil(session_list[i], "Index " .. i .. " should not be nil")
+    end
+
+    local session_names = vim.tbl_map(function(s)
+      return s.session_name
+    end, session_list)
+    table.sort(session_names)
+
+    assert.True(vim.tbl_contains(session_names, "session1"))
+    assert.True(vim.tbl_contains(session_names, "session2"))
+    assert.True(vim.tbl_contains(session_names, "project_x"))
+
+    vim.fn.delete(test_sessions_dir, "rf")
+  end)
 end)
