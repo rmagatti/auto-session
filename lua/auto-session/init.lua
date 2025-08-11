@@ -743,7 +743,7 @@ function AutoSession.RestoreSessionFile(session_path, opts)
   end
 
   -- Clear the buffers and jumps
-  Lib.conditional_buffer_wipeout(Config.should_preserve_buffer)
+  Lib.conditional_buffer_wipeout(Config.preserve_buffer_on_restore)
   vim.cmd "silent clearjumps"
 
   ---@diagnostic disable-next-line: param-type-mismatch
@@ -751,7 +751,7 @@ function AutoSession.RestoreSessionFile(session_path, opts)
 
   -- normal restore failed, source again but with silent! to restore as much as possible
   if not success and Config.continue_restore_on_error then
-    Lib.conditional_buffer_wipeout(Config.should_preserve_buffer)
+    Lib.conditional_buffer_wipeout(Config.preserve_buffer_on_restore)
     vim.cmd "silent clearjumps"
 
     -- don't capture return values as we'll use success and result from the first call
