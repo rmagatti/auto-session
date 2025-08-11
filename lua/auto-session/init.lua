@@ -569,7 +569,7 @@ function AutoSession.SaveSessionToDir(session_dir, session_name, show_message)
 
   local session_path = session_dir .. escaped_session_name
 
-  Lib.close_ignored_filetypes(Config.ignore_filetypes_on_save)
+  Lib.close_ignored_filetypes(Config.close_filetypes_on_save)
 
   AutoSession.run_cmds "pre_save"
 
@@ -743,7 +743,7 @@ function AutoSession.RestoreSessionFile(session_path, opts)
   end
 
   -- Clear the buffers and jumps
-  vim.cmd "silent %bw!"
+  Lib.conditional_buffer_wipeout(Config.should_preserve_buffer)
   vim.cmd "silent clearjumps"
 
   ---@diagnostic disable-next-line: param-type-mismatch
@@ -751,7 +751,7 @@ function AutoSession.RestoreSessionFile(session_path, opts)
 
   -- normal restore failed, source again but with silent! to restore as much as possible
   if not success and Config.continue_restore_on_error then
-    vim.cmd "silent %bw!"
+    Lib.conditional_buffer_wipeout(Config.should_preserve_buffer)
     vim.cmd "silent clearjumps"
 
     -- don't capture return values as we'll use success and result from the first call

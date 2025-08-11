@@ -1,18 +1,19 @@
 ---@diagnostic disable: undefined-field
 local TL = require "tests/test_lib"
 
-describe("Ignore filetypes on save", function()
+describe("Close filetypes on save", function()
   local as = require "auto-session"
 
   as.setup {
+    -- use old config name
     ignore_filetypes_on_save = { "text" },
   }
 
   TL.clearSessionFilesAndBuffers()
 
-  it("closes buffers of ignored filetypes before saving", function()
+  it("closes buffers of matching filetypes before saving", function()
     vim.cmd("e " .. TL.test_file) -- this is a text file
-    vim.cmd "e tests/ignore_filetypes_on_save_spec.lua"
+    vim.cmd "e tests/close_filetypes_on_save_spec.lua"
 
     -- generate default session
     assert.True(as.AutoSaveSession())
@@ -21,17 +22,17 @@ describe("Ignore filetypes on save", function()
     -- Check that the text file is not in the session
     assert.False(TL.sessionHasFile(TL.default_session_path, TL.test_file))
     -- Check that the lua file is in the session
-    assert.True(TL.sessionHasFile(TL.default_session_path, "tests/ignore_filetypes_on_save_spec.lua"))
+    assert.True(TL.sessionHasFile(TL.default_session_path, "tests/close_filetypes_on_save_spec.lua"))
   end)
 
   TL.clearSessionFilesAndBuffers()
 
   it("does not close buffers of other filetypes", function()
     vim.cmd("e " .. TL.test_file) -- this is a text file
-    vim.cmd "e tests/ignore_filetypes_on_save_spec.lua"
+    vim.cmd "e tests/close_filetypes_on_save_spec.lua"
 
     as.setup {
-      ignore_filetypes_on_save = { "lua" },
+      close_filetypes_on_save = { "lua" },
     }
 
     -- generate default session
@@ -41,7 +42,7 @@ describe("Ignore filetypes on save", function()
     -- Check that the text file is in the session
     assert.True(TL.sessionHasFile(TL.default_session_path, TL.test_file))
     -- Check that the lua file is not in the session
-    assert.False(TL.sessionHasFile(TL.default_session_path, "tests/ignore_filetypes_on_save_spec.lua"))
+    assert.False(TL.sessionHasFile(TL.default_session_path, "tests/close_filetypes_on_save_spec.lua"))
   end)
 
   TL.clearSessionFilesAndBuffers()
