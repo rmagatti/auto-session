@@ -6,7 +6,7 @@ describe("preserve_buffer_on_restore", function()
 
   as.setup {
     preserve_buffer_on_restore = function(buf_nr)
-      return string.find(vim.api.nvim_buf_get_name(buf_nr), TL.other_file, 1, true) ~= nil
+      return string.find(vim.api.nvim_buf_get_name(buf_nr):gsub("\\", "/"), TL.other_file, 1, true) ~= nil
     end,
   }
 
