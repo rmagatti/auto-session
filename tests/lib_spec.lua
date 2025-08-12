@@ -44,7 +44,7 @@ describe("Lib / Helper functions", function()
     end
   end)
 
-  it("get_last_session() returns nil when no session", function()
+  it("get_latest_session() returns nil when no session", function()
     ---@diagnostic disable-next-line: missing-parameter
     assert.equals(nil, Lib.get_latest_session())
     assert.equals(nil, Lib.get_latest_session(TL.session_dir))

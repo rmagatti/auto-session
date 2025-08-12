@@ -198,6 +198,7 @@ describe("The default config", function()
   it("can auto-delete empty session on auto-save", function()
     -- make sure auto-save is on (previous test disables it)
     c.auto_save = true
+    as.manually_named_session = false -- reset manually named session flag from last test
 
     -- make sure default session exists
     assert.equals(1, vim.fn.bufexists(TL.test_file))
