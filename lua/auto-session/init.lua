@@ -56,10 +56,6 @@ local function get_session_name(legacy, use_cwd)
   end
 end
 
-function AutoSession.current_session()
-  get_session_name()
-end
-
 local function is_enabled()
   return Config.enabled
 end
