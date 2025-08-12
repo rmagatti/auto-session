@@ -84,6 +84,11 @@ function M.assertSessionHasFile(session_path, file)
   assert.equals(true, M.sessionHasFile(session_path, file))
 end
 
+function M.assertSessionDoesNotHaveFile(session_path, file)
+  ---@diagnostic disable-next-line: undefined-field
+  assert.equals(false, M.sessionHasFile(session_path, file))
+end
+
 ---Clear session directory, session control file, and delete all buffers
 function M.clearSessionFilesAndBuffers()
   M.clearSessionFiles(M.session_dir)

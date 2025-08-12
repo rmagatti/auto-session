@@ -20,8 +20,40 @@ function AutoSession.setup(config)
   -- Validate the root dir here so it's always set up correctly
   AutoSession.get_root_dir()
 
+  -- Set up single session mode if enabled
+  if Config.single_session_mode then
+    AutoSession.manually_named_session = true
+    Lib.logger.debug("Single session mode enabled")
+  end
+
   -- Will also setup session lens
   AutoCmds.setup_autocmds(AutoSession)
+end
+
+---Determines the session name based on current state and parameters
+---@param legacy? boolean Whether to use legacy session name format
+---@param use_cwd? boolean Whether to force using current working directory (ignoring manually named sessions)
+---@return string session_name The determined session name for the given parameters and current state
+local function get_session_name(legacy, use_cwd)
+  local cwd = vim.fn.getcwd(-1, -1)
+
+  -- Sometimes we want to see what the default session name would be for the cwd, so
+  -- if this flag is set, we should ignore the manually named session
+  if not use_cwd and AutoSession.manually_named_session and vim.v.this_session and vim.v.this_session ~= "" then
+    session_name = Lib.escaped_session_name_to_session_name(vim.fn.fnamemodify(vim.v.this_session, ":t"))
+    Lib.logger.debug("get_session_name - manually_named_session is true, session_name: " .. session_name)
+    return session_name
+  else
+    -- We still want to respect the git_use_branch_name setting if enabled
+    if Config.git_use_branch_name then
+      local session_name_with_branch = Lib.combine_session_name_with_git_branch(cwd, Lib.get_git_branch_name(), legacy)
+      Lib.logger.debug("get_session_name - git enabled, session_name: " .. session_name_with_branch)
+      return session_name_with_branch
+    else
+      Lib.logger.debug("get_session_name - git not enabled, using cwd as session_name: " .. cwd)
+      return cwd
+    end
+  end
 end
 
 local function is_enabled()
@@ -196,13 +228,8 @@ end
 ---@return string Returns the escaped version of the name with .vim appended.
 local function get_session_file_name(session_name, legacy)
   if not session_name or session_name == "" then
-    session_name = vim.fn.getcwd(-1, -1)
-    Lib.logger.debug("get_session_file_name no session_name, using cwd: " .. session_name)
-
-    if Config.git_use_branch_name then
-      session_name = Lib.combine_session_name_with_git_branch(session_name, Lib.get_git_branch_name(), legacy)
-      Lib.logger.debug("git enabled, session_name:" .. session_name)
-    end
+    session_name = get_session_name(legacy, true) -- Use cwd to determine session name
+    Lib.logger.debug("get_session_file_name no session_name, using name: " .. session_name)
   end
 
   local escaped_session_name
@@ -253,13 +280,13 @@ end
 ---unless a session for the current working directory exists.
 ---@return boolean True if a session exists for the cwd
 function AutoSession.session_exists_for_cwd()
-  local session_file = get_session_file_name(vim.fn.getcwd(-1, -1))
+  local session_file = get_session_file_name(nil)
   if vim.fn.filereadable(AutoSession.get_root_dir() .. session_file) ~= 0 then
     return true
   end
 
   -- Check legacy sessions
-  session_file = get_session_file_name(vim.fn.getcwd(-1, -1), true)
+  session_file = get_session_file_name(nil, true)
   return vim.fn.filereadable(AutoSession.get_root_dir() .. session_file) ~= 0
 end
 
@@ -368,7 +395,7 @@ end
 ---@param session_name string The session name to restore
 ---@return boolean Was the session restored successfully
 function AutoSession.autosave_and_restore(session_name)
-  local cwd_session_name = Lib.escaped_session_name_to_session_name(get_session_file_name())
+  local cwd_session_name = Lib.escaped_session_name_to_session_name(get_session_file_name(nil))
   if cwd_session_name ~= session_name then
     Lib.logger.debug("Autosaving before restoring", { cwd = cwd_session_name, session_name = session_name })
     AutoSession.AutoSaveSession()
@@ -551,11 +578,17 @@ function AutoSession.SaveSessionToDir(session_dir, session_name, show_message)
   session_dir = Lib.validate_root_dir(session_dir)
   Lib.logger.debug("SaveSessionToDir validated session_dir: ", session_dir)
 
+  if not session_name or session_name == "" then
+    -- If no session name is passed in, retrieve the current session name
+    session_name = get_session_name()
+    Lib.logger.debug("SaveSessionToDir no session_name, using: " .. session_name)
+  end
+
   local escaped_session_name = get_session_file_name(session_name)
 
   Lib.logger.debug("SaveSessionToDir escaped session name: " .. escaped_session_name)
 
-  -- If a session_name was passed in and it's different than the one for
+  -- If we have a current session name and it's different than the one for
   -- the cwd, we know it's a manually named session. We track that so we
   -- can write to that session on exit
   if session_name then
@@ -628,6 +661,11 @@ function AutoSession.RestoreSessionFromDir(session_dir, session_name, opts)
   Lib.logger.debug("RestoreSessionFromDir escaped session name: " .. escaped_session_name)
 
   local session_path = session_dir .. escaped_session_name
+
+  -- We need to reset manually named session here in case we are restoring a
+  -- session that is not manually named.
+  -- In single_session_mode, every session is considered manually named
+  AutoSession.manually_named_session = Config.single_session_mode
 
   -- If a session_name was passed in and it's different than the one for
   -- the cwd, we know it's a manually named session. We track that so we
@@ -757,6 +795,11 @@ function AutoSession.RestoreSessionFile(session_path, opts)
     -- don't capture return values as we'll use success and result from the first call
     ---@diagnostic disable-next-line: param-type-mismatch
     pcall(vim.cmd, "silent! " .. cmd)
+  end
+
+  if Config.single_session_mode then
+    -- Maintain manually named session flag when restoring in single session mode
+    AutoSession.manually_named_session = true
   end
 
   AutoSession.restore_in_progress = false
