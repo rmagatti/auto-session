@@ -93,6 +93,41 @@ describe("single_session_mode", function()
     vim.cmd("cd " .. original_cwd)
   end)
 
+  it("properly clears manually_named_session when disabled", function()
+    local original_cwd = vim.fn.getcwd()
+
+    as.setup {
+      single_session_mode = false,
+    }
+
+    -- Start with manually_named_session cleared
+    as.manually_named_session = nil
+
+    -- Create and save a normal cwd-based session
+    vim.cmd("e " .. TL.test_file)
+    as.SaveSession()
+
+    -- Verify normal session was created
+    assert.equals(1, vim.fn.filereadable(TL.default_session_path))
+    assert.equals(nil, as.manually_named_session)
+
+    -- Now save a manually named session
+    as.SaveSession("manual_session")
+
+    -- Verify manually_named_session is now true
+    assert.True(as.manually_named_session)
+
+    -- Restore the normal session (by cwd)
+    assert.True(as.RestoreSession(original_cwd))
+
+    -- manually_named_session should now be false since we restored a normal session
+    assert.False(as.manually_named_session)
+
+    -- Clean up
+    local manual_session_path = TL.session_dir .. lib.escape_session_name("manual_session") .. ".vim"
+    vim.fn.delete(manual_session_path)
+  end)
+
   it("maintains single session mode functionality when restoring sessions ", function()
     as.setup {
       single_session_mode = false,

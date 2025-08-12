@@ -662,6 +662,11 @@ function AutoSession.RestoreSessionFromDir(session_dir, session_name, opts)
 
   local session_path = session_dir .. escaped_session_name
 
+  -- We need to reset manually named session here in case we are restoring a
+  -- session that is not manually named.
+  -- In single_session_mode, every session is considered manually named
+  AutoSession.manually_named_session = Config.single_session_mode
+
   -- If a session_name was passed in and it's different than the one for
   -- the cwd, we know it's a manually named session. We track that so we
   -- can write to that session on exit
