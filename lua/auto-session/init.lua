@@ -411,6 +411,11 @@ local function write_to_session_control_json(session_file_name)
   local control_file = Config.session_lens.session_control.control_filename
   session_file_name = Lib.expand(session_file_name)
 
+  if not control_dir or not control_file then
+    Lib.logger.error("control_dir or control_file are nil", control_dir, control_file)
+    return
+  end
+
   -- expand the path
   control_dir = vim.fn.expand(control_dir)
   Lib.init_dir(control_dir)
