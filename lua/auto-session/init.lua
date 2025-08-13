@@ -23,7 +23,7 @@ function AutoSession.setup(config)
   -- Set up single session mode if enabled
   if Config.single_session_mode then
     AutoSession.manually_named_session = true
-    Lib.logger.debug("Single session mode enabled")
+    Lib.logger.debug "Single session mode enabled"
   end
 
   -- Will also setup session lens
@@ -40,7 +40,7 @@ local function get_session_name(legacy, use_cwd)
   -- Sometimes we want to see what the default session name would be for the cwd, so
   -- if this flag is set, we should ignore the manually named session
   if not use_cwd and AutoSession.manually_named_session and vim.v.this_session and vim.v.this_session ~= "" then
-    session_name = Lib.escaped_session_name_to_session_name(vim.fn.fnamemodify(vim.v.this_session, ":t"))
+    local session_name = Lib.escaped_session_name_to_session_name(vim.fn.fnamemodify(vim.v.this_session, ":t"))
     Lib.logger.debug("get_session_name - manually_named_session is true, session_name: " .. session_name)
     return session_name
   else
