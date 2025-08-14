@@ -518,10 +518,12 @@ If that doesn't help, you can:
 
 # Compatibility
 
-Neovim > 0.7
+Neovim >= 0.10
+
+For support < 0.10, use tag pre-nvim-0.10
 
 Tested with:
 
 ```
-NVIM v0.7.2 - NVIM 0.11.2
+v0.10.3 - nightly
 ```
