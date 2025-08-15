@@ -11,26 +11,29 @@ local function is_available()
   return ok and fzf
 end
 
-local function find_session_by_display_name(display_name)
-  -- no metadata with Fzf, so have to find the session by display_name
-  local sessions = Lib.get_session_list(AutoSession.get_root_dir())
-  for _, session in ipairs(sessions) do
-    if session.display_name == display_name then
-      return session
-    end
-  end
-end
-
-local function on_session_selected(selected)
+---Find the session for the display name
+---@param selected table But we only consider the first element
+---@return table|nil
+local function find_session_by_display_name(selected)
   if not selected or #selected == 0 then
     Lib.logger.error "No session selected?"
     return
   end
 
-  local session = find_session_by_display_name(selected[1])
+  -- no metadata with Fzf, so have to find the session by display_name
+  local sessions = Lib.get_session_list(AutoSession.get_root_dir())
+  for _, session in ipairs(sessions) do
+    if session.display_name == selected[1] then
+      return session
+    end
+  end
 
+  Lib.logger.error("Couldn't find selected session: " .. selected[1])
+end
+
+local function on_session_selected(selected)
+  local session = find_session_by_display_name(selected)
   if not session then
-    Lib.logger.error("Couldn't find selected session: " .. selected[1])
     return
   end
 
@@ -40,15 +43,8 @@ local function on_session_selected(selected)
 end
 
 local function on_session_deleted(selected)
-  if not selected or #selected == 0 then
-    Lib.logger.error "No session selected?"
-    return
-  end
-
-  local session = find_session_by_display_name(selected[1])
-
+  local session = find_session_by_display_name(selected)
   if not session then
-    Lib.logger.error("Couldn't find selected session: " .. selected[1])
     return
   end
 
@@ -62,6 +58,20 @@ local function on_alternate_session(_)
       AutoSession.autosave_and_restore(altername_session_name)
     end
   end)
+end
+
+local function on_copy_session(selected)
+  local session = find_session_by_display_name(selected)
+  if not session then
+    return
+  end
+
+  local new_name = vim.fn.input("New session name: ", selected[1])
+  if not new_name or new_name == "" or new_name == selected[1] then
+    return
+  end
+  local content = vim.fn.readfile(session.path)
+  vim.fn.writefile(content, AutoSession.get_root_dir() .. Lib.escape_session_name(new_name) .. ".vim")
 end
 
 ---Map Vim-style modifier keys to fzf-lua notation
@@ -114,6 +124,11 @@ local function open_session_picker()
       [config_to_fzf_key_binding(keymaps.alternate_session)] = {
         on_alternate_session,
         header = "alternate",
+      },
+      [config_to_fzf_key_binding(keymaps.copy_session)] = {
+        on_copy_session,
+        require("fzf-lua").actions.resume,
+        header = "copy",
       },
     },
   })
