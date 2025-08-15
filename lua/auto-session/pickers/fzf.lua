@@ -131,6 +131,7 @@ local function open_session_picker()
         header = "copy",
       },
     },
+    winopts = Config.session_lens.picker_opts,
   })
 end
 

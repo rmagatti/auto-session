@@ -87,7 +87,7 @@ opts = {
   session_lens = {
     picker = nil, -- "telescope"|"snacks"|"fzf"|"select"|nil Pickers are detected automatically but you can also manually choose one. Falls back to vim.ui.select
     load_on_setup = true, -- Only used for telescope, registers the telescope extension startup
-    picker_opts = nil, -- Table passed to Telescope / Snacks to configure the picker. See below for more information
+    picker_opts = nil, -- Table passed to Telescope / Snacks / Fzf-Lua to configure the picker. See below for more information
     mappings = {
       -- Mode can be a string or a table, e.g. {"i", "n"} for both insert and normal mode
       delete_session = { "i", "<C-D>" },
@@ -202,6 +202,12 @@ return {
         --   width = 0.4,
         --   height = 0.4,
         -- },
+
+        -- For Fzf-Lua, picker_opts just turns into winopts, see:
+        -- https://github.com/ibhagwan/fzf-lua#customization
+        --
+        --  height = 0.8,
+        --  width = 0.50,
       },
 
       -- Telescope only: If load_on_setup is false, make sure you use `:SessionSearch` to open the picker as it will initialize everything first
@@ -221,7 +227,7 @@ The following default keymaps are available when the session-lens picker is open
 - `<C-S>` swaps to the previously opened session. This can give you a nice flow if you're constantly switching between two projects.
 - `<C-D>` will delete the currently highlighted session. This makes it easy to keep the session list clean.
 
-When using Telescope or Snacks, you can customize the picker using `picker_opts`. Refer to the links above for the specific picker configuration options.
+When using Telescope, Snacks, or Fzf-Lua, you can customize the picker using `picker_opts`. Refer to the links above for the specific picker configuration options.
 
 NOTE: If you previously installed `rmagatti/session-lens`, you should remove it from your config as it is no longer necessary.
 
