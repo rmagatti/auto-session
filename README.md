@@ -85,7 +85,8 @@ opts = {
   log_level = "error", -- Sets the log level of the plugin (debug, info, warn, error).
 
   session_lens = {
-    load_on_setup = true, -- Initialize on startup (requires Telescope)
+    picker = nil, -- "telescope"|"snacks"|"fzf"|"select"|nil Pickers are detected automatically but you can also manually choose one. Falls back to vim.ui.select
+    load_on_setup = true, -- Only used for telescope, registers the telescope extension startup
     picker_opts = nil, -- Table passed to Telescope / Snacks to configure the picker. See below for more information
     mappings = {
       -- Mode can be a string or a table, e.g. {"i", "n"} for both insert and normal mode
@@ -142,10 +143,10 @@ AutoSession exposes the following commands that can be used or mapped to any key
 
 :SessionPurgeOrphaned " removes all orphaned sessions with no working directory left.
 
-:SessionSearch " open a session picker, uses Telescope or Snacks if installed, vim.ui.select otherwise
+:SessionSearch " opens a session picker, see Config.session_lens.picker
 
-:Autosession search " open a vim.ui.select picker to choose a session to load.
-:Autosession delete " open a vim.ui.select picker to choose a session to delete.
+:Autosession search " opens a session picker, see Config.session_lens.picker
+:Autosession delete " opens a vim.ui.select picker to choose a session to delete.
 ```
 
 If you create a manually named session via `SessionSave my_session` or you restore one, that same session will be auto-saved (assuming that's enabled) when you exit.
@@ -154,7 +155,7 @@ If you create a manually named session via `SessionSave my_session` or you resto
 
 ## 🔭 Session Picker
 
-You can use Telescope or [snacks.nvim](https://github.com/folke/snacks.nvim) to see, load, and delete your sessions. The configuration options are in the `session_lens` section:
+You can use [Telescope](https://github.com/nvim-telescope/telescope.nvim), [snacks.nvim](https://github.com/folke/snacks.nvim), [Fzf-Lua](https://github.com/ibhagwan/fzf-lua) to see, load, and delete your sessions. The configuration options are in the `session_lens` section:
 
 ```lua
 return {
@@ -173,6 +174,7 @@ return {
   opts = {
     -- The following are already the default values, no need to provide them if these are already the settings you want.
     session_lens = {
+      picker = nil, -- "telescope"|"snacks"|"fzf"|"select"|nil Pickers are detected automatically but you can also manually choose one. Falls back to vim.ui.select
       mappings = {
         -- Mode can be a string or a table, e.g. {"i", "n"} for both insert and normal mode
         delete_session = { "i", "<C-D>" },
@@ -209,9 +211,9 @@ return {
 }
 ```
 
-Use `:SessionSearch` to launch the session picker. It will look for Telescope or Snacks and, if it can't find either, fall back to `vim.select`.
+Use `:SessionSearch` to launch the session picker. It will automatically look for Telescope, Snacks, and Fzf-Lua and use the first one it finds. If you have multiple pickers installed, you can set `session-lens.picker` to manually pick your picker. If no pickers are installed, it'll fall back to `vim.ui.select`
 
-If you're using Telescope and want to launch the picker via `:Telescope session-lens`, set `load_on_setup = true` or make sure you've called `:SessionSearch` first.
+If you're using Telescope and want to launch the picker via `:Telescope session-lens`, set `session-lens.load_on_setup = true` or make sure you've called `:SessionSearch` first.
 
 The following default keymaps are available when the session-lens picker is open:
 
