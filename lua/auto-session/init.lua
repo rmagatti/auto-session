@@ -23,7 +23,7 @@ function AutoSession.setup(config)
   -- Set up single session mode if enabled
   if Config.single_session_mode then
     AutoSession.manually_named_session = true
-    Lib.logger.debug("Single session mode enabled")
+    Lib.logger.debug "Single session mode enabled"
   end
 
   -- Will also setup session lens
@@ -40,7 +40,7 @@ local function get_session_name(legacy, use_cwd)
   -- Sometimes we want to see what the default session name would be for the cwd, so
   -- if this flag is set, we should ignore the manually named session
   if not use_cwd and AutoSession.manually_named_session and vim.v.this_session and vim.v.this_session ~= "" then
-    session_name = Lib.escaped_session_name_to_session_name(vim.fn.fnamemodify(vim.v.this_session, ":t"))
+    local session_name = Lib.escaped_session_name_to_session_name(vim.fn.fnamemodify(vim.v.this_session, ":t"))
     Lib.logger.debug("get_session_name - manually_named_session is true, session_name: " .. session_name)
     return session_name
   else
@@ -411,6 +411,11 @@ local function write_to_session_control_json(session_file_name)
   local control_file = Config.session_lens.session_control.control_filename
   session_file_name = Lib.expand(session_file_name)
 
+  if not control_dir or not control_file then
+    Lib.logger.error("control_dir or control_file are nil", control_dir, control_file)
+    return
+  end
+
   -- expand the path
   control_dir = vim.fn.expand(control_dir)
   Lib.init_dir(control_dir)
@@ -602,7 +607,7 @@ function AutoSession.SaveSessionToDir(session_dir, session_name, show_message)
 
   local session_path = session_dir .. escaped_session_name
 
-  Lib.close_ignored_filetypes(Config.ignore_filetypes_on_save)
+  Lib.close_ignored_filetypes(Config.close_filetypes_on_save)
 
   AutoSession.run_cmds "pre_save"
 
@@ -781,7 +786,7 @@ function AutoSession.RestoreSessionFile(session_path, opts)
   end
 
   -- Clear the buffers and jumps
-  vim.cmd "silent %bw!"
+  Lib.conditional_buffer_wipeout(Config.preserve_buffer_on_restore)
   vim.cmd "silent clearjumps"
 
   ---@diagnostic disable-next-line: param-type-mismatch
@@ -789,7 +794,7 @@ function AutoSession.RestoreSessionFile(session_path, opts)
 
   -- normal restore failed, source again but with silent! to restore as much as possible
   if not success and Config.continue_restore_on_error then
-    vim.cmd "silent %bw!"
+    Lib.conditional_buffer_wipeout(Config.preserve_buffer_on_restore)
     vim.cmd "silent clearjumps"
 
     -- don't capture return values as we'll use success and result from the first call

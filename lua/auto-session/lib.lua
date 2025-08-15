@@ -868,4 +868,19 @@ function Lib.debounce(fn, opts)
   end
 end
 
+---Wipeout buffers, checking callback if not nil
+---@param should_preserve_buffer should_preserve_buffer_fn
+function Lib.conditional_buffer_wipeout(should_preserve_buffer)
+  if not should_preserve_buffer then
+    vim.cmd "silent %bw!"
+    return
+  end
+
+  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+    if not should_preserve_buffer(bufnr) then
+      vim.api.nvim_buf_delete(bufnr, { force = true })
+    end
+  end
+end
+
 return Lib
