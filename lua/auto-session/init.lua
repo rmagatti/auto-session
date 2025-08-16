@@ -163,9 +163,7 @@ local function bypass_save_by_filetype()
   for _, current_window in ipairs(windows) do
     local buf = vim.api.nvim_win_get_buf(current_window)
 
-    -- Deprecated as 0.9.0, should update to following when we only want to support 0.9.0+
-    -- local buf_ft = vim.bo[buf].filetype
-    local buf_ft = vim.api.nvim_buf_get_option(buf, "filetype")
+    local buf_ft = vim.bo[buf].filetype
 
     local local_return = false
     for _, ft_to_bypass in ipairs(filetypes_to_bypass) do
