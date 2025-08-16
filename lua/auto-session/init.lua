@@ -1,6 +1,5 @@
 local Lib = require "auto-session.lib"
 local Config = require "auto-session.config"
-local AutoCmds = require "auto-session.autocmds"
 
 local uv = vim.uv or vim.loop
 
@@ -26,8 +25,7 @@ function AutoSession.setup(config)
     Lib.logger.debug "Single session mode enabled"
   end
 
-  -- Will also setup session lens
-  AutoCmds.setup_autocmds(AutoSession)
+  require("auto-session.autocmds").setup_autocmds()
 end
 
 ---Determines the session name based on current state and parameters

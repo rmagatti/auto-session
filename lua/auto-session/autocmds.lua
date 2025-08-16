@@ -1,5 +1,6 @@
 local Lib = require "auto-session.lib"
 local Config = require "auto-session.config"
+local AutoSession = require "auto-session"
 
 ---@mod auto-session.commands Commands
 ---@brief [[
@@ -27,14 +28,14 @@ local M = {}
 
 ---Calls lib function for completing session names with session dir
 local function complete_session(ArgLead, CmdLine, CursorPos)
-  return Lib.complete_session_for_dir(M.AutoSession.get_root_dir(), ArgLead, CmdLine, CursorPos)
+  return Lib.complete_session_for_dir(AutoSession.get_root_dir(), ArgLead, CmdLine, CursorPos)
 end
 
 --- Deletes sessions where the original directory no longer exists
 local function purge_orphaned_sessions()
   local orphaned_sessions = {}
 
-  local session_files = Lib.get_session_list(M.AutoSession.get_root_dir())
+  local session_files = Lib.get_session_list(AutoSession.get_root_dir())
   for _, session in ipairs(session_files) do
     if
       not Lib.is_named_session(session.session_name)
@@ -54,13 +55,13 @@ local function purge_orphaned_sessions()
   for _, session_name in ipairs(orphaned_sessions) do
     Lib.logger.info("Purging: ", session_name)
     local escaped_session = Lib.escape_session_name(session_name)
-    local session_path = string.format("%s/%s.vim", M.AutoSession.get_root_dir(), escaped_session)
+    local session_path = string.format("%s/%s.vim", AutoSession.get_root_dir(), escaped_session)
     Lib.logger.debug("purging: " .. session_path)
     vim.fn.delete(Lib.expand(session_path))
   end
 end
 
-local function setup_dirchanged_autocmds(AutoSession)
+local function setup_dirchanged_autocmds()
   if not Config.cwd_change_handling then
     Lib.logger.debug "cwd_change_handling is disabled, skipping setting DirChangedPre and DirChanged autocmd handling"
     return
@@ -71,6 +72,7 @@ local function setup_dirchanged_autocmds(AutoSession)
       Lib.logger.debug "DirChangedPre"
       Lib.logger.debug {
         cwd = vim.fn.getcwd(-1, -1),
+        ---@diagnostic disable-next-line: undefined-field
         target = vim.v.event.directory,
         ["changed window"] = tostring(vim.v.event.changed_window),
         scope = vim.v.event.scope,
@@ -143,21 +145,15 @@ end
 
 ---@private
 ---Setup autocmds for DirChangedPre and DirChanged
----@param AutoSession table auto session instance
-function M.setup_autocmds(AutoSession)
+function M.setup_autocmds()
   -- Check if the auto-session plugin has already been loaded to prevent loading it twice
   if vim.g.loaded_auto_session ~= nil then
     return
   end
-
-  -- Set here to avoid req
-  M.AutoSession = AutoSession
-
-  -- Initialize variables
   vim.g.in_pager_mode = false
 
   vim.api.nvim_create_user_command("SessionSave", function(args)
-    return AutoSession.SaveSession(args.args)
+    AutoSession.SaveSession(args.args)
   end, {
     complete = complete_session,
     bang = true,
@@ -166,7 +162,7 @@ function M.setup_autocmds(AutoSession)
   })
 
   vim.api.nvim_create_user_command("SessionRestore", function(args)
-    return AutoSession.RestoreSession(args.args)
+    AutoSession.RestoreSession(args.args)
   end, {
     complete = complete_session,
     bang = true,
@@ -175,7 +171,7 @@ function M.setup_autocmds(AutoSession)
   })
 
   vim.api.nvim_create_user_command("SessionDelete", function(args)
-    return AutoSession.DeleteSession(args.args)
+    AutoSession.DeleteSession(args.args)
   end, {
     complete = complete_session,
     bang = true,
@@ -184,14 +180,14 @@ function M.setup_autocmds(AutoSession)
   })
 
   vim.api.nvim_create_user_command("SessionDisableAutoSave", function(args)
-    return AutoSession.DisableAutoSave(args.bang)
+    AutoSession.DisableAutoSave(args.bang)
   end, {
     bang = true,
     desc = "Disable autosave. Enable with a !",
   })
 
   vim.api.nvim_create_user_command("SessionToggleAutoSave", function()
-    return AutoSession.DisableAutoSave(not Config.auto_save)
+    AutoSession.DisableAutoSave(not Config.auto_save)
   end, {
     bang = true,
     desc = "Toggle autosave",
@@ -315,7 +311,7 @@ function M.setup_autocmds(AutoSession)
     })
   end
 
-  setup_dirchanged_autocmds(AutoSession)
+  setup_dirchanged_autocmds()
 
   if Config.session_lens.load_on_setup then
     -- calling is_available will trigger loading the extension
