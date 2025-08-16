@@ -107,9 +107,12 @@ local combined = new_set {}
 local pickers = {
   { "telescope", "require('telescope').setup()" },
   { "snacks", "require('snacks').setup({picker = {enabled = true}})" },
-  { "fzf", "require('fzf-lua').setup()" },
   -- can't test select because it blocks for input which hangs the test
 }
+
+if vim.fn.executable "fzf" == 1 then
+  table.insert(pickers, { "fzf", "require('fzf-lua').setup()" })
+end
 
 for _, picker in ipairs(pickers) do
   combined["tests with picker " .. picker[1]] = make_tests({
