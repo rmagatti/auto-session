@@ -60,6 +60,83 @@ Here are the default settings:
 
 <!-- types:start -->
 
+```lua
+---@class AutoSession.Config
+---
+---Saving / restoring
+---@field enabled? boolean
+---@field auto_save? boolean
+---@field auto_restore? boolean
+---@field auto_create? boolean|fun(): should_create_session:boolean
+---@field auto_restore_last_session? boolean
+---@field cwd_change_handling? boolean
+---@field single_session_mode? boolean
+---
+---Filtering
+---@field suppressed_dirs? table
+---@field allowed_dirs? table
+---@field bypass_save_filetypes? table
+---@field close_filetypes_on_save? table
+---@field close_unsupported_windows? boolean
+---@field preserve_buffer_on_restore? fun(bufnr:number): preserve_buffer:boolean
+---
+---Deleting
+---@field auto_delete_empty_sessions? boolean
+---@field purge_after_minutes? number
+---
+---Git
+---@field git_use_branch_name? boolean
+---@field git_auto_restore_on_branch_change? boolean
+---
+---Saving extra data
+---@field save_extra_data? fun(session_name:string): extra_data:string
+---@field restore_extra_data? fun(session_name:string, extra_data:string)
+---
+---Argument handling
+---@field args_allow_single_directory? boolean
+---@field args_allow_files_auto_save? boolean|fun(session_name:string, extra_data:string)
+---
+---Misc
+---@field log_level? string|integer
+---@field root_dir? string
+---@field show_auto_restore_notif? boolean
+---@field restore_error_handler? fun(error_msg:string): disable_auto_save:boolean
+---@field continue_restore_on_error? boolean
+---@field lsp_stop_on_restore? boolean|fun()
+---@field lazy_support? boolean
+---
+---@field session_lens? SessionLens
+---
+---Session Lens Config
+---@class SessionLens
+---@field picker? "telescope"|"snacks"|"fzf"|"select"
+---@field load_on_setup? boolean
+---@field picker_opts? table
+---@field session_control? SessionControl
+---@field mappings? SessionLensMappings
+---
+---@class SessionLensMappings
+---@field delete_session? table
+---@field alternate_session? table
+---@field copy_session? table
+---
+---@class SessionControl
+---@field control_dir? string
+---@field control_filename? string
+---
+---Hooks
+---@field pre_save_cmds? table executes before a session is saved
+---@field save_extra_cmds? table executes before a session is saved
+---@field post_save_cmds? table executes after a session is saved
+---@field pre_restore_cmds? table executes before a session is restored
+---@field post_restore_cmds? table executes after a session is restored
+---@field pre_delete_cmds? table executes before a session is deleted
+---@field post_delete_cmds? table executes after a session is deleted
+---@field no_restore_cmds? table executes at VimEnter when no session is restored
+---@field pre_cwd_changed_cmds? table executes before cwd is changed if cwd_change_handling is true
+---@field post_cwd_changed_cmds? table executes after cwd is changed if cwd_change_handling is true
+```
+
 <!-- types:end -->
 
 </details>
@@ -84,7 +161,7 @@ local defaults = {
   bypass_save_filetypes = nil, -- List of filetypes to bypass auto save when the only buffer open is one of the file types listed, useful to ignore dashboards
   close_filetypes_on_save = { "checkhealth" }, -- Buffers with matching filetypes will be closed before saving
   close_unsupported_windows = true, -- Close windows that aren't backed by normal file before autosaving a session
-  preserve_buffer_on_restore = nil, -- should_preserve_buffer_fn, return true if a buffer should be preserved when restoring a session
+  preserve_buffer_on_restore = nil, -- return true if a buffer should be preserved when restoring a session
 
   -- Git
   git_use_branch_name = false, -- Include git branch name in session name
