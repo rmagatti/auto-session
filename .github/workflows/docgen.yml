@@ -30,7 +30,5 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           branch: ${{ github.head_ref }}
-          commit_message: "chore(docs): auto-generate vimdoc, update README"
-          file_pattern: |
-            doc/*.txt
-            README.md
+          commit_message: "chore(docs): auto-generate docs"
+          file_pattern: "doc/*.txt README.md"
