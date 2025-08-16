@@ -1,8 +1,3 @@
--- Fix when running under busted
-if type(assert) == "function" then
-  assert = require "luassert"
-end
-
 local asLib = require "auto-session.lib"
 local M = {}
 
