@@ -330,6 +330,12 @@ return setmetatable(M, {
     ---@diagnostic disable-next-line: need-check-nil
     return M.options[key]
   end,
+  __newindex = function(_, key, value)
+    if M.options == nil then
+      M.setup()
+    end
+    M.options[key] = value
+  end,
   __tostring = function(_)
     return vim.inspect(M.options)
   end,
