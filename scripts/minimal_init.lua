@@ -28,5 +28,8 @@ while handle do
   end
 end
 
+-- Add current directory to 'runtimepath' so we can load auto-session
+vim.cmd [[let &rtp.=','.getcwd()]]
+
 -- make sure plenary is loaded
 require "plenary"

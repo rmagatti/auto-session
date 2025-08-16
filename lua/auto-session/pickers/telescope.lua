@@ -1,7 +1,6 @@
 local Config = require "auto-session.config"
 local Lib = require "auto-session.lib"
 local AutoSession = require "auto-session"
-local Actions = require "auto-session.pickers.telescope_actions"
 
 local function is_available()
   -- don't just want to see if the telescope files are there,
@@ -101,6 +100,7 @@ local function extension_search_session(custom_opts)
     }
   end
 
+  local Actions = require "auto-session.pickers.telescope_actions"
   local opts = {
     prompt_title = "Sessions",
     attach_mappings = function(prompt_bufnr, map)
