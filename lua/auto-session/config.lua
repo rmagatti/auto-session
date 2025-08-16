@@ -12,7 +12,7 @@ local M = {}
 ---@field enabled? boolean
 ---@field auto_save? boolean
 ---@field auto_restore? boolean
----@field auto_create? boolean|auto_create_fn
+---@field auto_create? boolean|fun(): should_create_session:boolean
 ---@field auto_restore_last_session? boolean
 ---@field cwd_change_handling? boolean
 ---@field single_session_mode? boolean
@@ -23,7 +23,7 @@ local M = {}
 ---@field bypass_save_filetypes? table
 ---@field close_filetypes_on_save? table
 ---@field close_unsupported_windows? boolean
----@field preserve_buffer_on_restore? should_preserve_buffer_fn
+---@field preserve_buffer_on_restore? fun(bufnr:number): preserve_buffer:boolean
 ---
 ---Deleting
 ---@field auto_delete_empty_sessions? boolean
@@ -34,20 +34,20 @@ local M = {}
 ---@field git_auto_restore_on_branch_change? boolean
 ---
 ---Saving extra data
----@field save_extra_data? save_extra_data_fn
----@field restore_extra_data? restore_extra_data_fn
+---@field save_extra_data? fun(session_name:string): extra_data:string
+---@field restore_extra_data? fun(session_name:string, extra_data:string)
 ---
 ---Argument handling
 ---@field args_allow_single_directory? boolean
----@field args_allow_files_auto_save? boolean|allow_save_fn
+---@field args_allow_files_auto_save? boolean|fun(session_name:string, extra_data:string)
 ---
 ---Misc
 ---@field log_level? string|integer
 ---@field root_dir? string
 ---@field show_auto_restore_notif? boolean
----@field restore_error_handler? restore_error_fn
+---@field restore_error_handler? fun(error_msg:string): disable_auto_save:boolean
 ---@field continue_restore_on_error? boolean
----@field lsp_stop_on_restore? boolean|function
+---@field lsp_stop_on_restore? boolean|fun()
 ---@field lazy_support? boolean
 ---
 ---@field session_lens? SessionLens
@@ -69,14 +69,6 @@ local M = {}
 ---@field control_dir? string
 ---@field control_filename? string
 ---
----Callback types
----@alias allow_save_fn fun(): should_save_session:boolean
----@alias auto_create_fn fun(): should_create_session:boolean
----@alias should_preserve_buffer_fn fun(bufnr:number): preserve_buffer:boolean
----@alias restore_error_fn fun(error_msg:string): disable_auto_save:boolean
----@alias save_extra_data_fn fun(session_name:string): extra_data:string
----@alias restore_extra_data_fn fun(session_name:string, extra_data:string)
----
 ---Hooks
 ---@field pre_save_cmds? table executes before a session is saved
 ---@field save_extra_cmds? table executes before a session is saved
@@ -95,6 +87,7 @@ local defaults = {
   enabled = true, -- Enables/disables auto creating, saving and restoring
   auto_save = true, -- Enables/disables auto saving session on exit
   auto_restore = true, -- Enables/disables auto restoring session on start
+
   auto_create = true, -- Enables/disables auto creating new session files. Can take a function that should return true/false if a new session file should be created or not
   auto_restore_last_session = false, -- On startup, loads the last saved session if session for cwd does not exist
   cwd_change_handling = false, -- Automatically save/restore sessions when changing directories
@@ -106,7 +99,7 @@ local defaults = {
   bypass_save_filetypes = nil, -- List of filetypes to bypass auto save when the only buffer open is one of the file types listed, useful to ignore dashboards
   close_filetypes_on_save = { "checkhealth" }, -- Buffers with matching filetypes will be closed before saving
   close_unsupported_windows = true, -- Close windows that aren't backed by normal file before autosaving a session
-  preserve_buffer_on_restore = nil, -- should_preserve_buffer_fn, return true if a buffer should be preserved when restoring a session
+  preserve_buffer_on_restore = nil, -- return true if a buffer should be preserved when restoring a session
 
   -- Git
   git_use_branch_name = false, -- Include git branch name in session name

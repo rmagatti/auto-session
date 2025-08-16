@@ -56,12 +56,23 @@ Manually saving a session can still be done by calling `:SessionSave`.
 
 Here are the default settings:
 
+<details><summary>Types</summary>
+
+<!-- types:start -->
+
+<!-- types:end -->
+
+</details>
+
+<!-- config:start -->
+
 ```lua
-opts = {
+local defaults = {
   -- Saving / restoring
   enabled = true, -- Enables/disables auto creating, saving and restoring
   auto_save = true, -- Enables/disables auto saving session on exit
   auto_restore = true, -- Enables/disables auto restoring session on start
+
   auto_create = true, -- Enables/disables auto creating new session files. Can take a function that should return true/false if a new session file should be created or not
   auto_restore_last_session = false, -- On startup, loads the last saved session if session for cwd does not exist
   cwd_change_handling = false, -- Automatically save/restore sessions when changing directories
@@ -122,6 +133,8 @@ opts = {
   },
 }
 ```
+
+<!-- config:end -->
 
 NOTE: Older configuration names are still currently supported and will be automatically translated to the names above. If you want to update your config to the new names, `:checkhealth auto-session` will show you your config using the new names.
 

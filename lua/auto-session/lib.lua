@@ -877,7 +877,7 @@ function Lib.debounce(fn, opts)
 end
 
 ---Wipeout buffers, checking callback if not nil
----@param should_preserve_buffer should_preserve_buffer_fn
+---@param should_preserve_buffer fun(bufnr:number): preserve_buffer:boolean
 function Lib.conditional_buffer_wipeout(should_preserve_buffer)
   if not should_preserve_buffer then
     vim.cmd "silent %bw!"
