@@ -28,7 +28,7 @@ describe("The default config", function()
     TL.assertSessionHasFile(cwd_session_path, TL.test_file)
   end)
 
-  it("can restore a session for thr cwd from a custom directory", function()
+  it("can restore a session for the cwd from a custom directory", function()
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 
     vim.cmd "silent %bw"

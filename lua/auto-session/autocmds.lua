@@ -1,6 +1,6 @@
 local Lib = require "auto-session.lib"
 local Config = require "auto-session.config"
-local SessionLens -- will be initialized later
+local AutoSession = require "auto-session"
 
 ---@mod auto-session.commands Commands
 ---@brief [[
@@ -21,62 +21,21 @@ local SessionLens -- will be initialized later
 ---
 ---  `:SessionPurgeOrphaned` - removes all orphaned sessions with no working directory left.
 ---
----  `:SessionSearch` - open a session picker, uses Telescope or Snacks if installed, vim.ui.select otherwise
+---  `:SessionSearch` - opens a session picker, see Config.session_lens.picker
 ---@brief ]]
 
 local M = {}
 
 ---Calls lib function for completing session names with session dir
 local function complete_session(ArgLead, CmdLine, CursorPos)
-  return Lib.complete_session_for_dir(M.AutoSession.get_root_dir(), ArgLead, CmdLine, CursorPos)
-end
-
----@private
----@class PickerItem
----@field session_name string
----@field display_name string
----@field path string
-
----@param files string[]
----@param prompt string
----@param callback fun(choice: PickerItem)
-local function open_picker(files, prompt, callback)
-  vim.ui.select(files, {
-    prompt = prompt,
-    kind = "auto-session",
-    format_item = function(item)
-      return item.display_name
-    end,
-  }, function(choice)
-    if choice then
-      callback(choice)
-    end
-  end)
-end
-
----@param data table
-local function handle_autosession_command(data)
-  local files = Lib.get_session_list(M.AutoSession.get_root_dir())
-  if data.args:match "search" then
-    open_picker(files, "Select a session:", function(choice)
-      -- Defer session loading function to fix issue with Fzf and terminal sessions:
-      -- https://github.com/rmagatti/auto-session/issues/391
-      vim.defer_fn(function()
-        M.AutoSession.autosave_and_restore(choice.session_name)
-      end, 50)
-    end)
-  elseif data.args:match "delete" then
-    open_picker(files, "Delete a session:", function(choice)
-      M.AutoSession.DeleteSessionFile(choice.path, choice.display_name)
-    end)
-  end
+  return Lib.complete_session_for_dir(AutoSession.get_root_dir(), ArgLead, CmdLine, CursorPos)
 end
 
 --- Deletes sessions where the original directory no longer exists
 local function purge_orphaned_sessions()
   local orphaned_sessions = {}
 
-  local session_files = Lib.get_session_list(M.AutoSession.get_root_dir())
+  local session_files = Lib.get_session_list(AutoSession.get_root_dir())
   for _, session in ipairs(session_files) do
     if
       not Lib.is_named_session(session.session_name)
@@ -96,111 +55,13 @@ local function purge_orphaned_sessions()
   for _, session_name in ipairs(orphaned_sessions) do
     Lib.logger.info("Purging: ", session_name)
     local escaped_session = Lib.escape_session_name(session_name)
-    local session_path = string.format("%s/%s.vim", M.AutoSession.get_root_dir(), escaped_session)
+    local session_path = string.format("%s/%s.vim", AutoSession.get_root_dir(), escaped_session)
     Lib.logger.debug("purging: " .. session_path)
     vim.fn.delete(Lib.expand(session_path))
   end
 end
 
----@private
----Make sure session_lens is setup. Ok to call multiple times
-local function setup_session_lens()
-  if SessionLens then
-    return true
-  end
-
-  local has_telescope, telescope = pcall(require, "telescope")
-
-  if not has_telescope then
-    return false
-  end
-
-  SessionLens = require "auto-session.session-lens"
-  -- Register session-lens as an extension so :Telescope will complete on session-lens
-  telescope.load_extension "session-lens"
-  return true
-end
-
-local function has_snacks()
-  local success, snacks_picker_enabled = pcall(function()
-    ---@diagnostic disable-next-line: undefined-field
-    return Snacks.config.picker.enabled
-  end)
-  return success and snacks_picker_enabled
-end
-
-local function snacks_session_search()
-  local mappings = Config.session_lens.mappings or {}
-
-  -- If layout is nil or empty, default to select preset
-  local layout = Config.session_lens.picker_opts or {}
-  if vim.tbl_isempty(layout) then
-    layout = { preset = "select" }
-  end
-
-  Snacks.picker.pick {
-    title = "Sessions",
-    finder = function()
-      return Lib.get_session_list(M.AutoSession.get_root_dir())
-    end,
-    format = "text",
-    transform = function(item)
-      item.text = item.display_name
-      item.file = item.path
-    end,
-    layout = layout,
-    win = {
-      input = {
-        keys = {
-          ["dd"] = "session_delete",
-          [mappings.delete_session[2]] = { "session_delete", mode = mappings.delete_session[1] },
-          [mappings.alternate_session[2]] = { "session_alternate", mode = mappings.alternate_session[1] },
-          [mappings.copy_session[2]] = { "session_copy", mode = mappings.copy_session[1] },
-        },
-      },
-      list = { keys = { ["dd"] = "session_delete" } },
-    },
-    actions = {
-      confirm = function(picker, item)
-        picker:close()
-        vim.schedule(function()
-          M.AutoSession.autosave_and_restore(item.session_name)
-        end)
-      end,
-      session_delete = function(picker, item)
-        vim.schedule(function()
-          M.AutoSession.DeleteSessionFile(item.path, item.display_name)
-          picker:find() -- refresh picker
-        end)
-      end,
-      session_alternate = function(picker, _)
-        vim.schedule(function()
-          local altername_session_name = Lib.get_alternate_session_name(Config.session_lens.session_control)
-          if not altername_session_name then
-            return
-          end
-          picker:close()
-          vim.defer_fn(function()
-            M.AutoSession.autosave_and_restore(altername_session_name)
-          end, 50)
-        end)
-      end,
-      session_copy = function(picker, item)
-        vim.schedule(function()
-          local new_name = vim.fn.input("New session name: ", item.text)
-          if not new_name or new_name == "" or new_name == item.text then
-            return
-          end
-          local content = vim.fn.readfile(item.path)
-          vim.fn.writefile(content, M.AutoSession.get_root_dir() .. Lib.escape_session_name(new_name) .. ".vim")
-          picker:find() -- refresh picker
-        end)
-      end,
-    },
-  }
-end
-
-local function setup_dirchanged_autocmds(AutoSession)
+local function setup_dirchanged_autocmds()
   if not Config.cwd_change_handling then
     Lib.logger.debug "cwd_change_handling is disabled, skipping setting DirChangedPre and DirChanged autocmd handling"
     return
@@ -211,6 +72,7 @@ local function setup_dirchanged_autocmds(AutoSession)
       Lib.logger.debug "DirChangedPre"
       Lib.logger.debug {
         cwd = vim.fn.getcwd(-1, -1),
+        ---@diagnostic disable-next-line: undefined-field
         target = vim.v.event.directory,
         ["changed window"] = tostring(vim.v.event.changed_window),
         scope = vim.v.event.scope,
@@ -283,21 +145,15 @@ end
 
 ---@private
 ---Setup autocmds for DirChangedPre and DirChanged
----@param AutoSession table auto session instance
-function M.setup_autocmds(AutoSession)
+function M.setup_autocmds()
   -- Check if the auto-session plugin has already been loaded to prevent loading it twice
   if vim.g.loaded_auto_session ~= nil then
     return
   end
-
-  -- Set here to avoid req
-  M.AutoSession = AutoSession
-
-  -- Initialize variables
   vim.g.in_pager_mode = false
 
   vim.api.nvim_create_user_command("SessionSave", function(args)
-    return AutoSession.SaveSession(args.args)
+    AutoSession.SaveSession(args.args)
   end, {
     complete = complete_session,
     bang = true,
@@ -306,7 +162,7 @@ function M.setup_autocmds(AutoSession)
   })
 
   vim.api.nvim_create_user_command("SessionRestore", function(args)
-    return AutoSession.RestoreSession(args.args)
+    AutoSession.RestoreSession(args.args)
   end, {
     complete = complete_session,
     bang = true,
@@ -315,7 +171,7 @@ function M.setup_autocmds(AutoSession)
   })
 
   vim.api.nvim_create_user_command("SessionDelete", function(args)
-    return AutoSession.DeleteSession(args.args)
+    AutoSession.DeleteSession(args.args)
   end, {
     complete = complete_session,
     bang = true,
@@ -324,37 +180,32 @@ function M.setup_autocmds(AutoSession)
   })
 
   vim.api.nvim_create_user_command("SessionDisableAutoSave", function(args)
-    return AutoSession.DisableAutoSave(args.bang)
+    AutoSession.DisableAutoSave(args.bang)
   end, {
     bang = true,
     desc = "Disable autosave. Enable with a !",
   })
 
   vim.api.nvim_create_user_command("SessionToggleAutoSave", function()
-    return AutoSession.DisableAutoSave(not Config.auto_save)
+    AutoSession.DisableAutoSave(not Config.auto_save)
   end, {
     bang = true,
     desc = "Toggle autosave",
   })
 
   vim.api.nvim_create_user_command("SessionSearch", function()
-    -- Use telescope if installed, otherwise snacks, otherwise vim.ui.select
-    if setup_session_lens() and SessionLens then
-      vim.cmd "Telescope session-lens"
-      return
-    end
-
-    if has_snacks() then
-      snacks_session_search()
-      return
-    end
-
-    handle_autosession_command { args = "search" }
+    return require("auto-session.pickers").open_session_picker()
   end, {
     desc = "Open a session picker",
   })
 
-  vim.api.nvim_create_user_command("Autosession", handle_autosession_command, {
+  vim.api.nvim_create_user_command("Autosession", function(args)
+    if args.args:match "search" then
+      return require("auto-session.pickers").open_session_picker()
+    elseif args.args:match "delete" then
+      return require("auto-session.pickers.select").open_delete_picker()
+    end
+  end, {
     complete = function(_, _, _)
       return { "search", "delete" }
     end,
@@ -460,11 +311,11 @@ function M.setup_autocmds(AutoSession)
     })
   end
 
-  setup_dirchanged_autocmds(AutoSession)
+  setup_dirchanged_autocmds()
 
   if Config.session_lens.load_on_setup then
-    Lib.logger.debug "Loading session lens"
-    setup_session_lens()
+    -- calling is_available will trigger loading the extension
+    require("auto-session.pickers.telescope").is_available()
   end
 end
 
