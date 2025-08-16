@@ -27,7 +27,7 @@ mini-tests:
 	$(NVIM) --headless --noplugin -u scripts/minimal_init_mini.lua -c "lua MiniTest.run()"
 
 # Use lazy.nvim to download the plugins. The actual tests don't use lazy.nvim
-lazy $():
+lazy $(PLUGINS):
 	$(NVIM) --headless -u scripts/lazy_init.lua
 
 clean:
