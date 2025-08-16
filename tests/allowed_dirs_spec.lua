@@ -3,18 +3,28 @@ local TL = require "tests/test_lib"
 TL.clearSessionFilesAndBuffers()
 
 describe("The allowed dirs config", function()
+  local original_cwd
+  local uv = vim.uv or vim.loop
+
+  before_each(function()
+    TL.clearSessionFilesAndBuffers()
+    original_cwd = uv.cwd()
+  end)
+
+  after_each(function()
+    uv.chdir(original_cwd)
+  end)
+
   local as = require "auto-session"
   local c = require "auto-session.config"
   as.setup {
     auto_session_allowed_dirs = { "/dummy" },
     -- log_level = "debug",
   }
-
-  TL.clearSessionFilesAndBuffers()
-  vim.cmd("e " .. TL.test_file)
   local cwd = vim.fn.getcwd()
 
   it("doesn't save a session for a non-allowed dir", function()
+    vim.cmd("e " .. TL.test_file)
     as.AutoSaveSession()
 
     -- Make sure the session was not created
@@ -22,6 +32,7 @@ describe("The allowed dirs config", function()
   end)
 
   it("saves a session for an allowed dir", function()
+    vim.cmd("e " .. TL.test_file)
     c.allowed_dirs = { vim.fn.getcwd() }
     as.AutoSaveSession()
 
@@ -33,7 +44,6 @@ describe("The allowed dirs config", function()
   end)
 
   it("saves a session for an allowed dir with a glob", function()
-    TL.clearSessionFilesAndBuffers()
     vim.cmd("e " .. TL.test_file)
     c.allowed_dirs = { vim.fn.getcwd() .. "/tests/*" }
 
@@ -51,7 +61,6 @@ describe("The allowed dirs config", function()
 
   if vim.fn.has "win32" == 0 then
     it("saves a session for an allowed dir with a symlink", function()
-      TL.clearSessionFilesAndBuffers()
       vim.cmd("cd " .. cwd)
 
       vim.cmd("e " .. TL.test_file)

@@ -1,11 +1,15 @@
-require "plenary"
+-- Fix when running under busted
+if type(assert) == "function" then
+  assert = require "luassert"
+end
+
 local asLib = require "auto-session.lib"
 local M = {}
 
 -- This disables the headless check inside autosession
 -- I couldn't find a good way to mock out the calls to make this unnecessary
 -- without creating more problems
-vim.fn.setenv("AUTOSESSION_UNIT_TESTING", 1)
+vim.fn.setenv("AUTOSESSION_UNIT_TESTING", "1")
 
 function M.escapeSessionName(session_name)
   return asLib.percent_encode(session_name)
@@ -13,7 +17,7 @@ end
 
 function M.legacyEscapeSessionName(session_name)
   if vim.fn.has "win32" == 1 then
-    -- Harcoded implementation from Lib
+    -- Hardcoded implementation from Lib
     local temp = session_name:gsub(":", "++")
     if not vim.o.shellslash then
       temp = temp:gsub("\\", "-")
@@ -96,7 +100,7 @@ function M.clearSessionFilesAndBuffers()
   vim.cmd "silent %bw"
 end
 
----Cross pltform delete all files in directory
+---Cross platform delete all files in directory
 function M.clearSessionFiles(dir)
   if vim.fn.has "win32" == 1 then
     pcall(vim.fn.system, "del /Q " .. (dir .. "*.vim .vim"):gsub("/", "\\"))
