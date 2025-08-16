@@ -15,6 +15,8 @@ require("lazy.minit").setup {
 
     -- for session lens tests
     { "nvim-telescope/telescope.nvim", version = "0.1.8" },
+    { "folke/snacks.nvim", version = "v2.22.0" },
+    { "ibhagwan/fzf-lua", commit = "71fe5c1" },
   },
 }
 
