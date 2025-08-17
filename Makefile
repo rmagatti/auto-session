@@ -28,7 +28,7 @@ mini-tests:
 
 # Use lazy.nvim to download the plugins. The actual tests don't use lazy.nvim
 lazy $(PLUGINS):
-	$(NVIM) --headless -u scripts/lazy_init.lua
+	$(NVIM) --headless -u scripts/lazy_init.lua +"qa!"
 
 clean:
 	rm -rf .test

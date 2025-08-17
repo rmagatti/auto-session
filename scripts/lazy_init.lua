@@ -19,6 +19,3 @@ require("lazy.minit").setup {
     { "ibhagwan/fzf-lua", commit = "71fe5c1" },
   },
 }
-
--- quit when done
-vim.cmd "qa!"
