@@ -261,7 +261,7 @@ AutoSession exposes the following commands that can be used or mapped to any key
 
 If you create a manually named session via `SessionSave my_session` or you restore one, that same session will be auto-saved (assuming that's enabled) when you exit.
 
-# 📖 More Configuration Details
+# 📖 Details
 
 ## 🔭 Session Picker
 
@@ -345,7 +345,7 @@ NOTE: If you previously installed `rmagatti/session-lens`, you should remove it 
 
 <img src="https://github.com/rmagatti/readme-assets/blob/main/session-lens.gif" width=800 />
 
-## 📁 Allowed / Suppressed directories
+## 📁 Directories
 
 There are two config options, `allowed_dirs` and `suppressed_dirs`, that control which directories AutoSession will auto-save a session for. If `allowed_dirs` is set, sessions will only be auto-saved in matching directories. If `suppressed_dirs` is set, then a session won't be auto-saved for a matching directory. If both are set, a session will only be auto-saved if it matches an allowed dir and does not match a suppressed dir.
 
@@ -360,9 +360,9 @@ opts = {
 
 With those options, sessions would only be auto-saved for `/some/dir` and any direct child of `/projects` (e.g. `/projects/myproject` but not `/projects/myproject/submodule`) except `/projects/secret`
 
-If you want even more fine-grained control, you can instead set `auto_create` to a function to [conditionally create a session](#conditionally-creating-a-session).
+If you want even more fine-grained control, you can instead set `auto_create` to a function to [conditionally create a session](#auto-create).
 
-## 🚶 Current Working Directory
+## 🚶 Directory changes
 
 AutoSession can track `cwd` changes!
 
@@ -520,7 +520,7 @@ require("auto-session").setup {
 
 Now last session will be restored only when Neovim is launched in the home directory, which is usually right after launching the terminal or Neovim GUI clients.
 
-## Conditionally creating a session
+## Auto-create
 
 With `auto_create = false`, AutoSession won't create a session automatically. If you manually save a session via `:SessionSave`, though, it will automatically update it whenever you exit `nvim`. You can use that to manually control where sessions are created.
 
@@ -611,7 +611,7 @@ require("auto-session").setup {
 ## 🚫 Disabling the plugin
 
 You might run into issues with Firenvim or another plugin and want to disable `auto_session` altogether based on some condition.
-For this example, as to not try and save sessions for Firenvim, we disable the plugin if the `started_by_firenvim` variable is set.
+For example, this will disable AutoSession when started under Firenvim:
 
 ```viml
 if exists('g:started_by_firenvim')
@@ -619,7 +619,7 @@ if exists('g:started_by_firenvim')
 endif
 ```
 
-One can also disable the plugin by setting the `auto_session_enabled` option to false at startup.
+You can also disable the plugin by setting the `auto_session_enabled` option to false at startup:
 
 ```sh
 nvim --cmd "let g:auto_session_enabled = v:false"
