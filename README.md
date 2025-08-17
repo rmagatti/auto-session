@@ -89,7 +89,7 @@ Here are the default settings:
 ---@field git_auto_restore_on_branch_change? boolean
 ---
 ---Saving extra data
----@field save_extra_data? fun(session_name:string): extra_data:string
+---@field save_extra_data? fun(session_name:string): extra_data:string|nil
 ---@field restore_extra_data? fun(session_name:string, extra_data:string)
 ---
 ---Argument handling
