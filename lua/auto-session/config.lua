@@ -9,7 +9,6 @@ local M = {}
 ---@class AutoSession.Config
 ---
 ---Saving / restoring
----@field TEST? boolean
 ---@field enabled? boolean
 ---@field auto_save? boolean
 ---@field auto_restore? boolean
@@ -84,7 +83,6 @@ local M = {}
 
 ---@type AutoSession.Config
 local defaults = {
-  TEST = true,
   -- Saving / restoring
   enabled = true, -- Enables/disables auto creating, saving and restoring
   auto_save = true, -- Enables/disables auto saving session on exit
