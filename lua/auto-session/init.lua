@@ -837,7 +837,7 @@ function AutoSession.RestoreSessionFile(session_path, opts)
   launch_argv = nil
 
   if not success then
-    ---@type restore_error_fn
+    ---@type fun(error_msg:string): disable_auto_save:boolean
     local error_handler = type(Config.restore_error_handler) == "function" and Config.restore_error_handler
       or restore_error_handler
     if not error_handler(result) then

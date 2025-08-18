@@ -39,7 +39,7 @@ local M = {}
 ---
 ---Argument handling
 ---@field args_allow_single_directory? boolean
----@field args_allow_files_auto_save? boolean|fun(session_name:string, extra_data:string)
+---@field args_allow_files_auto_save? boolean|fun(): disable_auto_save:boolean
 ---
 ---Misc
 ---@field log_level? string|integer
