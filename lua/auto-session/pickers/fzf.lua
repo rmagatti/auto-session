@@ -55,9 +55,7 @@ local function on_alternate_session(_)
   vim.schedule(function()
     local altername_session_name = Lib.get_alternate_session_name(Config.session_lens.session_control)
     if altername_session_name then
-    local alternate_session_name = Lib.get_alternate_session_name(Config.session_lens.session_control)
-    if alternate_session_name then
-      AutoSession.autosave_and_restore(alternate_session_name)
+      AutoSession.autosave_and_restore(altername_session_name)
     end
   end)
 end
