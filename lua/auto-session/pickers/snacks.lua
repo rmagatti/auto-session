@@ -56,13 +56,13 @@ local function open_session_picker()
       end,
       session_alternate = function(picker, _)
         vim.schedule(function()
-          local altername_session_name = Lib.get_alternate_session_name(Config.session_lens.session_control)
-          if not altername_session_name then
+          local alternate_session_name = Lib.get_alternate_session_name(Config.session_lens.session_control)
+          if not alternate_session_name then
             return
           end
           picker:close()
           vim.defer_fn(function()
-            AutoSession.autosave_and_restore(altername_session_name)
+            AutoSession.autosave_and_restore(alternate_session_name)
           end, 50)
         end)
       end,
