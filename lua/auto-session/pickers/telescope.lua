@@ -4,7 +4,7 @@ local AutoSession = require "auto-session"
 
 local function is_available()
   -- don't just want to see if the telescope files are there,
-  -- want to meke sure it's loaded/configured
+  -- want to make sure it's loaded/configured
   if vim.fn.exists ":Telescope" ~= 2 then
     return false
   end
