@@ -79,17 +79,39 @@ describe("The git config", function()
     assert.equal(sessions[1].session_name, vim.fn.getcwd() .. "|main")
   end)
 
-  it("Autorestores a session with the branch name", function()
+  it("autorestores a session with the branch name", function()
     vim.cmd "silent %bw!"
     assert.equals(0, vim.fn.bufexists "test.txt")
 
     as.AutoRestoreSession()
 
     assert.equals(1, vim.fn.bufexists "test.txt")
-
     assert.equals(1, vim.fn.filereadable(branch_session_path))
-
     assert.equals(vim.fn.getcwd() .. " (branch: main)", Lib.current_session_name())
+  end)
+
+  it("works with a custom session tag", function()
+    assert.equals(1, vim.fn.bufexists "test.txt")
+
+    local tag = "mytag"
+    c.custom_session_tag = function()
+      return "mytag"
+    end
+
+    assert.True(as.SaveSession())
+
+    vim.cmd "silent %bw!"
+    assert.equals(0, vim.fn.bufexists "test.txt")
+    local branch_tag_session_path = TL.session_dir .. TL.escapeSessionName(vim.fn.getcwd() .. "|main|" .. tag) .. ".vim"
+
+    assert.True(as.RestoreSession())
+
+    -- unset this early so other tests don't also fail if the following checks fail
+    c.custom_session_tag = nil
+
+    assert.equals(1, vim.fn.bufexists "test.txt")
+    assert.equals(1, vim.fn.filereadable(branch_tag_session_path), "file doesn't exist: " .. branch_tag_session_path)
+    assert.equals(vim.fn.getcwd() .. " (branch: main, tag: " .. tag .. ")", Lib.current_session_name())
   end)
 
   it("can migrate an old git session", function()

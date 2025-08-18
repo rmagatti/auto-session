@@ -1,4 +1,4 @@
----@diagnostic disable: undefined-field
+---@diagnostic disable: undefined-field, redundant-parameter
 local TL = require "tests/test_lib"
 
 describe("Lib / Helper functions", function()
@@ -45,6 +45,7 @@ describe("Lib / Helper functions", function()
   end)
 
   it("get_latest_session() returns nil when no session", function()
+    TL.clearSessionFilesAndBuffers()
     ---@diagnostic disable-next-line: missing-parameter
     assert.equals(nil, Lib.get_latest_session())
     assert.equals(nil, Lib.get_latest_session(TL.session_dir))
@@ -162,8 +163,8 @@ describe("Lib / Helper functions", function()
     assert.equals("/Users/cam/Dev/neovim-dev/auto-session", splits[1])
 
     assert.equals(
-      "/Users/cam/tmp/a (branch: main)",
-      (Lib.get_session_display_name "%2FUsers%2Fcam%2Ftmp%2Fa%7Cmain.vim")
+      "/Users/cam/Dev/neovim-dev/auto-session",
+      (Lib.get_session_display_name "%2FUsers%2Fcam%2FDev%2Fneovim-dev%2Fauto-session.vim")
     )
 
     splits = Lib.get_session_display_name_as_table "%2FUsers%2Fcam%2Ftmp%2Fa%7Cmain.vim"
@@ -175,6 +176,30 @@ describe("Lib / Helper functions", function()
     assert.equals(
       "/Users/cam/tmp/a (branch: main)",
       (Lib.get_session_display_name "%2FUsers%2Fcam%2Ftmp%2Fa%7Cmain.vim")
+    )
+  end)
+
+  it("display names with custom tags work", function()
+    local splits = Lib.get_session_display_name_as_table "%2FUsers%2Fcam%2Ftmp%2Fa%7Cmain%7Cmytag.vim"
+
+    assert.equals(2, #splits)
+    assert.equals("/Users/cam/tmp/a", splits[1])
+    assert.equals("(branch: main, tag: mytag)", splits[2])
+
+    assert.equals(
+      "/Users/cam/tmp/a (branch: main, tag: mytag)",
+      (Lib.get_session_display_name "%2FUsers%2Fcam%2Ftmp%2Fa%7Cmain%7Cmytag.vim")
+    )
+
+    splits = Lib.get_session_display_name_as_table "%2FUsers%2Fcam%2Ftmp%2Fa%7C%7Cmytag.vim"
+
+    assert.equals(2, #splits)
+    assert.equals("/Users/cam/tmp/a", splits[1])
+    assert.equals("(tag: mytag)", splits[2])
+
+    assert.equals(
+      "/Users/cam/tmp/a (tag: mytag)",
+      (Lib.get_session_display_name "%2FUsers%2Fcam%2Ftmp%2Fa%7C%7Cmytag.vim")
     )
   end)
 
