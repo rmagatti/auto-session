@@ -275,13 +275,10 @@ end
 ---@param file_or_dir string
 ---@return string
 function Lib.expand(file_or_dir)
-  -- Deprecated as 0.9.0, should update to following when we only want to support 0.9.0+
-  -- local saved_wildignore = vim.o.wildignore
-  local saved_wildignore = vim.api.nvim_get_option "wildignore"
-  vim.api.nvim_set_option("wildignore", "")
-  ---@diagnostic disable-next-line: param-type-mismatch
+  local saved_wildignore = vim.api.nvim_get_option_value("wildignore", {})
+  vim.api.nvim_set_option_value("wildignore", "", {})
   local ret = vim.fn.expand(file_or_dir, nil, nil)
-  vim.api.nvim_set_option("wildignore", saved_wildignore)
+  vim.api.nvim_set_option_value("wildignore", saved_wildignore, {})
   return ret
 end
 
@@ -818,8 +815,7 @@ function Lib.only_blank_buffers_left()
     if vim.fn.buflisted(bufnr) == 1 then
       local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
       local is_empty = #lines <= 1 and (lines[1] == nil or lines[1] == "")
-      -- Use deprecated version for 0.7 support
-      local is_modified = vim.api.nvim_buf_get_option(bufnr, "modified")
+      local is_modified = vim.api.nvim_get_option_value("modified", { buf = bufnr })
       local has_name = vim.api.nvim_buf_get_name(bufnr) ~= ""
 
       -- If buffer has a name, is modified, or has content, it's meaningful
@@ -835,7 +831,7 @@ end
 ---@return boolean # True if there are any modified buffers
 function Lib.has_modified_buffers()
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-    if vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_get_option(buf, "modified") then
+    if vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_get_option_value("modified", { buf = buf }) then
       return true
     end
   end
