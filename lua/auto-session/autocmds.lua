@@ -144,7 +144,7 @@ local function setup_dirchanged_autocmds()
 end
 
 ---@private
----Setup autocmds for DirChangedPre and DirChanged
+---Setup autocmds (VimEnter, VimLeavePre, DirChanged*) and user commands
 function M.setup_autocmds()
   -- Check if the auto-session plugin has already been loaded to prevent loading it twice
   if vim.g.loaded_auto_session ~= nil then
