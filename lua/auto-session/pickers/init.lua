@@ -37,10 +37,7 @@ end
 
 return setmetatable(M, {
   __index = function(table, key)
-    if
-      (key == "picker" and not rawget(table, "picker"))
-      or (key == "picker_name" and not rawget(table, "picker_name"))
-    then
+    if (key == "picker" or key == "picker_name") and not rawget(table, key) then
       local picker, picker_name = resolve_picker()
       rawset(table, "picker", picker)
       rawset(table, "picker_name", picker_name)
