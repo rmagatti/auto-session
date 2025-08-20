@@ -86,12 +86,11 @@ local function config_to_fzf_key_binding(config_keymap)
   local key = type(config_keymap) == "table" and config_keymap[2] or config_keymap
 
   ---@cast key string
-  key = key:lower()
 
-  key = key:gsub("<c%-", "ctrl-")
-  key = key:gsub("<s%-", "shift-")
-  key = key:gsub("<a%-", "alt-")
-  key = key:gsub("<m%-", "alt-")
+  key = key:gsub("<[cC]%-", "ctrl-")
+  key = key:gsub("<[sS]%-", "shift-")
+  key = key:gsub("<[aA]%-", "alt-")
+  key = key:gsub("<[mM]%-", "alt-")
 
   -- Remove angle brackets
   key = key:gsub("[<>]", "")
