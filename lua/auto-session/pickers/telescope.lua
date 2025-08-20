@@ -1,16 +1,34 @@
 local Config = require "auto-session.config"
 local Lib = require "auto-session.lib"
-local Actions = require "auto-session.session-lens.actions"
 local AutoSession = require "auto-session"
 
------------ Setup ----------
-local SessionLens = {}
+local function is_available()
+  -- don't just want to see if the telescope files are there,
+  -- want to make sure it's loaded/configured
+  if vim.fn.exists ":Telescope" ~= 2 then
+    return false
+  end
+
+  local ok, telescope = pcall(require, "telescope")
+  if not ok or not telescope then
+    return false
+  end
+
+  local result
+
+  ok, result = pcall(telescope.load_extension, "session-lens")
+  return ok and result
+end
+
+local function open_session_picker()
+  return vim.cmd "Telescope session-lens"
+end
 
 ---@private
 ---Search session
 ---Triggers the customized telescope picker for switching sessions
 ---@param custom_opts table
-SessionLens.search_session = function(custom_opts)
+local function extension_search_session(custom_opts)
   local telescope_themes = require "telescope.themes"
   local telescope_actions = require "telescope.actions"
   local telescope_finders = require "telescope.finders"
@@ -82,6 +100,7 @@ SessionLens.search_session = function(custom_opts)
     }
   end
 
+  local Actions = require "auto-session.pickers.telescope_actions"
   local opts = {
     prompt_title = "Sessions",
     attach_mappings = function(prompt_bufnr, map)
@@ -118,4 +137,13 @@ SessionLens.search_session = function(custom_opts)
     :find()
 end
 
-return SessionLens
+---@type Picker
+local M = {
+  is_available = is_available,
+  open_session_picker = open_session_picker,
+
+  -- Used with the telescope extension
+  extension_search_session = extension_search_session,
+}
+
+return M

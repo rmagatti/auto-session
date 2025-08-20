@@ -3,10 +3,11 @@ local TL = require "tests/test_lib"
 
 describe("cwd lookup", function()
   local as = require "auto-session"
-
   require("auto-session").setup {}
 
-  TL.clearSessionFilesAndBuffers()
+  before_each(function()
+    TL.clearSessionFilesAndBuffers()
+  end)
 
   it("works when tcd is used", function()
     assert.equals(0, vim.fn.filereadable(TL.default_session_path))
@@ -22,15 +23,13 @@ describe("cwd lookup", function()
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
   end)
 
-  TL.clearSessionFilesAndBuffers()
-
   it("works when lcd is used", function()
     assert.equals(0, vim.fn.filereadable(TL.default_session_path))
     vim.cmd("e " .. TL.test_file)
     vim.cmd "tabnew"
     vim.cmd "lcd tests"
 
-    as.SaveSession()
+    assert.True(as.SaveSession())
 
     vim.cmd "tabclose"
 

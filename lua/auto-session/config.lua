@@ -50,9 +50,10 @@ local M = {}
 ---@field pre_cwd_changed_cmds? table executes before cwd is changed if cwd_change_handling is true
 ---@field post_cwd_changed_cmds? table executes after cwd is changed if cwd_change_handling is true
 ---
----Session Lens Cenfig
+---Session Lens Config
 ---@class SessionLens
----@field load_on_setup? boolean
+---@field picker? "telescope"|"snacks"|"fzf"|"select"|nil Pickers are detected automatically but you can also manually choose one. Falls back to vim.ui.select
+---@field load_on_setup? boolean Only used for telescope, registers the telescope extension startup
 ---@field picker_opts? table Telescope/Snacks picker options
 ---@field session_control? SessionControl
 ---@field mappings? SessionLensMappings
@@ -64,7 +65,7 @@ local M = {}
 ---Session Lens Mapping
 ---@class SessionLensMappings
 ---@field delete_session? table mode and key for deleting a session from the picker
----@field alternate_session? table mode and key for swapping to alertnate session from the picker
+---@field alternate_session? table mode and key for swapping to alternate session from the picker
 ---@field copy_session? table mode and key for copying a session from the picker
 ---
 ---@alias should_preserve_buffer_fn fun(bufnr:number): preserve_buffer:boolean
@@ -101,8 +102,9 @@ local defaults = {
 
   ---@type SessionLens
   session_lens = {
-    load_on_setup = true, -- Initialize on startup (requires Telescope)
-    picker_opts = nil, -- Table passed to Telescope / Snacks to configure the picker
+    picker = nil, -- "telescope"|"snacks"|"fzf"|"select"|nil Pickers are detected automatically but you can also manually choose one. Falls back to vim.ui.select
+    load_on_setup = true, -- Only used for telescope, registers the telescope extension startup
+    picker_opts = nil, -- Table passed to Telescope / Snacks / Fzf-Lua to configure the picker. See below for more information
 
     ---@type SessionLensMappings
     mappings = {
@@ -308,6 +310,11 @@ function M.check(logger, show_full_message)
     has_issues = true
   end
 
+  if M.session_lens.load_on_setup and M.session_lens.picker and M.session_lens.picker ~= "telescope" then
+    logger.warn 'session_lens.load_on_setup is not used with pickers other than "telescope"'
+    M.session_lens.load_on_setup = false
+  end
+
   -- TODO: At some point, we should pop up a warning about old config if
   -- M.has_old_config but let's make sure everything is working well before doing that
 
@@ -322,6 +329,12 @@ return setmetatable(M, {
     end
     ---@diagnostic disable-next-line: need-check-nil
     return M.options[key]
+  end,
+  __newindex = function(_, key, value)
+    if M.options == nil then
+      M.setup()
+    end
+    M.options[key] = value
   end,
   __tostring = function(_)
     return vim.inspect(M.options)
