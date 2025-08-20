@@ -104,6 +104,7 @@ function M.check()
   info("Session directory: " .. AutoSession.get_root_dir())
   info("Current session: " .. Lib.current_session_name())
   info("Current session file: " .. vim.v.this_session)
+  info("Selected picker: " .. require("auto-session.pickers").picker_name)
 end
 
 return M
