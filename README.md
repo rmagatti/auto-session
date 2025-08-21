@@ -288,9 +288,9 @@ return {
       picker = nil, -- "telescope"|"snacks"|"fzf"|"select"|nil Pickers are detected automatically but you can also manually choose one. Falls back to vim.ui.select
       mappings = {
         -- Mode can be a string or a table, e.g. {"i", "n"} for both insert and normal mode
-        delete_session = { "i", "<C-D>" },
-        alternate_session = { "i", "<C-S>" },
-        copy_session = { "i", "<C-Y>" },
+        delete_session = { "i", "<C-d>" },
+        alternate_session = { "i", "<C-s>" },
+        copy_session = { "i", "<C-y>" },
       },
 
       picker_opts = {

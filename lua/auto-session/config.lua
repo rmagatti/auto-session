@@ -136,9 +136,9 @@ local defaults = {
     ---@type SessionLensMappings
     mappings = {
       -- Mode can be a string or a table, e.g. {"i", "n"} for both insert and normal mode
-      delete_session = { "i", "<C-D>" }, -- mode and key for deleting a session from the picker
-      alternate_session = { "i", "<C-S>" }, -- mode and key for swapping to alternate session from the picker
-      copy_session = { "i", "<C-Y>" }, -- mode and key for copying a session from the picker
+      delete_session = { "i", "<C-d>" }, -- mode and key for deleting a session from the picker
+      alternate_session = { "i", "<C-s>" }, -- mode and key for swapping to alternate session from the picker
+      copy_session = { "i", "<C-y>" }, -- mode and key for copying a session from the picker
     },
 
     ---@type SessionControl
