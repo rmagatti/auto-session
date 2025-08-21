@@ -308,7 +308,11 @@ function AutoSession.AutoSaveSession()
   end
 
   if Config.auto_delete_empty_sessions and Lib.only_blank_buffers_left() then
-    AutoSession.DeleteSession(current_session)
+    -- don't auto-delete the session unless we actually loaded a session
+    if vim.v.this_session ~= "" then
+      vim.notify "would auto delete"
+      AutoSession.DeleteSession(current_session)
+    end
     return false
   end
 
