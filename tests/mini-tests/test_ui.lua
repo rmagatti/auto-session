@@ -91,7 +91,21 @@ local function make_tests(picker, autosession_config, other_config)
     expect.equality(1, child.fn.bufexists(TL.other_file))
   end
 
-  if picker ~= "select" then
+  if picker == "select" then
+    T["session lens"]["can delete a session"] = function()
+      expect.equality(1, vim.fn.filereadable(TL.named_session_path))
+      child.cmd "Autosession delete"
+      vim.loop.sleep(300)
+      child.type_keys "mysession"
+      -- print(child.get_screenshot())
+      vim.loop.sleep(300)
+      child.type_keys "<cr>"
+      sleep_wait(2000, function()
+        return vim.fn.filereadable(TL.named_session_path) == 0
+      end, 100)
+      expect.equality(0, vim.fn.filereadable(TL.named_session_path))
+    end
+  else
     T["session lens"]["can copy a session"] = function()
       expect.equality(0, child.fn.bufexists(TL.test_file))
       child.cmd "SessionSearch"
