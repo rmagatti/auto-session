@@ -8,27 +8,27 @@ local Lib = require "auto-session.lib"
 local M = {
   ---@type Picker
   picker = nil,
+  picker_name = nil,
 }
 
 ---Find an available picker. If Config.session_lens.picker is set, check that.
 ---Otherwise, check pickers in order to see which is available
 ---Fall back to vim.ui.select
----@return Picker # chosen picker
+---@return Picker,string # chosen picker and it's string name
 local function resolve_picker()
-  local pickers = Config.session_lens.picker and { Config.session_lens.picker, "select" }
+  local pickers = Config.session_lens.picker and { Config.session_lens.picker }
     or { "telescope", "fzf", "snacks", "select" }
 
   for _, name in ipairs(pickers) do
     local ok, picker = pcall(require, "auto-session.pickers." .. name)
     if ok and picker and picker.is_available() then
       Lib.logger.debug("Picking picker: " .. name)
-      return picker
+      return picker, name
     end
   end
 
-  -- should never get here
-  Lib.logger.error "Could not find any pickers?"
-  return require "auto-session.pickers.select"
+  Lib.logger.error("Could not find requested picker: " .. Config.session_lens.picker)
+  return require "auto-session.pickers.select", "select"
 end
 
 function M.open_session_picker()
@@ -37,8 +37,10 @@ end
 
 return setmetatable(M, {
   __index = function(table, key)
-    if key == "picker" and not rawget(table, "picker") then
-      rawset(table, "picker", resolve_picker())
+    if (key == "picker" or key == "picker_name") and not rawget(table, key) then
+      local picker, picker_name = resolve_picker()
+      rawset(table, "picker", picker)
+      rawset(table, "picker_name", picker_name)
     end
     return rawget(table, key)
   end,

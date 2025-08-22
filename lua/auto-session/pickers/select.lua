@@ -29,7 +29,7 @@ local function open_picker(files, prompt, callback)
 end
 
 ---Opens a vim.ui.select picker for loading sessions
-local function open_delete_picker()
+local function open_session_picker()
   local files = Lib.get_session_list(AutoSession.get_root_dir())
   open_picker(files, "Select a session:", function(choice)
     -- Defer session loading function to fix issue with Fzf and terminal sessions:
@@ -41,7 +41,7 @@ local function open_delete_picker()
 end
 
 ---Opens a vim.ui.select picker for deleting sessions
-local function open_session_picker()
+local function open_delete_picker()
   local files = Lib.get_session_list(AutoSession.get_root_dir())
   open_picker(files, "Delete a session:", function(choice)
     AutoSession.DeleteSessionFile(choice.path, choice.display_name)
