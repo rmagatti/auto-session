@@ -38,7 +38,7 @@ local function get_session_name(legacy, use_cwd)
   -- Sometimes we want to see what the default session name would be for the cwd, so
   -- if this flag is set, we should ignore the manually named session
   if not use_cwd and AutoSession.manually_named_session and vim.v.this_session and vim.v.this_session ~= "" then
-    local session_name = Lib.escaped_session_name_to_session_name(vim.fn.fnamemodify(vim.v.this_session, ":t"))
+    local session_name = Lib.escaped_session_path_to_session_name(vim.v.this_session)
     Lib.logger.debug("get_session_name - manually_named_session is true, session_name: " .. session_name)
     return session_name
   else
@@ -163,9 +163,7 @@ local function bypass_save_by_filetype()
   for _, current_window in ipairs(windows) do
     local buf = vim.api.nvim_win_get_buf(current_window)
 
-    -- Deprecated as 0.9.0, should update to following when we only want to support 0.9.0+
-    -- local buf_ft = vim.bo[buf].filetype
-    local buf_ft = vim.api.nvim_buf_get_option(buf, "filetype")
+    local buf_ft = vim.bo[buf].filetype
 
     local local_return = false
     for _, ft_to_bypass in ipairs(filetypes_to_bypass) do
@@ -301,7 +299,7 @@ function AutoSession.AutoSaveSession()
   local current_session = nil
 
   if AutoSession.manually_named_session then
-    current_session = Lib.escaped_session_name_to_session_name(vim.fn.fnamemodify(vim.v.this_session, ":t"))
+    current_session = Lib.escaped_session_path_to_session_name(vim.v.this_session)
     Lib.logger.debug("Using existing session name: " .. current_session)
   end
 
@@ -364,14 +362,31 @@ end
 
 ---Calls a hook to get any user/extra commands and if any, saves them to *x.vim
 ---@param session_path string The path of the session file to save the extra params for
+---@param session_name string The name of the session being saved
 ---@return boolean Returns whether extra commands were saved
-local function save_extra_cmds_new(session_path)
+local function save_extra_cmds(session_path, session_name)
   local data = AutoSession.run_cmds "save_extra"
   local extra_file = string.gsub(session_path, "%.vim$", "x.vim")
 
   -- data is a table of strings or tables, one for each hook function
   -- need to combine them all here into a single table of strings
   local data_to_write = Lib.flatten_table_and_split_strings(data)
+
+  -- get any extra data to save
+  if Config.save_extra_data then
+    local extra_data = Config.save_extra_data(session_name)
+    if extra_data then
+      local delim = ""
+      -- find an escape sequence that's not used by extra_data
+      while
+        string.find(extra_data, "[" .. delim .. "[", 1, true) or string.find(extra_data, "]" .. delim .. "]", 1, true)
+      do
+        delim = delim .. "="
+      end
+      local escaped_extra_data = "[" .. delim .. "[" .. extra_data .. "]" .. delim .. "]"
+      table.insert(data_to_write, "lua require('auto-session').restore_extra_data(" .. escaped_extra_data .. ")")
+    end
+  end
 
   if not data_to_write or vim.tbl_isempty(data_to_write) then
     -- Have to delete the file just in case there's an old file from a previous save
@@ -387,7 +402,18 @@ local function save_extra_cmds_new(session_path)
 end
 
 ---@private
----Handler for when a session is picked from the UI, either via Telescope or via AutoSession.select_session
+---Restores extra data saved to the extra cmds file. Should only be called by nvim
+---when reading the extra cmds file. Should not be called manually
+---@param extra_data any
+function AutoSession.restore_extra_data(extra_data)
+  if Config.restore_extra_data then
+    local session_name = Lib.escaped_session_path_to_session_name(vim.v.this_session)
+    Config.restore_extra_data(session_name, extra_data)
+  end
+end
+
+---@private
+---Handler for when a session is picked from the UI via a picker
 ---Save the current session if the session we're loading isn't also for the cwd (if autosave allows)
 ---and then restore the selected session
 ---@param session_name string The session name to restore
@@ -617,12 +643,12 @@ function AutoSession.SaveSessionToDir(session_dir, session_name, show_message)
   Lib.logger.debug("SaveSessionToDir writing session to: " .. session_path)
 
   -- Vim cmds require escaping any % with a \ but we don't want to do that
-  -- for direct filesystem operations (like in save_extra_cmds_new) so we
+  -- for direct filesystem operations (like in save_extra_cmds) so we
   -- that here, as late as possible and only for this operation
   local vim_session_path = Lib.escape_string_for_vim(session_path)
   vim.cmd("mks! " .. vim_session_path)
 
-  save_extra_cmds_new(session_path)
+  save_extra_cmds(session_path, session_name)
 
   AutoSession.run_cmds "post_save"
 
@@ -811,7 +837,7 @@ function AutoSession.RestoreSessionFile(session_path, opts)
   launch_argv = nil
 
   if not success then
-    ---@type restore_error_fn
+    ---@type fun(error_msg:string): disable_auto_save:boolean
     local error_handler = type(Config.restore_error_handler) == "function" and Config.restore_error_handler
       or restore_error_handler
     if not error_handler(result) then

@@ -1,4 +1,4 @@
-name: lemmy-help
+name: docs
 
 on: [push]
 
@@ -12,14 +12,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Generating help
-        run: |
-          curl -Lq https://github.com/numToStr/lemmy-help/releases/latest/download/lemmy-help-x86_64-unknown-linux-gnu.tar.gz | tar xz
-          ./lemmy-help ./lua/auto-session/config.lua ./lua/auto-session/autocmds.lua ./lua/auto-session/init.lua > doc/${{env.PLUGIN_NAME}}.txt
+      - name: setup neovim
+        uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: v0.11.3
+
+      - name: Update README with config sections
+        run: nvim --clean --headless -l scripts/update_readme.lua
+
+      - name: Create /doc
+        run: mkdir -p doc
+      - name: panvimdoc
+        uses: kdheepak/panvimdoc@main
+        with:
+          vimdoc: ${{ github.event.repository.name }}
+          version: "Neovim"
+          demojify: true
+          treesitter: true
 
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           branch: ${{ github.head_ref }}
-          commit_message: "chore(docs): auto-generate vimdoc"
-          file_pattern: doc/*.txt
+          commit_message: "chore(docs): auto-generate docs"
+          file_pattern: "doc/*.txt README.md"

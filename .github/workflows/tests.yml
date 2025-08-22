@@ -43,6 +43,7 @@ jobs:
           neovim: true
           version: ${{ matrix.neovim_version }}
 
+      # only needed if testing in ssh but doesn't hurt
       - name: Add nvim to PATH
         run: echo "${{ steps.setup_nvim.outputs.executable }}" >> $GITHUB_PATH
 

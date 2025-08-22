@@ -336,9 +336,16 @@ end
 ---Convert a session file name to a session_name that can be passed to SessionRestore/Delete.
 ---Although, those commands should also take a session name ending in .vim
 ---@param escaped_session_name string The session file name. It should not have a path component
----@return string The session name, suitable for display or passing to other cmds
+---@return string session_name The session name, suitable for display or passing to other cmds
 function Lib.escaped_session_name_to_session_name(escaped_session_name)
   return (Lib.unescape_session_name(escaped_session_name):gsub("%.vim$", ""))
+end
+
+---Get session name from escaped session path
+---@param escaped_session_path string The session path, likely from vim.v.this_session
+---@return string session_name
+function Lib.escaped_session_path_to_session_name(escaped_session_path)
+  return Lib.escaped_session_name_to_session_name(vim.fn.fnamemodify(escaped_session_path, ":t"))
 end
 
 ---Get the session displayname as a table of components. Index 1 will always be the session
@@ -357,10 +364,11 @@ function Lib.get_session_display_name_as_table(escaped_session_name)
   splits[2] = "(branch: " .. splits[2] .. ")"
   return splits
 end
+
 ---Convert a session file name to a display name The result cannot be used with commands
 ---like SessionRestore/SessionDelete as it might have additional annotations (like a git branch)
 ---@param escaped_session_name string The session file name. It should not have a path component
----@return string The session name suitable for display
+---@return string session_display_name The session name suitable for display
 function Lib.get_session_display_name(escaped_session_name)
   local splits = Lib.get_session_display_name_as_table(escaped_session_name)
 
@@ -869,7 +877,7 @@ function Lib.debounce(fn, opts)
 end
 
 ---Wipeout buffers, checking callback if not nil
----@param should_preserve_buffer should_preserve_buffer_fn
+---@param should_preserve_buffer fun(bufnr:number): preserve_buffer:boolean
 function Lib.conditional_buffer_wipeout(should_preserve_buffer)
   if not should_preserve_buffer then
     vim.cmd "silent %bw!"

@@ -23,7 +23,6 @@ describe("restore_error_handler", function()
   end)
 
   as.setup {
-    ---@type restore_error_fn
     restore_error_handler = function()
       was_called = true
       return should_return
@@ -77,7 +76,7 @@ describe("restore_error_handler", function()
     -- add an E16 fold error to the session file
     local uv = vim.loop
     local fd = assert(uv.fs_open(TL.default_session_path, "a", 438))
-    uv.fs_write(fd, "100,200fold\n", -1)  -- This will cause E16: Invalid range
+    uv.fs_write(fd, "100,200fold\n", -1) -- This will cause E16: Invalid range
     uv.fs_close(fd)
 
     -- This should succeed (return true) because E16 errors are ignored
@@ -92,7 +91,7 @@ describe("restore_error_handler", function()
     -- add an E490 fold error to the session file
     local uv = vim.loop
     local fd = assert(uv.fs_open(TL.default_session_path, "a", 438))
-    uv.fs_write(fd, "foldopen\n", -1)  -- This will cause E490: No fold found
+    uv.fs_write(fd, "foldopen\n", -1) -- This will cause E490: No fold found
     uv.fs_close(fd)
 
     -- This should succeed (return true) because E490 errors are ignored
