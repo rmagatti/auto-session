@@ -1,4 +1,4 @@
-*auto-session.txt*            For Neovim           Last change: 2025 August 22
+*auto-session.txt*            For Neovim           Last change: 2025 August 23
 
 ==============================================================================
 Table of Contents                             *auto-session-table-of-contents*
@@ -16,10 +16,11 @@ Table of Contents                             *auto-session-table-of-contents*
 11. Dashboards                                       |auto-session-dashboards|
 12. Statusline                                       |auto-session-statusline|
 13. Command Hooks                                 |auto-session-command-hooks|
-14. Wiki                                                   |auto-session-wiki|
-15. Disabling the plugin                   |auto-session-disabling-the-plugin|
-16. Troubleshooting                             |auto-session-troubleshooting|
-17. Compatibility                                 |auto-session-compatibility|
+14. Saving custom data                       |auto-session-saving-custom-data|
+15. Wiki                                                   |auto-session-wiki|
+16. Disabling the plugin                   |auto-session-disabling-the-plugin|
+17. Troubleshooting                             |auto-session-troubleshooting|
+18. Compatibility                                 |auto-session-compatibility|
 
 ==============================================================================
 1. Features                                            *auto-session-features*
@@ -589,7 +590,67 @@ Each hook is a table of vim commands or lua functions (or a mix of both):
 
 
 ==============================================================================
-14. Wiki                                                   *auto-session-wiki*
+14. Saving custom data                       *auto-session-saving-custom-data*
+
+You can use the config functions `save_extra_data` and `restore_extra_data` to
+save arbitrary data as part of your session.
+
+As an example, here’s how you could save DAP breakpoints with your session:
+
+>lua
+    ---@module "auto-session"
+    ---@type AutoSession.Config
+    local opts = {
+    
+      save_extra_data = function(_)
+        local ok, breakpoints = pcall(require, "dap.breakpoints")
+        if not ok or not breakpoints then
+          return
+        end
+    
+        local bps = {}
+        local breakpoints_by_buf = breakpoints.get()
+        for buf, buf_bps in pairs(breakpoints_by_buf) do
+          bps[vim.api.nvim_buf_get_name(buf)] = buf_bps
+        end
+        if vim.tbl_isempty(bps) then
+          return
+        end
+        local extra_data = {
+          breakpoints = bps,
+        }
+        return vim.fn.json_encode(extra_data)
+      end,
+    
+      restore_extra_data = function(_, extra_data)
+        local json = vim.fn.json_decode(extra_data)
+    
+        if json.breakpoints then
+          local ok, breakpoints = pcall(require, "dap.breakpoints")
+    
+          if not ok or not breakpoints then
+            return
+          end
+          vim.notify "restoring breakpoints"
+          for buf_name, buf_bps in pairs(json.breakpoints) do
+            for _, bp in pairs(buf_bps) do
+              local line = bp.line
+              local opts = {
+                condition = bp.condition,
+                log_message = bp.logMessage,
+                hit_condition = bp.hitCondition,
+              }
+              breakpoints.set(opts, vim.fn.bufnr(buf_name), line)
+            end
+          end
+        end
+      end,
+    }
+<
+
+
+==============================================================================
+15. Wiki                                                   *auto-session-wiki*
 
 See the wiki <https://github.com/rmagatti/auto-session/wiki/> for more advanced
 ways to use AutoSession. And feel free to share new and interesting ways
@@ -597,7 +658,7 @@ you’re using AutoSession!
 
 
 ==============================================================================
-15. Disabling the plugin                   *auto-session-disabling-the-plugin*
+16. Disabling the plugin                   *auto-session-disabling-the-plugin*
 
 You might run into issues with Firenvim or another plugin and want to disable
 AutoSession altogether based on some condition. For example, this will disable
@@ -628,7 +689,7 @@ false at startup:
 
 
 ==============================================================================
-16. Troubleshooting                             *auto-session-troubleshooting*
+17. Troubleshooting                             *auto-session-troubleshooting*
 
 First run `:checkhealth auto-session` to see if it detects any problems.
 
@@ -640,7 +701,7 @@ If that doesn’t help, you can:
 
 
 ==============================================================================
-17. Compatibility                                 *auto-session-compatibility*
+18. Compatibility                                 *auto-session-compatibility*
 
 Neovim >= 0.10
 
