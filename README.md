@@ -1,12 +1,29 @@
 # 🗒️ AutoSession
 
-AutoSession takes advantage of Neovim's existing session management capabilities to provide seamless automatic session management.
+<!-- panvimdoc-ignore-start -->
 
-<img src="https://github.com/rmagatti/readme-assets/blob/main/auto-session-new-example.gif" width="800" />
+Automatically reopen the files and windows you had open. It's like you never left!
 
+<img alt="demo" src="https://github.com/user-attachments/assets/8a779b99-d556-48a4-bd9f-dc88fb080a8e" width="800">
+  
 [<img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/rmagatti/auto-session/tests.yml?style=for-the-badge&label=tests">](https://github.com/rmagatti/auto-session/actions/workflows/tests.yml)
 
-# 📦 Installation
+<!-- panvimdoc-ignore-end -->
+
+## ⭐ Features
+
+- 💾 Automatically save and restore sessions, with customizable filters
+- 🎯 [Session picker](#-session-picker) works with Telescope, Snacks, Fzf-Lua, and `vim.ui.select`
+- 📁 Track directory changes
+- 🌿 Separate sessions per git branch
+- 🪝 Customizable with [Hooks](#-command-hooks)
+- 🗃️ Save custom data along with your session
+
+## 💡 How it works
+
+When you start `nvim`, AutoSession will try to restore a session for the current working directory (`cwd`) if it exists. If it does, it'll reopen all of your buffers and windows. If not, nothing happens. When you quit `nvim`, AutoSession will automatically save a session for `cwd` so you can pick up where you left off.
+
+## 📦 Installation
 
 [Lazy.nvim](https://github.com/folke/lazy.nvim):
 
@@ -25,36 +42,87 @@ return {
 }
 ```
 
-[Packer.nvim](https://github.com/wbthomason/packer.nvim):
+Note: For other plugin managers, make sure setup is called somewhere, e.g.:
 
 ```lua
-use {
-  "rmagatti/auto-session",
-  config = function()
-    require("auto-session").setup {
-      suppressed_dirs = { "~/", "~/Projects", "~/Downloads", "/" },
-    }
-  end,
+require("auto-session").setup {}
+```
+
+## ⚙️ Configuration
+
+Default settings (you don't have to copy these into your config):
+
+<!-- config:start -->
+
+```lua
+local defaults = {
+  -- Saving / restoring
+  enabled = true, -- Enables/disables auto creating, saving and restoring
+  auto_save = true, -- Enables/disables auto saving session on exit
+  auto_restore = true, -- Enables/disables auto restoring session on start
+  auto_create = true, -- Enables/disables auto creating new session files. Can be a function that returns true if a new session file should be allowed
+  auto_restore_last_session = false, -- On startup, loads the last saved session if session for cwd does not exist
+  cwd_change_handling = false, -- Automatically save/restore sessions when changing directories
+  single_session_mode = false, -- Enable single session mode to keep all work in one session regardless of cwd changes. When enabled, prevents creation of separate sessions for different directories and maintains one unified session. Does not work with cwd_change_handling
+
+  -- Filtering
+  suppressed_dirs = nil, -- Suppress session restore/create in certain directories
+  allowed_dirs = nil, -- Allow session restore/create in certain directories
+  bypass_save_filetypes = nil, -- List of filetypes to bypass auto save when the only buffer open is one of the file types listed, useful to ignore dashboards
+  close_filetypes_on_save = { "checkhealth" }, -- Buffers with matching filetypes will be closed before saving
+  close_unsupported_windows = true, -- Close windows that aren't backed by normal file before autosaving a session
+  preserve_buffer_on_restore = nil, -- Function that returns true if a buffer should be preserved when restoring a session
+
+  -- Git / Session naming
+  git_use_branch_name = false, -- Include git branch name in session name
+  git_auto_restore_on_branch_change = false, -- Should we auto-restore the session when the git branch changes. Requires git_use_branch_name
+  custom_session_tag = nil, -- Function that can return a string to be used as part of the session name
+
+  -- Deleting
+  auto_delete_empty_sessions = true, -- Enables/disables deleting the session if there are only unnamed/empty buffers when auto-saving
+  purge_after_minutes = nil, -- Sessions older than purge_after_minutes will be deleted asynchronously on startup, e.g. set to 14400 to delete sessions that haven't been accessed for more than 10 days, defaults to off (no purging), requires >= nvim 0.10
+
+  -- Saving extra data
+  save_extra_data = nil, -- Function that returns extra data that should be saved with the session. Will be passed to restore_extra_data on restore
+  restore_extra_data = nil, -- Function called when there's extra data saved for a session
+
+  -- Argument handling
+  args_allow_single_directory = true, -- Follow normal session save/load logic if launched with a single directory as the only argument
+  args_allow_files_auto_save = false, -- Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. Can be true or a function that returns true when saving is allowed. See documentation for more detail
+
+  -- Misc
+  log_level = "error", -- Sets the log level of the plugin (debug, info, warn, error).
+  root_dir = vim.fn.stdpath "data" .. "/sessions/", -- Root dir where sessions will be stored
+  show_auto_restore_notif = false, -- Whether to show a notification when auto-restoring
+  restore_error_handler = nil, -- Function called when there's an error restoring. By default, it ignores fold errors otherwise it displays the error and returns false to disable auto_save
+  continue_restore_on_error = true, -- Keep loading the session even if there's an error
+  lsp_stop_on_restore = false, -- Should language servers be stopped when restoring a session. Can also be a function that will be called if set. Not called on autorestore from startup
+  lazy_support = true, -- Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used
+
+  ---@type SessionLens
+  session_lens = {
+    picker = nil, -- "telescope"|"snacks"|"fzf"|"select"|nil Pickers are detected automatically but you can also set one manually. Falls back to vim.ui.select
+    load_on_setup = true, -- Only used for telescope, registers the telescope extension at startup so you can use :Telescope session-lens
+    picker_opts = nil, -- Table passed to Telescope / Snacks / Fzf-Lua to configure the picker. See below for more information
+
+    ---@type SessionLensMappings
+    mappings = {
+      -- Mode can be a string or a table, e.g. {"i", "n"} for both insert and normal mode
+      delete_session = { "i", "<C-d>" }, -- mode and key for deleting a session from the picker
+      alternate_session = { "i", "<C-s>" }, -- mode and key for swapping to alternate session from the picker
+      copy_session = { "i", "<C-y>" }, -- mode and key for copying a session from the picker
+    },
+
+    ---@type SessionControl
+    session_control = {
+      control_dir = vim.fn.stdpath "data" .. "/auto_session/", -- Auto session control dir, for control files, like alternating between two sessions with session-lens
+      control_filename = "session_control.json", -- File name of the session control file
+    },
+  },
 }
 ```
 
-Note: For other plugin managers, make sure setup is called somewhere, e.g. `require('auto-session').setup({})`
-
-# 💡 Behaviour
-
-1. When starting `nvim` with no arguments, AutoSession will try to restore an existing session for the current `cwd` if one exists.
-2. When starting `nvim .` (or another directory), AutoSession will try to restore the session for that directory. See [argument handling](#%EF%B8%8F-argument-handling) for more details.
-3. When starting `nvim some_file.txt` (or multiple files), by default, AutoSession won't do anything. See [argument handling](#%EF%B8%8F-argument-handling) for more details.
-4. Even after starting `nvim` with a file argument, a session can still be manually restored by running `:SessionRestore`.
-5. Any session saving and restoration takes into consideration the current working directory `cwd`.
-6. When piping to `nvim`, e.g: `cat myfile | nvim`, AutoSession won't do anything.
-
-:warning: Please note that if there are errors in your config, restoring the session might fail, if that happens, auto session will then disable auto saving for the current session.
-Manually saving a session can still be done by calling `:SessionSave`.
-
-# ⚙️ Configuration
-
-Here are the default settings:
+<!-- config:end -->
 
 <details><summary>Types</summary>
 
@@ -142,83 +210,9 @@ Here are the default settings:
 
 </details>
 
-<!-- config:start -->
-
-```lua
-local defaults = {
-  -- Saving / restoring
-  enabled = true, -- Enables/disables auto creating, saving and restoring
-  auto_save = true, -- Enables/disables auto saving session on exit
-  auto_restore = true, -- Enables/disables auto restoring session on start
-  auto_create = true, -- Enables/disables auto creating new session files. Can be a function that returns true if a new session file should be allowed
-  auto_restore_last_session = false, -- On startup, loads the last saved session if session for cwd does not exist
-  cwd_change_handling = false, -- Automatically save/restore sessions when changing directories
-  single_session_mode = false, -- Enable single session mode to keep all work in one session regardless of cwd changes. When enabled, prevents creation of separate sessions for different directories and maintains one unified session. Does not work with cwd_change_handling
-
-  -- Filtering
-  suppressed_dirs = nil, -- Suppress session restore/create in certain directories
-  allowed_dirs = nil, -- Allow session restore/create in certain directories
-  bypass_save_filetypes = nil, -- List of filetypes to bypass auto save when the only buffer open is one of the file types listed, useful to ignore dashboards
-  close_filetypes_on_save = { "checkhealth" }, -- Buffers with matching filetypes will be closed before saving
-  close_unsupported_windows = true, -- Close windows that aren't backed by normal file before autosaving a session
-  preserve_buffer_on_restore = nil, -- Function that returns true if a buffer should be preserved when restoring a session
-
-  -- Git / Session naming
-  git_use_branch_name = false, -- Include git branch name in session name
-  git_auto_restore_on_branch_change = false, -- Should we auto-restore the session when the git branch changes. Requires git_use_branch_name
-  custom_session_tag = nil, -- Function that can return a string to be used as part of the session name
-
-  -- Deleting
-  auto_delete_empty_sessions = true, -- Enables/disables deleting the session if there are only unnamed/empty buffers when auto-saving
-  purge_after_minutes = nil, -- Sessions older than purge_after_minutes will be deleted asynchronously on startup, e.g. set to 14400 to delete sessions that haven't been accessed for more than 10 days, defaults to off (no purging), requires >= nvim 0.10
-
-  -- Saving extra data
-  save_extra_data = nil, -- Function that returns extra data that should be saved with the session. Will be passed to restore_extra_data on restore
-  restore_extra_data = nil, -- Function called when there's extra data saved for a session
-
-  -- Argument handling
-  args_allow_single_directory = true, -- Follow normal session save/load logic if launched with a single directory as the only argument
-  args_allow_files_auto_save = false, -- Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. Can be true or a function that returns true when saving is allowed. See documentation for more detail
-
-  -- Misc
-  log_level = "error", -- Sets the log level of the plugin (debug, info, warn, error).
-  root_dir = vim.fn.stdpath "data" .. "/sessions/", -- Root dir where sessions will be stored
-  show_auto_restore_notif = false, -- Whether to show a notification when auto-restoring
-  restore_error_handler = nil, -- Function called when there's an error restoring. By default, it ignores fold errors otherwise it displays the error and returns false to disable auto_save
-  continue_restore_on_error = true, -- Keep loading the session even if there's an error
-  lsp_stop_on_restore = false, -- Should language servers be stopped when restoring a session. Can also be a function that will be called if set. Not called on autorestore from startup
-  lazy_support = true, -- Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used
-
-  ---@type SessionLens
-  session_lens = {
-    picker = nil, -- "telescope"|"snacks"|"fzf"|"select"|nil Pickers are detected automatically but you can also set one manually. Falls back to vim.ui.select
-    load_on_setup = true, -- Only used for telescope, registers the telescope extension at startup so you can use :Telescope session-lens
-    picker_opts = nil, -- Table passed to Telescope / Snacks / Fzf-Lua to configure the picker. See below for more information
-
-    ---@type SessionLensMappings
-    mappings = {
-      -- Mode can be a string or a table, e.g. {"i", "n"} for both insert and normal mode
-      delete_session = { "i", "<C-D>" }, -- mode and key for deleting a session from the picker
-      alternate_session = { "i", "<C-S>" }, -- mode and key for swapping to alternate session from the picker
-      copy_session = { "i", "<C-Y>" }, -- mode and key for copying a session from the picker
-    },
-
-    ---@type SessionControl
-    session_control = {
-      control_dir = vim.fn.stdpath "data" .. "/auto_session/", -- Auto session control dir, for control files, like alternating between two sessions with session-lens
-      control_filename = "session_control.json", -- File name of the session control file
-    },
-  },
-}
-```
-
-<!-- config:end -->
-
-NOTE: Older configuration names are still currently supported and will be automatically translated to the names above. If you want to update your config to the new names, `:checkhealth auto-session` will show you your config using the new names.
-
 #### Recommended sessionoptions config
 
-For a better experience with the plugin overall using this config for `sessionoptions` is recommended:
+For the best experience, set `sessionoptions` to:
 
 **Lua**
 
@@ -232,11 +226,7 @@ vim.o.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,
 set sessionoptions+=winpos,terminal,folds
 ```
 
-:warning: if you use [packer.nvim](https://github.com/wbthomason/packer.nvim)'s lazy loading feature, and you have the `options` value in your `sessionoptions` beware it might lead to weird behaviour with the lazy loading, especially around key-based lazy loading where keymaps are kept and thus the lazy loading mapping packer creates never gets set again.
-
-# 📢 Commands
-
-AutoSession exposes the following commands that can be used or mapped to any keybindings for manually saving and restoring sessions.
+## 📢 Commands
 
 ```viml
 :SessionSave " saves a session based on the `cwd` in `root_dir`
@@ -260,9 +250,33 @@ AutoSession exposes the following commands that can be used or mapped to any key
 :Autosession delete " opens a vim.ui.select picker to choose a session to delete.
 ```
 
-If you create a manually named session via `SessionSave my_session` or you restore one, that same session will be auto-saved (assuming that's enabled) when you exit.
+## 📖 Details
 
-# 📖 Details
+Starting `nvim`
+
+- When starting `nvim` with no arguments, AutoSession will try to restore the session for `cwd` if one exists.
+- When starting `nvim .` (or another directory), AutoSession will try to restore the session for that directory. See [argument handling](https://github.com/rmagatti/auto-session/wiki/Argument-Handling) for more details.
+- When starting `nvim some_file.txt` (or multiple files), by default, AutoSession won't do anything. See [argument handling](https://github.com/rmagatti/auto-session/wiki/Argument-Handling) for more details.
+- Even after starting `nvim` with a file argument, a session for `cwd` can still be manually restored by running `:SessionRestore`.
+- When piping to `nvim`, e.g: `cat myfile | nvim`, AutoSession disables itself.
+
+:warning: Please note that if there are errors in your config, restoring the session might fail, if that happens, auto session will then disable auto saving for the current session.
+
+Exiting `nvim`
+
+- When you exit, AutoSession will try to automatically save a session for `cwd`
+- If autosaving is enabled (`auto_save = true`) and
+- If there are non-empty buffers and
+- If `cwd` isn't in `suppressed_dirs` or, if set, it is in `allowed_dirs` and
+- If the session doesn't exist and `auto_create = true`
+- Then it will save a session for `cwd`
+
+Session naming:
+
+- By default, sessions are named for `cwd`
+- You can manually name a session with `:SessionSave my_session`. Manually named sessions can't be auto-restored but once restored they will be used for autosaving.
+- The current git branch can optionally be included in the session name.
+- You can also set a custom function that returns a string to include in the session name so you have different sessions for `cwd` per tmux session, window, etc.
 
 ## 🔭 Session Picker
 
@@ -335,16 +349,13 @@ If you're using Telescope and want to launch the picker via `:Telescope session-
 The following default keymaps are available when the session-lens picker is open:
 
 - `<CR>` loads the currently highlighted session.
-- `<C-S>` swaps to the previously opened session. This can give you a nice flow if you're constantly switching between two projects.
-- `<C-D>` will delete the currently highlighted session. This makes it easy to keep the session list clean.
+- `<C-s>` swaps to the previously opened session. This can give you a nice flow if you're constantly switching between two projects.
+- `<C-d>` will delete the currently highlighted session. This makes it easy to keep the session list clean.
+- `<C-y>` will let you make a copy of the highlighted session.
 
 When using Telescope, Snacks, or Fzf-Lua, you can customize the picker using `picker_opts`. Refer to the links above for the specific picker configuration options.
 
-NOTE: If you previously installed `rmagatti/session-lens`, you should remove it from your config as it is no longer necessary.
-
-### Preview
-
-<img src="https://github.com/rmagatti/readme-assets/blob/main/session-lens.gif" width=800 />
+<img alt ="picker" src="https://github.com/user-attachments/assets/440fc85d-c56c-4c2b-81f5-1bdeac35e8af" width="800">
 
 ## 📁 Directories
 
@@ -361,7 +372,7 @@ opts = {
 
 With those options, sessions would only be auto-saved for `/some/dir` and any direct child of `/projects` (e.g. `/projects/myproject` but not `/projects/myproject/submodule`) except `/projects/secret`
 
-If you want even more fine-grained control, you can instead set `auto_create` to a function to [conditionally create a session](#auto-create).
+If you want even more fine-grained control, you can instead set `auto_create` to a function to [conditionally create a session](https://github.com/rmagatti/auto-session/wiki/Auto%E2%80%90creation-customization).
 
 ## 🚶 Directory changes
 
@@ -384,9 +395,7 @@ Now when you changes the cwd with `:cd some/new/dir` AutoSession handles it grac
 Hooks are available for custom actions _before_ and _after_ the `cwd` is changed. Here's the config for tracking cwd and a hook example:
 
 ```lua
-require("auto-session").setup {
-  suppressed_dirs = { "~/", "~/Projects", "~/Downloads", "/" },
-
+opts = {
   cwd_change_handling = true,
 
   pre_cwd_changed_cmds = {
@@ -401,19 +410,55 @@ require("auto-session").setup {
 }
 ```
 
+## 🌿 Git
+
+To include the current git branch in the session name, set `git_use_branch_name = true,` in your config
+
+AutoSession can also optionally auto-restore sessions when switching branches. Set `git_auto_restore_on_branch_change = true,` to enable that. Note, if you have modified files open when the branch is switched, AutoSession will ask if you want to close those files and restore the session or cancel restoring the session. If you cancel restoring the session, auto-saving will be disabled.
+
+```lua
+opts = {
+  git_use_branch_name = true,
+  git_auto_restore_on_branch_change = true,
+}
+```
+
 ## 🖥️ Dashboards
 
 If you use a dashboard, you probably don't want to try and save a session when just the dashboard is open. To avoid that, add your dashboard filetype to the bypass list as follows:
 
 ```lua
-require("auto-session").setup {
-  bypass_save_filetypes = { "alpha", "dashboard" }, -- or whatever dashboard you use
+opts = {
+  bypass_save_filetypes = { "alpha", "dashboard", "snacks_dashboard" }, -- or whatever dashboard you use
 }
 ```
 
+## ➖ Statusline
+
+You can show the current session name in the statusline by using the function `current_session_name()`. With no arguments, it will return the full session name. For automatically created sessions that will be the path where the session was saved. If you only want the last directory in the path, you can call `current_session_name(true)`.
+
+Here's an example using [Lualine](https://github.com/nvim-lualine/lualine.nvim):
+
+```lua
+require("lualine").setup {
+  options = {
+    theme = "tokyonight",
+  },
+  sections = {
+    lualine_x = {
+      function()
+        return require("auto-session.lib").current_session_name(true)
+      end,
+    },
+  },
+}
+```
+
+<img width="800" height="676" alt="Screenshot 2025-08-21 at 12 10 10" src="https://github.com/user-attachments/assets/49b0357e-9002-4d18-8dbb-3eed4422c5f9" />
+
 ## 🪝 Command Hooks
 
-#### Command hooks are a list of commands that get executed at different stages of the session management lifecycle.
+#### Command hooks are a list of commands or functions that get executed at different stages of the session management lifecycle.
 
 Command hooks exist in the format: {hook_name}
 
@@ -431,7 +476,7 @@ Command hooks exist in the format: {hook_name}
 Each hook is a table of vim commands or lua functions (or a mix of both):
 
 ```lua
-require("auto-session").setup {
+opts = {
   -- {hook_name}_cmds = {"{hook_command1}", "{hook_command2}"}
 
   pre_save_cmds = {
@@ -473,146 +518,24 @@ require("auto-session").setup {
 }
 ```
 
-## ➖ Statusline
+## Wiki
 
-You can show the current session name in the statusline by using the function `current_session_name()`. With no arguments, it will return the full session name. For automatically created sessions that will be the path where the session was saved. If you only want the last directory in the path, you can call `current_session_name(true)`.
-
-Here's an example using [Lualine](https://github.com/nvim-lualine/lualine.nvim):
-
-```lua
-require("lualine").setup {
-  options = {
-    theme = "tokyonight",
-  },
-  sections = {
-    lualine_c = {
-      function()
-        return require("auto-session.lib").current_session_name(true)
-      end,
-    },
-  },
-}
-```
-
-<img width="1904" alt="Screen Shot 2021-10-30 at 3 58 57 PM" src="https://user-images.githubusercontent.com/2881382/139559478-8edefdb8-8254-42e7-a0f3-babd3dfd6ff2.png">
-
-## ⏮️ Last Session
-
-This optional feature enables the keeping track and loading of the last session.
-The last session is only loaded at startup if there isn't already a session for the current working directory.
-This feature can come in handy when starting Neovim from a GUI for example.
-
-:warning: If the directory does not exist, default directory will be used and an error message will be printed.  
-:warning: This feature is still experimental and as of right now it interferes with the plugin's ability to auto create new sessions when opening Neovim in a new directory.
-
-```lua
-require("auto-session").setup {
-  auto_restore_last_session = true,
-}
-```
-
-A quick workaround for inability to auto create new sessions is to conditionally enable last session.
-
-```lua
-require("auto-session").setup {
-  auto_restore_last_session = vim.loop.cwd() == vim.loop.os_homedir(),
-}
-```
-
-Now last session will be restored only when Neovim is launched in the home directory, which is usually right after launching the terminal or Neovim GUI clients.
-
-## Auto-create
-
-With `auto_create = false`, AutoSession won't create a session automatically. If you manually save a session via `:SessionSave`, though, it will automatically update it whenever you exit `nvim`. You can use that to manually control where sessions are created.
-
-`auto_create` doesn't just have to be a boolean, it can also take a function that returns if a session should be created or not as part of auto saving. As one example, you could use this to only automatically create new session files inside of git projects:
-
-```lua
-
-require("auto-session").setup {
-  auto_create = function()
-    local cmd = "git rev-parse --is-inside-work-tree"
-    return vim.fn.system(cmd) == "true\n"
-  end,
-}
-```
-
-With the above, AutoSession will allow automatically creating a session inside of a git project but won't automatically create a session in any other directory. If you manually save a session in a directory, though, it will then update that session automatically whenever you exit `nvim`.
-
-## 🗃️ Argument Handling
-
-By default, when `nvim` is run with a single directory argument, AutoSession will try to restore the session for that directory. If `nvim` is run with multiple directories or any file arguments, AutoSession won't try to restore a session and won't auto-save a session on exit (if enabled). Those behaviors can be changed with these config parameters:
-
-```lua
-opts = {
-  args_allow_single_directory = true, -- boolean Follow normal session save/load logic if launched with a single directory as the only argument
-  args_allow_files_auto_save = false, -- boolean|function Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. While you can just set this to true, you probably want to set it to a function that decides when to save a session when launched with file args. See documentation for more detail
-}
-```
-
-For `args_allow_single_directory`, if you frequently use `netrw` to look at directories, you might want to add it to `bypass_save_filetypes` if you don't want to create a session for each directory you look at:
-
-```lua
-opts = {
-  bypass_save_filetypes = { "netrw" },
-}
-```
-
-Also, if you use a plugin that handles directory arguments (e.g. file trees/explorers), it may prevent AutoSession from loading or saving sessions when launched with a directory argument. You can avoid that by lazy loading that plugin (e.g. [Oil](https://github.com/rmagatti/auto-session/issues/372#issuecomment-2471077783), [NvimTree](https://github.com/rmagatti/auto-session/issues/393#issuecomment-2474797271)).
-
-If `args_allow_files_auto_save` is true, AutoSession won't load any session when `nvim` is launched with file argument(s) but it will save on exit. What's probably more useful is to set `args_allow_files_auto_save` to a function that returns true if a session should be saved and false otherwise. AutoSession will call that function on auto save when run with arguments. Here's one example config where it will save the session if at least two buffers are open after being launched with arguments:
-
-```lua
-require("auto-session").setup {
-  args_allow_files_auto_save = function()
-    local supported = 0
-
-    local buffers = vim.api.nvim_list_bufs()
-    for _, buf in ipairs(buffers) do
-      -- Check if the buffer is valid and loaded
-      if vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_is_loaded(buf) then
-        local path = vim.api.nvim_buf_get_name(buf)
-        if vim.fn.filereadable(path) ~= 0 then
-          supported = supported + 1
-        end
-      end
-    end
-
-    -- If we have more 2 or more supported buffers, save the session
-    return supported >= 2
-  end,
-}
-```
-
-Another possibility is to only save the session if there are at least two windows with buffers backed by normal files:
-
-```lua
-require("auto-session").setup {
-  args_allow_files_auto_save = function()
-    local supported = 0
-
-    local tabpages = vim.api.nvim_list_tabpages()
-    for _, tabpage in ipairs(tabpages) do
-      local windows = vim.api.nvim_tabpage_list_wins(tabpage)
-      for _, window in ipairs(windows) do
-        local buffer = vim.api.nvim_win_get_buf(window)
-        local file_name = vim.api.nvim_buf_get_name(buffer)
-        if vim.fn.filereadable(file_name) ~= 0 then
-          supported = supported + 1
-        end
-      end
-    end
-
-    -- If we have 2 or more windows with supported buffers, save the session
-    return supported >= 2
-  end,
-}
-```
+See [the wiki](https://github.com/rmagatti/auto-session/wiki/) for more advanced ways to use AutoSession. And feel free to share new and interesting ways you're using AutoSession!
 
 ## 🚫 Disabling the plugin
 
-You might run into issues with Firenvim or another plugin and want to disable `auto_session` altogether based on some condition.
+You might run into issues with Firenvim or another plugin and want to disable AutoSession altogether based on some condition.
 For example, this will disable AutoSession when started under Firenvim:
+
+```lua
+return {
+  "rmagatti/auto-session",
+  lazy = false,
+  cond = not vim.g.started_by_firenvim and not vim.g.vscode,
+}
+```
+
+Or in VimScript:
 
 ```viml
 if exists('g:started_by_firenvim')
@@ -636,7 +559,7 @@ If that doesn't help, you can:
 - check the [Discussions](https://github.com/rmagatti/auto-session/discussions)
 - or file an [Issue](https://github.com/rmagatti/auto-session/issues)
 
-# Compatibility
+## Compatibility
 
 Neovim >= 0.10
 
