@@ -13,7 +13,7 @@ Automatically reopen the files and windows you had open. It's like you never lef
 ## ⭐ Features
 
 - 💾 Automatically save and restore sessions, with customizable filters
-- 🎯 [Session picker](#-session-picker) works with Telescope, Snacks, Fzf-Lua, and `vim.ui.select`
+- 🎯 [Session picker](#-session-picker), with support for Telescope, Snacks, Fzf-Lua, and `vim.ui.select`
 - 📁 Track directory changes
 - 🌿 Separate sessions per git branch
 - 🪝 Customizable with [Hooks](#-command-hooks)
@@ -518,7 +518,7 @@ opts = {
 }
 ```
 
-## Saving custom data
+## 🗃️ Saving custom data
 
 You can use the config functions `save_extra_data` and `restore_extra_data` to save arbitrary data as part of your session.
 
@@ -575,7 +575,7 @@ local opts = {
 }
 ```
 
-## Wiki
+## 📚 Wiki
 
 See [the wiki](https://github.com/rmagatti/auto-session/wiki/) for more advanced ways to use AutoSession. And feel free to share new and interesting ways you're using AutoSession!
 
