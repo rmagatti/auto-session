@@ -1,14 +1,14 @@
 ---@diagnostic disable: undefined-field
-local TL = require "tests/test_lib"
+local TL = require("tests/test_lib")
 
 describe("preserve_buffer_on_restore", function()
-  local as = require "auto-session"
+  local as = require("auto-session")
 
-  as.setup {
+  as.setup({
     preserve_buffer_on_restore = function(buf_nr)
       return string.find(vim.api.nvim_buf_get_name(buf_nr):gsub("\\", "/"), TL.other_file, 1, true) ~= nil
     end,
-  }
+  })
 
   TL.clearSessionFilesAndBuffers()
 
@@ -19,7 +19,7 @@ describe("preserve_buffer_on_restore", function()
     assert.True(as.AutoSaveSession())
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
 
-    vim.cmd "silent %bw!"
+    vim.cmd("silent %bw!")
 
     -- open another buffer to test preserving
     vim.cmd("e " .. TL.other_file)

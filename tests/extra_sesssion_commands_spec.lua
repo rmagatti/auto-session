@@ -1,13 +1,13 @@
 ---@diagnostic disable: undefined-field
-local TL = require "tests/test_lib"
+local TL = require("tests/test_lib")
 TL.clearSessionFilesAndBuffers()
 
 describe("Config with extra session commands", function()
   local save_extra_cmds_called = false
-  local as = require "auto-session"
-  local Lib = require "auto-session.lib"
+  local as = require("auto-session")
+  local Lib = require("auto-session.lib")
   -- WARN: this test calls setup again later to change save_extra_cmds
-  as.setup {
+  as.setup({
     save_extra_cmds = {
       function()
         save_extra_cmds_called = true
@@ -18,7 +18,7 @@ describe("Config with extra session commands", function()
       end,
     },
     -- log_level = "debug",
-  }
+  })
 
   TL.clearSessionFilesAndBuffers()
 
@@ -58,9 +58,9 @@ describe("Config with extra session commands", function()
     assert.equals(1, vim.fn.filereadable(default_extra_cmds_path))
 
     -- remove the handler
-    as.setup {
+    as.setup({
       save_extra_cmds = nil,
-    }
+    })
 
     -- generate default session
     assert.True(as.AutoSaveSession())
@@ -79,14 +79,14 @@ describe("Config with extra session commands", function()
 
     save_extra_cmds_called = false
 
-    as.setup {
+    as.setup({
       save_extra_cmds = {
         function()
           save_extra_cmds_called = true
           return { "lua vim.g.extraCmdsTest = 1", "lua vim.g.extraCmdsTest2 = 2" }
         end,
       },
-    }
+    })
 
     -- generate default session
     assert.True(as.AutoSaveSession())
@@ -147,7 +147,7 @@ describe("Config with extra session commands", function()
   end)
 
   it("deletes a default session's extra commands when deleting the session", function()
-    vim.cmd "SessionDelete"
+    vim.cmd("SessionDelete")
 
     -- Make sure the session was deleted
     assert.equals(0, vim.fn.filereadable(TL.default_session_path))

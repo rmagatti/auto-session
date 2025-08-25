@@ -1,8 +1,8 @@
-require "plenary"
-local TL = require "tests/test_lib"
+require("plenary")
+local TL = require("tests/test_lib")
 
 describe("restore_error_handler", function()
-  local as = require "auto-session"
+  local as = require("auto-session")
   local should_return
   local was_called = false
 
@@ -22,12 +22,12 @@ describe("restore_error_handler", function()
     assert.False(as.RestoreSession())
   end)
 
-  as.setup {
+  as.setup({
     restore_error_handler = function()
       was_called = true
       return should_return
     end,
-  }
+  })
 
   it("can suppress errors", function()
     TL.clearSessionFilesAndBuffers()

@@ -1,6 +1,6 @@
-local Config = require "auto-session.config"
-local Lib = require "auto-session.lib"
-local AutoSession = require "auto-session"
+local Config = require("auto-session.config")
+local Lib = require("auto-session.lib")
+local AutoSession = require("auto-session")
 
 local function is_available()
   local success, snacks_picker_enabled = pcall(function()
@@ -19,7 +19,7 @@ local function open_session_picker()
     layout = { preset = "select" }
   end
 
-  Snacks.picker.pick {
+  Snacks.picker.pick({
     title = "Sessions",
     finder = function()
       return Lib.get_session_list(AutoSession.get_root_dir())
@@ -78,7 +78,7 @@ local function open_session_picker()
         end)
       end,
     },
-  }
+  })
 end
 
 ---@type Picker

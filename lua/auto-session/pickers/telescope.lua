@@ -1,11 +1,11 @@
-local Config = require "auto-session.config"
-local Lib = require "auto-session.lib"
-local AutoSession = require "auto-session"
+local Config = require("auto-session.config")
+local Lib = require("auto-session.lib")
+local AutoSession = require("auto-session")
 
 local function is_available()
   -- don't just want to see if the telescope files are there,
   -- want to make sure it's loaded/configured
-  if vim.fn.exists ":Telescope" ~= 2 then
+  if vim.fn.exists(":Telescope") ~= 2 then
     return false
   end
 
@@ -21,7 +21,7 @@ local function is_available()
 end
 
 local function open_session_picker()
-  return vim.cmd "Telescope session-lens"
+  return vim.cmd("Telescope session-lens")
 end
 
 ---@private
@@ -29,9 +29,9 @@ end
 ---Triggers the customized telescope picker for switching sessions
 ---@param custom_opts table
 local function extension_search_session(custom_opts)
-  local telescope_themes = require "telescope.themes"
-  local telescope_actions = require "telescope.actions"
-  local telescope_finders = require "telescope.finders"
+  local telescope_themes = require("telescope.themes")
+  local telescope_actions = require("telescope.actions")
+  local telescope_finders = require("telescope.finders")
   local telescope_conf = require("telescope.config").values
 
   -- use custom_opts if specified and non-empty. Otherwise use the config
@@ -85,7 +85,7 @@ local function extension_search_session(custom_opts)
           return session_entry.display_name
         end
 
-        local telescope_utils = require "telescope.utils"
+        local telescope_utils = require("telescope.utils")
 
         return telescope_utils.transform_path(theme_opts, session_entry.display_name_component)
           .. session_entry.annotation_component
@@ -94,13 +94,13 @@ local function extension_search_session(custom_opts)
   end
 
   local finder_maker = function()
-    return telescope_finders.new_table {
+    return telescope_finders.new_table({
       results = Lib.get_session_list(session_root_dir),
       entry_maker = session_entry_maker,
-    }
+    })
   end
 
-  local Actions = require "auto-session.pickers.telescope_actions"
+  local Actions = require("auto-session.pickers.telescope_actions")
   local opts = {
     prompt_title = "Sessions",
     attach_mappings = function(prompt_bufnr, map)
@@ -111,13 +111,13 @@ local function extension_search_session(custom_opts)
         map(mappings.delete_session[1], mappings.delete_session[2], Actions.delete_session)
         map(mappings.alternate_session[1], mappings.alternate_session[2], Actions.alternate_session)
 
-        Actions.copy_session:enhance {
+        Actions.copy_session:enhance({
           post = function()
-            local action_state = require "telescope.actions.state"
+            local action_state = require("telescope.actions.state")
             local picker = action_state.get_current_picker(prompt_bufnr)
             picker:refresh(finder_maker(), { reset_prompt = true })
           end,
-        }
+        })
 
         map(mappings.copy_session[1], mappings.copy_session[2], Actions.copy_session)
       end

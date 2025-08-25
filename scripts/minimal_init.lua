@@ -10,7 +10,7 @@ local root = vim.fn.fnamemodify("./.test", ":p")
 local plugin_root = ".test/plugins/"
 
 -- set stdpaths to use .test
-for _, name in ipairs { "config", "data", "state", "cache" } do
+for _, name in ipairs({ "config", "data", "state", "cache" }) do
   vim.env[("XDG_%s_HOME"):format(name:upper())] = root .. name
 end
 
@@ -29,7 +29,7 @@ while handle do
 end
 
 -- Add current directory to 'runtimepath' so we can load auto-session
-vim.cmd [[let &rtp.=','.getcwd()]]
+vim.cmd([[let &rtp.=','.getcwd()]])
 
 -- make sure plenary is loaded
-require "plenary"
+require("plenary")

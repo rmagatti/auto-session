@@ -1,11 +1,11 @@
 ---@diagnostic disable: undefined-field
-local TL = require "tests/test_lib"
+local TL = require("tests/test_lib")
 
 describe("The default config", function()
-  local as = require "auto-session"
-  as.setup {
+  local as = require("auto-session")
+  as.setup({
     -- log_level = "debug",
-  }
+  })
 
   TL.clearSessionFilesAndBuffers()
 
@@ -22,7 +22,7 @@ describe("The default config", function()
   end)
 
   it("can restore a session name with .vim", function()
-    vim.cmd "%bw!"
+    vim.cmd("%bw!")
 
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 

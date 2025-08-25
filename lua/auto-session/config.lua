@@ -120,7 +120,7 @@ local defaults = {
 
   -- Misc
   log_level = "error", -- Sets the log level of the plugin (debug, info, warn, error).
-  root_dir = vim.fn.stdpath "data" .. "/sessions/", -- Root dir where sessions will be stored
+  root_dir = vim.fn.stdpath("data") .. "/sessions/", -- Root dir where sessions will be stored
   show_auto_restore_notif = false, -- Whether to show a notification when auto-restoring
   restore_error_handler = nil, -- Function called when there's an error restoring. By default, it ignores fold errors otherwise it displays the error and returns false to disable auto_save
   continue_restore_on_error = true, -- Keep loading the session even if there's an error
@@ -143,7 +143,7 @@ local defaults = {
 
     ---@type SessionControl
     session_control = {
-      control_dir = vim.fn.stdpath "data" .. "/auto_session/", -- Auto session control dir, for control files, like alternating between two sessions with session-lens
+      control_dir = vim.fn.stdpath("data") .. "/auto_session/", -- Auto session control dir, for control files, like alternating between two sessions with session-lens
       control_filename = "session_control.json", -- File name of the session control file
     },
   },
@@ -303,7 +303,7 @@ function M.check(logger, show_full_message)
           .. 'vim.o.sessionoptions="blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"\n'
       )
     else
-      logger.warn "vim.o.sessionoptions is missing buffers. \nUse `:checkhealth autosession` for more info."
+      logger.warn("vim.o.sessionoptions is missing buffers. \nUse `:checkhealth autosession` for more info.")
     end
     has_issues = true
   end
@@ -316,29 +316,29 @@ function M.check(logger, show_full_message)
           .. 'vim.o.sessionoptions="blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"\n'
       )
     else
-      logger.warn "vim.o.sessionoptions is missing localoptions. \nUse `:checkhealth autosession` for more info."
+      logger.warn("vim.o.sessionoptions is missing localoptions. \nUse `:checkhealth autosession` for more info.")
     end
     has_issues = true
   end
 
-  if M.purge_after_minutes and vim.fn.has "nvim-0.10" ~= 1 then
-    logger.warn "the purge_after_minutes options requires nvim >= 0.10"
+  if M.purge_after_minutes and vim.fn.has("nvim-0.10") ~= 1 then
+    logger.warn("the purge_after_minutes options requires nvim >= 0.10")
     has_issues = true
   end
 
   if not M.git_use_branch_name and M.git_auto_restore_on_branch_change then
-    logger.error "git_auto_restore_on_branch_change requires git_use_branch_name = true"
+    logger.error("git_auto_restore_on_branch_change requires git_use_branch_name = true")
     has_issues = true
   end
 
   if M.single_session_mode and M.cwd_change_handling then
-    logger.warn "single_session_mode and cwd_change_handling are conflicting options. Disabling single_session_mode."
+    logger.warn("single_session_mode and cwd_change_handling are conflicting options. Disabling single_session_mode.")
     M.single_session_mode = false
     has_issues = true
   end
 
   if M.session_lens.load_on_setup and M.session_lens.picker and M.session_lens.picker ~= "telescope" then
-    logger.warn 'session_lens.load_on_setup is not used with pickers other than "telescope"'
+    logger.warn('session_lens.load_on_setup is not used with pickers other than "telescope"')
     M.session_lens.load_on_setup = false
   end
 

@@ -1,5 +1,5 @@
-local Lib = require "auto-session.lib"
-local AutoSession = require "auto-session"
+local Lib = require("auto-session.lib")
+local AutoSession = require("auto-session")
 
 local function is_available()
   return true

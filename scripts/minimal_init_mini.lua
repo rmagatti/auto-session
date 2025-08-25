@@ -1,10 +1,10 @@
-dofile "scripts/minimal_init.lua"
+dofile("scripts/minimal_init.lua")
 
 -- Set up 'mini.test'
-require("mini.test").setup {
+require("mini.test").setup({
   collect = {
     find_files = function()
       return vim.fn.globpath("tests/mini-tests", "**/test_*.lua", true, true)
     end,
   },
-}
+})

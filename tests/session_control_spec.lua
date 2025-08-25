@@ -1,13 +1,13 @@
 ---@diagnostic disable: undefined-field
-local TL = require "tests/test_lib"
+local TL = require("tests/test_lib")
 
 describe("The default config", function()
-  local as = require "auto-session"
-  local Lib = require "auto-session.lib"
+  local as = require("auto-session")
+  local Lib = require("auto-session.lib")
 
-  as.setup {
+  as.setup({
     -- log_level = "debug",
-  }
+  })
 
   TL.clearSessionFilesAndBuffers()
 
@@ -15,15 +15,15 @@ describe("The default config", function()
     vim.cmd("e " .. TL.test_file)
 
     ---@diagnostic disable-next-line: missing-parameter
-    vim.cmd "SessionSave"
+    vim.cmd("SessionSave")
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
 
-    vim.cmd "%bw!"
+    vim.cmd("%bw!")
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 
     -- Session control is only written on restore
-    vim.cmd "SessionRestore"
+    vim.cmd("SessionRestore")
 
     -- Make sure the restore worked
     assert.equals(1, vim.fn.bufexists(TL.test_file))
@@ -36,7 +36,7 @@ describe("The default config", function()
     -- Save a new session
     vim.cmd("SessionSave " .. TL.named_session_name)
 
-    vim.cmd "%bw!"
+    vim.cmd("%bw!")
 
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 
@@ -60,11 +60,11 @@ describe("The default config", function()
 
   it("Saving twice doesn't set alternate", function()
     -- Save a session then restore it twice to make sure it's not both current and alternate
-    vim.cmd "SessionSave"
+    vim.cmd("SessionSave")
 
-    vim.cmd "SessionRestore"
+    vim.cmd("SessionRestore")
 
-    vim.cmd "SessionRestore "
+    vim.cmd("SessionRestore ")
 
     -- Make sure the session control file was written
     assert.equals(1, vim.fn.filereadable(TL.default_session_control_path))
@@ -86,7 +86,7 @@ describe("The default config", function()
     assert.equals("table", type(session_control))
 
     -- Don't throw an error on not a js file
-    session_control = Lib.load_session_control_file "tests/session_control_spec.lua"
+    session_control = Lib.load_session_control_file("tests/session_control_spec.lua")
     assert.equals("table", type(session_control))
   end)
 end)

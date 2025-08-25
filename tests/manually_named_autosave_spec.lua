@@ -1,8 +1,8 @@
 ---@diagnostic disable: undefined-field
-local TL = require "tests/test_lib"
+local TL = require("tests/test_lib")
 
 describe("Manually named sessions", function()
-  require("auto-session").setup { auto_create = false }
+  require("auto-session").setup({ auto_create = false })
 
   it("can autosave", function()
     TL.clearSessionFilesAndBuffers()
@@ -28,8 +28,8 @@ describe("Manually named sessions", function()
     -- This needs to be cleared to simulate the current session not being manually named
     -- Passing nothing to the SaveSession function will use the current manually named
     -- session if the flag is set
-    require("auto-session").manually_named_session = false 
-    require("auto-session").SaveSession() 
+    require("auto-session").manually_named_session = false
+    require("auto-session").SaveSession()
 
     vim.cmd("e " .. TL.other_file)
     assert.equals(1, vim.fn.bufexists(TL.other_file))
@@ -47,11 +47,11 @@ describe("Manually named sessions", function()
     TL.clearSessionFilesAndBuffers()
     local original_cwd = vim.fn.getcwd()
 
-    require("auto-session").setup {
+    require("auto-session").setup({
       single_session_mode = true,
       auto_create = false,
       -- log_level = "debug",
-    }
+    })
 
     vim.cmd("e " .. TL.test_file)
 

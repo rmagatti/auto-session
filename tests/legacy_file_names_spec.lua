@@ -1,10 +1,10 @@
 ---@diagnostic disable: undefined-field
-local TL = require "tests/test_lib"
+local TL = require("tests/test_lib")
 
 describe("Legacy file name support", function()
-  local as = require "auto-session"
+  local as = require("auto-session")
   local save_extra_cmds_called = false
-  as.setup {
+  as.setup({
     -- log_level = "debug",
     save_extra_cmds = {
       function()
@@ -12,7 +12,7 @@ describe("Legacy file name support", function()
         return [[echo "hello world"]]
       end,
     },
-  }
+  })
   local default_extra_cmds_path = TL.default_session_path:gsub("%.vim$", "x.vim")
   local legacy_extra_cmds_path = TL.default_session_path_legacy:gsub("%.vim$", "x.vim")
 
@@ -40,7 +40,7 @@ describe("Legacy file name support", function()
     assert.equals(1, vim.fn.filereadable(legacy_extra_cmds_path))
     assert.equals(0, vim.fn.filereadable(default_extra_cmds_path))
 
-    vim.cmd "%bw!"
+    vim.cmd("%bw!")
 
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 
@@ -78,7 +78,7 @@ describe("Legacy file name support", function()
     assert.equals(1, vim.fn.filereadable(TL.default_session_path_legacy))
     assert.equals(0, vim.fn.filereadable(TL.default_session_path))
 
-    vim.cmd "%bw!"
+    vim.cmd("%bw!")
 
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 

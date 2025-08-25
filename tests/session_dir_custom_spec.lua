@@ -1,5 +1,5 @@
 ---@diagnostic disable: undefined-field
-local TL = require "tests/test_lib"
+local TL = require("tests/test_lib")
 
 local custom_session_dir = "/tests/custom_sessions/"
 
@@ -7,19 +7,19 @@ TL.clearSessionFilesAndBuffers()
 TL.clearSessionFiles(custom_session_dir)
 
 describe("A custom session dir config", function()
-  local as = require "auto-session"
-  as.setup {
+  local as = require("auto-session")
+  as.setup({
     -- Remove trailing slash
     auto_session_root_dir = vim.fn.getcwd() .. custom_session_dir,
     -- log_level = "debug",
-  }
+  })
 
   TL.clearSessionFilesAndBuffers()
 
   vim.cmd("e " .. TL.test_file)
 
   it("can save default session to the directory", function()
-    vim.cmd "SessionSave"
+    vim.cmd("SessionSave")
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 
@@ -39,12 +39,12 @@ describe("A custom session dir config", function()
   it("can load default session from the directory", function()
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 
-    vim.cmd "silent %bw"
+    vim.cmd("silent %bw")
 
     -- Make sure the buffer is gone
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 
-    vim.cmd "SessionRestore"
+    vim.cmd("SessionRestore")
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
   end)
@@ -68,7 +68,7 @@ describe("A custom session dir config", function()
   it("can load a named session from the directory", function()
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 
-    vim.cmd "silent %bw"
+    vim.cmd("silent %bw")
 
     -- Make sure the buffer is gone
     assert.equals(0, vim.fn.bufexists(TL.test_file))

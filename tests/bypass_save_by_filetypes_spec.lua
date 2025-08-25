@@ -1,12 +1,12 @@
 ---@diagnostic disable: undefined-field
-local TL = require "tests/test_lib"
+local TL = require("tests/test_lib")
 
 describe("Bypass save by filetypes", function()
-  local as = require "auto-session"
+  local as = require("auto-session")
 
-  as.setup {
+  as.setup({
     bypass_session_save_file_types = { "text" },
-  }
+  })
 
   TL.clearSessionFilesAndBuffers()
 
@@ -29,7 +29,7 @@ describe("Bypass save by filetypes", function()
 
   it("does save when there are other filetypes", function()
     vim.cmd("e " .. TL.test_file)
-    vim.cmd "e tests/bypass_session_save_file_types.lua"
+    vim.cmd("e tests/bypass_session_save_file_types.lua")
 
     -- generate default session
     assert.True(as.AutoSaveSession())

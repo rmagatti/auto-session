@@ -1,5 +1,5 @@
 ---@diagnostic disable: undefined-field
-local TL = require "tests/test_lib"
+local TL = require("tests/test_lib")
 TL.clearSessionFilesAndBuffers()
 
 describe("The allowed dirs config", function()
@@ -15,12 +15,12 @@ describe("The allowed dirs config", function()
     uv.chdir(original_cwd)
   end)
 
-  local as = require "auto-session"
-  local c = require "auto-session.config"
-  as.setup {
+  local as = require("auto-session")
+  local c = require("auto-session.config")
+  as.setup({
     auto_session_allowed_dirs = { "/dummy" },
     -- log_level = "debug",
-  }
+  })
   local cwd = vim.fn.getcwd()
 
   it("doesn't save a session for a non-allowed dir", function()
@@ -48,7 +48,7 @@ describe("The allowed dirs config", function()
     c.allowed_dirs = { vim.fn.getcwd() .. "/tests/*" }
 
     -- Change to a sub directory to see if it's allowed
-    vim.cmd "cd tests/test_files"
+    vim.cmd("cd tests/test_files")
 
     local session_path = TL.makeSessionPath(vim.fn.getcwd())
     assert.equals(0, vim.fn.filereadable(session_path))
@@ -59,15 +59,15 @@ describe("The allowed dirs config", function()
     assert.equals(1, vim.fn.filereadable(session_path))
   end)
 
-  if vim.fn.has "win32" == 0 then
+  if vim.fn.has("win32") == 0 then
     it("saves a session for an allowed dir with a symlink", function()
       vim.cmd("cd " .. cwd)
 
       vim.cmd("e " .. TL.test_file)
       c.allowed_dirs = { vim.fn.getcwd() .. "/tests/symlink-test" }
 
-      vim.fn.system "ln -snf test_files tests/symlink-test"
-      vim.cmd "cd tests/symlink-test"
+      vim.fn.system("ln -snf test_files tests/symlink-test")
+      vim.cmd("cd tests/symlink-test")
 
       local session_path = TL.makeSessionPath(vim.fn.getcwd())
       assert.equals(0, vim.fn.filereadable(session_path))

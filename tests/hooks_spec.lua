@@ -1,8 +1,8 @@
 ---@diagnostic disable: undefined-field
-local TL = require "tests/test_lib"
+local TL = require("tests/test_lib")
 
 describe("Hooks", function()
-  local as = require "auto-session"
+  local as = require("auto-session")
   local pre_save_cmd_called = false
   local post_save_cmd_called = false
   local pre_restore_cmd_called = false
@@ -10,17 +10,17 @@ describe("Hooks", function()
   local pre_delete_cmd_called = false
   local post_delete_cmd_called = false
 
-  as.setup {
+  as.setup({
     pre_save_cmds = {
       function()
-        print "pre_save_cmd"
+        print("pre_save_cmd")
         pre_save_cmd_called = true
         assert.equals(0, vim.fn.filereadable(TL.default_session_path))
       end,
     },
     post_save_cmds = {
       function()
-        print "post_save_cmd"
+        print("post_save_cmd")
         post_save_cmd_called = true
         assert.equals(1, vim.fn.filereadable(TL.default_session_path))
       end,
@@ -52,7 +52,7 @@ describe("Hooks", function()
 
     -- save_extra is covered by extra_session_commands
     -- no_restore is covered by args tests
-  }
+  })
 
   TL.clearSessionFilesAndBuffers()
 
@@ -67,7 +67,7 @@ describe("Hooks", function()
   end)
 
   it("fire when restoring", function()
-    vim.cmd "%bw"
+    vim.cmd("%bw")
 
     assert.equals(0, vim.fn.bufexists(TL.test_file))
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))

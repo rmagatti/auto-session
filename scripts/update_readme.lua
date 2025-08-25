@@ -47,20 +47,20 @@ local function update_readme()
   local readme_text = read_file(readme_path)
 
   -- Extract types section: from ---@class AutoSession.Config to next empty line
-  local types_section = config_text:match "(---@class%s+AutoSession%.Config.-)\n\n"
+  local types_section = config_text:match("(---@class%s+AutoSession%.Config.-)\n\n")
   if not types_section then
-    error "Types section not found"
+    error("Types section not found")
   end
 
   -- Extract config section: from 'local defaults = {' to matching closing '}'
-  local start_pos, end_pos = config_text:find "local%s+defaults%s*=%s*{"
+  local start_pos, end_pos = config_text:find("local%s+defaults%s*=%s*{")
   if not start_pos then
-    error "Config section start not found"
+    error("Config section start not found")
   end
 
   local close_pos = find_matching_brace(config_text, end_pos)
   if not close_pos then
-    error "Config section closing brace not found"
+    error("Config section closing brace not found")
   end
 
   local config_section = config_text:sub(start_pos, close_pos)
@@ -70,7 +70,7 @@ local function update_readme()
   readme_text = replace_section(readme_text, "<!-- config:start -->", "<!-- config:end -->", config_section)
 
   write_file(readme_path, readme_text)
-  print "README.md updated successfully"
+  print("README.md updated successfully")
 end
 
 update_readme()

@@ -1,9 +1,9 @@
-local Config = require "auto-session.config"
-local Lib = require "auto-session.lib"
-local AutoSession = require "auto-session"
+local Config = require("auto-session.config")
+local Lib = require("auto-session.lib")
+local AutoSession = require("auto-session")
 
 local function is_available()
-  if vim.fn.exists ":FzfLua" ~= 2 then
+  if vim.fn.exists(":FzfLua") ~= 2 then
     return false
   end
 
@@ -16,7 +16,7 @@ end
 ---@return table|nil
 local function find_session_by_display_name(selected)
   if not selected or #selected == 0 then
-    Lib.logger.error "No session selected?"
+    Lib.logger.error("No session selected?")
     return
   end
 
@@ -99,7 +99,7 @@ local function config_to_fzf_key_binding(config_keymap)
 end
 
 local function open_session_picker()
-  local fzf_lua = require "fzf-lua"
+  local fzf_lua = require("fzf-lua")
   local keymaps = Config.session_lens.mappings or {}
 
   fzf_lua.fzf_exec(function(fzf_cb)

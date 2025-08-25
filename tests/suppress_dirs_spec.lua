@@ -1,14 +1,14 @@
 ---@diagnostic disable: undefined-field
-local TL = require "tests/test_lib"
+local TL = require("tests/test_lib")
 
 describe("The suppress dirs config", function()
-  local as = require "auto-session"
-  local c = require "auto-session.config"
+  local as = require("auto-session")
+  local c = require("auto-session.config")
 
-  as.setup {
+  as.setup({
     auto_session_root_dir = TL.session_dir,
     auto_session_suppress_dirs = { vim.fn.getcwd() },
-  }
+  })
 
   TL.clearSessionFilesAndBuffers()
   vim.cmd("e " .. TL.test_file)
@@ -22,10 +22,10 @@ describe("The suppress dirs config", function()
   end)
 
   it("saves a session for a non-suppressed dir", function()
-    as.setup {
+    as.setup({
       auto_session_root_dir = TL.session_dir,
       auto_session_suppress_dirs = { "/dummy" },
-    }
+    })
     ---@diagnostic disable-next-line: missing-parameter
     as.AutoSaveSession()
 
@@ -42,7 +42,7 @@ describe("The suppress dirs config", function()
     c.suppressed_dirs = { vim.fn.getcwd() .. "/tests/*" }
 
     -- Change to a sub directory to see if it's allowed
-    vim.cmd "cd tests/test_files"
+    vim.cmd("cd tests/test_files")
 
     local session_path = TL.makeSessionPath(vim.fn.getcwd())
     assert.equals(0, vim.fn.filereadable(session_path))
@@ -57,11 +57,11 @@ describe("The suppress dirs config", function()
 
   it("doesn't save a session for a suppressed dir even if also an allowed dir", function()
     vim.cmd("e " .. TL.test_file)
-    as.setup {
+    as.setup({
       auto_session_root_dir = TL.session_dir,
       auto_session_suppress_dirs = { vim.fn.getcwd() },
       auto_session_allowed_dirs = { vim.fn.getcwd() },
-    }
+    })
     ---@diagnostic disable-next-line: missing-parameter
     as.AutoSaveSession()
 

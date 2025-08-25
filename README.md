@@ -92,7 +92,7 @@ local defaults = {
 
   -- Misc
   log_level = "error", -- Sets the log level of the plugin (debug, info, warn, error).
-  root_dir = vim.fn.stdpath "data" .. "/sessions/", -- Root dir where sessions will be stored
+  root_dir = vim.fn.stdpath("data") .. "/sessions/", -- Root dir where sessions will be stored
   show_auto_restore_notif = false, -- Whether to show a notification when auto-restoring
   restore_error_handler = nil, -- Function called when there's an error restoring. By default, it ignores fold errors otherwise it displays the error and returns false to disable auto_save
   continue_restore_on_error = true, -- Keep loading the session even if there's an error
@@ -115,7 +115,7 @@ local defaults = {
 
     ---@type SessionControl
     session_control = {
-      control_dir = vim.fn.stdpath "data" .. "/auto_session/", -- Auto session control dir, for control files, like alternating between two sessions with session-lens
+      control_dir = vim.fn.stdpath("data") .. "/auto_session/", -- Auto session control dir, for control files, like alternating between two sessions with session-lens
       control_filename = "session_control.json", -- File name of the session control file
     },
   },

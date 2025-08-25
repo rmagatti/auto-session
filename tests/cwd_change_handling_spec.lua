@@ -1,10 +1,10 @@
 ---@diagnostic disable: undefined-field
-local TL = require "tests/test_lib"
+local TL = require("tests/test_lib")
 
 describe("The cwd_change_handling config", function()
   local pre_cwd_changed_hook_called = false
   local post_cwd_changed_hook_called = false
-  require("auto-session").setup {
+  require("auto-session").setup({
     -- log_level = "debug",
     cwd_change_handling = {
       restore_upcoming_session = true,
@@ -15,7 +15,7 @@ describe("The cwd_change_handling config", function()
         post_cwd_changed_hook_called = true
       end,
     },
-  }
+  })
 
   TL.clearSessionFilesAndBuffers()
   vim.cmd("e " .. TL.test_file)
@@ -39,7 +39,7 @@ describe("The cwd_change_handling config", function()
 
     assert.True(vim.v.this_session ~= "")
 
-    vim.cmd "cd tests"
+    vim.cmd("cd tests")
     vim.wait(0)
 
     assert.equals(0, vim.fn.bufexists(TL.test_file))
@@ -53,7 +53,7 @@ describe("The cwd_change_handling config", function()
   it("does load the session for the base dir", function()
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 
-    vim.cmd "cd .."
+    vim.cmd("cd ..")
     vim.wait(0)
 
     assert.equals(vim.fn.getcwd(), require("auto-session.lib").current_session_name())
@@ -63,7 +63,7 @@ describe("The cwd_change_handling config", function()
 
   it("does not double load a session when using SessionRestore", function()
     -- Move to different directory
-    vim.cmd "cd tests"
+    vim.cmd("cd tests")
     vim.wait(0)
 
     pre_cwd_changed_hook_called = false

@@ -2,10 +2,10 @@
 -- See minimal_init.lua for more info
 
 vim.env.LAZY_STDPATH = ".test"
-load(vim.fn.system "curl -s https://raw.githubusercontent.com/folke/lazy.nvim/main/bootstrap.lua")()
+load(vim.fn.system("curl -s https://raw.githubusercontent.com/folke/lazy.nvim/main/bootstrap.lua"))()
 
 -- Setup lazy.nvim
-require("lazy.minit").setup {
+require("lazy.minit").setup({
   root = "./.test/plugins",
   spec = {
     --  FIXME: Using my fork of plenary just for https://github.com/nvim-lua/plenary.nvim/pull/611
@@ -18,4 +18,4 @@ require("lazy.minit").setup {
     { "folke/snacks.nvim", version = "v2.22.0" },
     { "ibhagwan/fzf-lua", commit = "71fe5c1" },
   },
-}
+})

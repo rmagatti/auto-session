@@ -1,11 +1,11 @@
 ---@diagnostic disable: undefined-field
-local TL = require "tests/test_lib"
+local TL = require("tests/test_lib")
 
 describe("The default config", function()
-  local as = require "auto-session"
-  as.setup {
+  local as = require("auto-session")
+  as.setup({
     -- log_level = "debug",
-  }
+  })
 
   local custom_sessions_dir = vim.fn.getcwd() .. "/tests/custom_sessions/"
   local cwd_session_name = TL.escapeSessionName(vim.fn.getcwd())
@@ -31,7 +31,7 @@ describe("The default config", function()
   it("can restore a session for the cwd from a custom directory", function()
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 
-    vim.cmd "silent %bw"
+    vim.cmd("silent %bw")
 
     -- Make sure the buffer is gone
     assert.equals(0, vim.fn.bufexists(TL.test_file))
@@ -65,7 +65,7 @@ describe("The default config", function()
   it("can restore a named session from a custom directory", function()
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 
-    vim.cmd "silent %bw"
+    vim.cmd("silent %bw")
 
     -- Make sure the buffer is gone
     assert.equals(0, vim.fn.bufexists(TL.test_file))

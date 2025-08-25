@@ -1,6 +1,6 @@
-local Lib = require "auto-session.lib"
-local Config = require "auto-session.config"
-local AutoSession = require "auto-session"
+local Lib = require("auto-session.lib")
+local Config = require("auto-session.config")
+local AutoSession = require("auto-session")
 
 ---@mod auto-session.commands Commands
 ---@brief [[
@@ -48,7 +48,7 @@ local function purge_orphaned_sessions()
   end
 
   if Lib.is_empty_table(orphaned_sessions) then
-    Lib.logger.info "Nothing to purge"
+    Lib.logger.info("Nothing to purge")
     return
   end
 
@@ -63,20 +63,20 @@ end
 
 local function setup_dirchanged_autocmds()
   if not Config.cwd_change_handling then
-    Lib.logger.debug "cwd_change_handling is disabled, skipping setting DirChangedPre and DirChanged autocmd handling"
+    Lib.logger.debug("cwd_change_handling is disabled, skipping setting DirChangedPre and DirChanged autocmd handling")
     return
   end
 
   vim.api.nvim_create_autocmd("DirChangedPre", {
     callback = function()
-      Lib.logger.debug "DirChangedPre"
-      Lib.logger.debug {
+      Lib.logger.debug("DirChangedPre")
+      Lib.logger.debug({
         cwd = vim.fn.getcwd(-1, -1),
         ---@diagnostic disable-next-line: undefined-field
         target = vim.v.event.directory,
         ["changed window"] = tostring(vim.v.event.changed_window),
         scope = vim.v.event.scope,
-      }
+      })
 
       -- Don't want to save session if dir change was triggered
       -- by a window change. This will corrupt the session data,
@@ -86,7 +86,7 @@ local function setup_dirchanged_autocmds()
       end
 
       if AutoSession.restore_in_progress or vim.g.SessionLoad then
-        Lib.logger.debug "DirChangedPre: restore_in_progress/vim.g.SessionLoad is true, ignoring this event"
+        Lib.logger.debug("DirChangedPre: restore_in_progress/vim.g.SessionLoad is true, ignoring this event")
         -- NOTE: We don't call the cwd_changed_hook here
         -- I think that's probably the right choice because I assume that event is mostly
         -- for preparing sessions for save/restoring but we don't want to do that when we're
@@ -95,7 +95,7 @@ local function setup_dirchanged_autocmds()
       end
 
       AutoSession.AutoSaveSession()
-      AutoSession.run_cmds "pre_cwd_changed"
+      AutoSession.run_cmds("pre_cwd_changed")
 
       -- Clear the current session, fixes #399
       vim.v.this_session = ""
@@ -105,7 +105,7 @@ local function setup_dirchanged_autocmds()
 
   vim.api.nvim_create_autocmd("DirChanged", {
     callback = function()
-      Lib.logger.debug "DirChanged"
+      Lib.logger.debug("DirChanged")
       Lib.logger.debug("  cwd: " .. vim.fn.getcwd(-1, -1))
       Lib.logger.debug("  changed window: " .. tostring(vim.v.event.changed_window))
       Lib.logger.debug("  scope: " .. vim.v.event.scope)
@@ -120,13 +120,13 @@ local function setup_dirchanged_autocmds()
         -- I think that's probably the right choice because I assume that event is mostly
         -- for preparing sessions for save/restoring but we don't want to do that when we're
         -- already restoring a session
-        Lib.logger.debug "DirChangedPre: restore_in_progress/vim.g.SessionLoad is true, ignoring this event"
+        Lib.logger.debug("DirChangedPre: restore_in_progress/vim.g.SessionLoad is true, ignoring this event")
         return
       end
 
       -- all buffers should've been deleted in `DirChangedPre`, something probably went wrong
       if Lib.has_open_buffers() then
-        Lib.logger.debug "Cancelling session restore"
+        Lib.logger.debug("Cancelling session restore")
         return
       end
 
@@ -136,7 +136,7 @@ local function setup_dirchanged_autocmds()
       -- the restore for the next run of the event loop
       vim.schedule(function()
         AutoSession.AutoRestoreSession()
-        AutoSession.run_cmds "post_cwd_changed"
+        AutoSession.run_cmds("post_cwd_changed")
       end)
     end,
     pattern = "global",
@@ -200,9 +200,9 @@ function M.setup_autocmds()
   })
 
   vim.api.nvim_create_user_command("Autosession", function(args)
-    if args.args:match "search" then
+    if args.args:match("search") then
       return require("auto-session.pickers").open_session_picker()
-    elseif args.args:match "delete" then
+    elseif args.args:match("delete") then
       return require("auto-session.pickers.select").open_delete_picker()
     end
   end, {
@@ -237,8 +237,8 @@ function M.setup_autocmds()
     callback = function()
       if vim.g.in_pager_mode then
         -- Don't auto restore session in pager mode
-        Lib.logger.debug "In pager mode, skipping auto restore"
-        AutoSession.run_cmds "no_restore"
+        Lib.logger.debug("In pager mode, skipping auto restore")
+        AutoSession.run_cmds("no_restore")
         return
       end
 
@@ -258,14 +258,14 @@ function M.setup_autocmds()
 
       if not lazy_view.visible() then
         -- Lazy isn't visible, load as usual
-        Lib.logger.debug "Lazy is loaded, but not visible, will try to restore session"
+        Lib.logger.debug("Lazy is loaded, but not visible, will try to restore session")
         AutoSession.start()
         return
       end
 
       -- If the Lazy window is visible, hold onto it for later
       lazy_view_win = lazy_view.view.win
-      Lib.logger.debug "Lazy window is still visible, waiting for it to close"
+      Lib.logger.debug("Lazy window is still visible, waiting for it to close")
     end,
   })
 
@@ -294,11 +294,11 @@ function M.setup_autocmds()
 
         if event.match ~= tostring(lazy_view_win) then
           -- A window was closed, but it wasn't Lazy's window so keep waiting
-          Lib.logger.debug "A window was closed but it was not Lazy, keep waiting"
+          Lib.logger.debug("A window was closed but it was not Lazy, keep waiting")
           return
         end
 
-        Lib.logger.debug "Lazy window was closed, restore the session!"
+        Lib.logger.debug("Lazy window was closed, restore the session!")
 
         -- Clear lazy_view_win so we stop processing future WinClosed events
         lazy_view_win = nil

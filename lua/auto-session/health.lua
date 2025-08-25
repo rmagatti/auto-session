@@ -1,6 +1,6 @@
-local AutoSession = require "auto-session"
-local Lib = require "auto-session.lib"
-local Config = require "auto-session.config"
+local AutoSession = require("auto-session")
+local Lib = require("auto-session.lib")
+local Config = require("auto-session.config")
 
 local M = {}
 
@@ -22,7 +22,7 @@ local function check_lazy_settings()
     return
   end
 
-  start "Lazy.nvim settings"
+  start("Lazy.nvim settings")
 
   if not Config.lazy_support then
     warn(
@@ -31,7 +31,7 @@ local function check_lazy_settings()
         .. "`lazy_support = true,` to your config (or remove the line that's setting it to false)"
     )
   else
-    ok "Lazy.nvim support is enabled"
+    ok("Lazy.nvim support is enabled")
   end
 
   local plugins = lazy.plugins()
@@ -52,7 +52,7 @@ local function check_lazy_settings()
             ]]
         )
       else
-        ok "auto-session is not lazy loaded"
+        ok("auto-session is not lazy loaded")
       end
 
       return
@@ -61,7 +61,7 @@ local function check_lazy_settings()
 end
 
 local function check_config()
-  start "Config"
+  start("Config")
   local loggerObj = {
     error = error,
     info = info,
@@ -69,12 +69,12 @@ local function check_config()
   }
 
   if not Config.check(loggerObj, true) then
-    ok "No config issues detected"
+    ok("No config issues detected")
   end
 end
 
 function M.check()
-  start "Setup"
+  start("Setup")
   if not Config.root_dir or vim.tbl_isempty(Lib.logger) then
     error(
       "Setup was not called. Auto-session will not work unless you call setup() somewhere, e.g.:\n\n"
@@ -82,14 +82,14 @@ function M.check()
     )
     return
   else
-    ok "setup() called"
+    ok("setup() called")
   end
 
   check_lazy_settings()
 
   check_config()
 
-  start "Current Config"
+  start("Current Config")
   if Config.has_old_config then
     info(
       "You have old config names. You can update your config to:\n"
@@ -100,7 +100,7 @@ function M.check()
     info("\n" .. vim.inspect(Config.options_without_defaults))
   end
 
-  start "General Info"
+  start("General Info")
   info("Session directory: " .. AutoSession.get_root_dir())
   info("Current session: " .. Lib.current_session_name())
   info("Current session file: " .. vim.v.this_session)
