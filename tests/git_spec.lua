@@ -1,20 +1,20 @@
 ---@diagnostic disable: undefined-field
-local TL = require "tests/test_lib"
-local stub = require "luassert.stub"
+local TL = require("tests/test_lib")
+local stub = require("luassert.stub")
 
 describe("The git config", function()
-  local as = require "auto-session"
-  local Lib = require "auto-session.lib"
-  local c = require "auto-session.config"
+  local as = require("auto-session")
+  local Lib = require("auto-session.lib")
+  local c = require("auto-session.config")
   -- NOTE: need to load the git module here because we change the directory later which
   -- I think messes up the relative module load path. a bit of a hack but oh well
   ---@diagnostic disable-next-line: unused-local
-  local g = require "auto-session.git"
+  local g = require("auto-session.git")
 
-  as.setup {
+  as.setup({
     auto_session_use_git_branch = true,
     -- log_level = "debug",
-  }
+  })
 
   TL.clearSessionFilesAndBuffers()
 
@@ -29,7 +29,7 @@ describe("The git config", function()
   vim.cmd("e " .. TL.test_file)
   vim.cmd("w! " .. git_test_path .. "/test.txt")
   vim.cmd("w! " .. git_test_path .. "/other.txt")
-  vim.cmd "silent %bw"
+  vim.cmd("silent %bw")
 
   -- change to that dir
   vim.cmd("cd " .. git_test_path)
@@ -48,14 +48,14 @@ describe("The git config", function()
   end
 
   -- init repo and make a commit
-  runCmdAndPrint "git init -b main"
-  runCmdAndPrint 'git config user.email "test@test.com"'
-  runCmdAndPrint 'git config user.name "test"'
-  runCmdAndPrint "git add test.txt"
-  runCmdAndPrint "git commit -m 'init'"
+  runCmdAndPrint("git init -b main")
+  runCmdAndPrint('git config user.email "test@test.com"')
+  runCmdAndPrint('git config user.name "test"')
+  runCmdAndPrint("git add test.txt")
+  runCmdAndPrint("git commit -m 'init'")
 
   -- open a file so we have something to save
-  vim.cmd "e test.txt"
+  vim.cmd("e test.txt")
 
   local branch_session_path = TL.session_dir .. TL.escapeSessionName(vim.fn.getcwd() .. "|main") .. ".vim"
 
@@ -64,7 +64,7 @@ describe("The git config", function()
 
     as.AutoSaveSession()
 
-    assert.equals(1, vim.fn.bufexists "test.txt")
+    assert.equals(1, vim.fn.bufexists("test.txt"))
 
     -- print(session_path)
     assert.equals(1, vim.fn.filereadable(branch_session_path))
@@ -80,18 +80,18 @@ describe("The git config", function()
   end)
 
   it("autorestores a session with the branch name", function()
-    vim.cmd "silent %bw!"
-    assert.equals(0, vim.fn.bufexists "test.txt")
+    vim.cmd("silent %bw!")
+    assert.equals(0, vim.fn.bufexists("test.txt"))
 
     as.AutoRestoreSession()
 
-    assert.equals(1, vim.fn.bufexists "test.txt")
+    assert.equals(1, vim.fn.bufexists("test.txt"))
     assert.equals(1, vim.fn.filereadable(branch_session_path))
     assert.equals(vim.fn.getcwd() .. " (branch: main)", Lib.current_session_name())
   end)
 
   it("works with a custom session tag", function()
-    assert.equals(1, vim.fn.bufexists "test.txt")
+    assert.equals(1, vim.fn.bufexists("test.txt"))
 
     local tag = "mytag"
     c.custom_session_tag = function()
@@ -100,8 +100,8 @@ describe("The git config", function()
 
     assert.True(as.SaveSession())
 
-    vim.cmd "silent %bw!"
-    assert.equals(0, vim.fn.bufexists "test.txt")
+    vim.cmd("silent %bw!")
+    assert.equals(0, vim.fn.bufexists("test.txt"))
     local branch_tag_session_path = TL.session_dir .. TL.escapeSessionName(vim.fn.getcwd() .. "|main|" .. tag) .. ".vim"
 
     assert.True(as.RestoreSession())
@@ -109,7 +109,7 @@ describe("The git config", function()
     -- unset this early so other tests don't also fail if the following checks fail
     c.custom_session_tag = nil
 
-    assert.equals(1, vim.fn.bufexists "test.txt")
+    assert.equals(1, vim.fn.bufexists("test.txt"))
     assert.equals(1, vim.fn.filereadable(branch_tag_session_path), "file doesn't exist: " .. branch_tag_session_path)
     assert.equals(vim.fn.getcwd() .. " (branch: main, tag: " .. tag .. ")", Lib.current_session_name())
   end)
@@ -123,12 +123,12 @@ describe("The git config", function()
     assert.equals(1, vim.fn.filereadable(legacy_branch_session_path))
     assert.equals(0, vim.fn.filereadable(branch_session_path))
 
-    vim.cmd "silent %bw!"
-    assert.equals(0, vim.fn.bufexists "test.txt")
+    vim.cmd("silent %bw!")
+    assert.equals(0, vim.fn.bufexists("test.txt"))
 
     as.AutoRestoreSession()
 
-    assert.equals(1, vim.fn.bufexists "test.txt")
+    assert.equals(1, vim.fn.bufexists("test.txt"))
 
     assert.equals(1, vim.fn.filereadable(branch_session_path))
     assert.equals(0, vim.fn.filereadable(legacy_branch_session_path))
@@ -137,7 +137,7 @@ describe("The git config", function()
   end)
 
   it("can get the session name of a git branch with a slash", function()
-    runCmdAndPrint "git checkout -b slash/branch"
+    runCmdAndPrint("git checkout -b slash/branch")
 
     as.SaveSession()
 
@@ -152,21 +152,21 @@ describe("The git config", function()
     c.log_level = "debug"
 
     -- delete all buffers
-    vim.cmd "silent %bw"
+    vim.cmd("silent %bw")
 
     local s = stub(vim.fn, "argv")
-    s.returns { "." }
+    s.returns({ "." })
 
     -- only exported because we set the unit testing env in TL
     assert.True(as.auto_restore_session_at_vim_enter())
 
-    assert.equals(1, vim.fn.bufexists "test.txt")
+    assert.equals(1, vim.fn.bufexists("test.txt"))
 
     -- Revert the stub
     vim.fn.argv:revert()
     c.auto_save = false
 
-    vim.fn.system "git switch main"
+    vim.fn.system("git switch main")
   end)
 
   it("load a session named with git branch from directory argument", function()
@@ -174,18 +174,18 @@ describe("The git config", function()
     c.cwd_change_handling = false
 
     -- delete all buffers
-    vim.cmd "silent %bw"
+    vim.cmd("silent %bw")
 
     -- change to parent directory
-    vim.cmd "cd .."
+    vim.cmd("cd ..")
 
     local s = stub(vim.fn, "argv")
-    s.returns { git_test_dir }
+    s.returns({ git_test_dir })
 
     -- only exported because we set the unit testing env in TL
     assert.True(as.auto_restore_session_at_vim_enter())
 
-    assert.equals(1, vim.fn.bufexists "test.txt")
+    assert.equals(1, vim.fn.bufexists("test.txt"))
 
     -- Revert the stub
     vim.fn.argv:revert()
@@ -197,17 +197,17 @@ describe("The git config", function()
     c.git_auto_restore_on_branch_change = true
 
     -- make sure we're on the main branch
-    vim.fn.system "git switch -c main"
+    vim.fn.system("git switch -c main")
 
     -- delete all buffers
-    vim.cmd "silent %bw"
+    vim.cmd("silent %bw")
 
     -- branch change monitoring is only turned on when we've loaded a session
     as.RestoreSession()
     assert.equals("test_git (branch: main)", Lib.current_session_name(true))
 
     -- save main branch session
-    assert.equals(1, vim.fn.bufexists "test.txt")
+    assert.equals(1, vim.fn.bufexists("test.txt"))
     as.SaveSession()
 
     -- stub out on_git_watch_event so we know when the watcher is triggered
@@ -221,19 +221,19 @@ describe("The git config", function()
     end)
 
     -- switch to other-branch just to set it up
-    vim.fn.system "git switch -c other-branch"
+    vim.fn.system("git switch -c other-branch")
     vim.wait(1000, function()
       return git_watch_triggered
     end)
 
-    vim.cmd "silent %bw"
-    vim.cmd "e other.txt"
+    vim.cmd("silent %bw")
+    vim.cmd("e other.txt")
 
-    assert.equals(0, vim.fn.bufexists "test.txt")
-    assert.equals(1, vim.fn.bufexists "other.txt")
+    assert.equals(0, vim.fn.bufexists("test.txt"))
+    assert.equals(1, vim.fn.bufexists("other.txt"))
 
     git_watch_triggered = false
-    vim.fn.system "git switch main"
+    vim.fn.system("git switch main")
     vim.wait(1000, function()
       return git_watch_triggered
     end)
@@ -241,18 +241,18 @@ describe("The git config", function()
     assert.equals("test_git (branch: main)", Lib.current_session_name(true))
     -- other branch should now exist but the main branch is our current session
 
-    assert.equals(1, vim.fn.bufexists "test.txt")
-    assert.equals(0, vim.fn.bufexists "other.txt")
+    assert.equals(1, vim.fn.bufexists("test.txt"))
+    assert.equals(0, vim.fn.bufexists("other.txt"))
 
     git_watch_triggered = false
-    vim.fn.system "git switch other-branch"
+    vim.fn.system("git switch other-branch")
     vim.wait(1000, function()
       return git_watch_triggered
     end)
 
     assert.equals("test_git (branch: other-branch)", Lib.current_session_name(true))
-    assert.equals(0, vim.fn.bufexists "test.txt")
-    assert.equals(1, vim.fn.bufexists "other.txt")
+    assert.equals(0, vim.fn.bufexists("test.txt"))
+    assert.equals(1, vim.fn.bufexists("other.txt"))
 
     c.auto_save = false
     g.on_git_watch_event:revert()

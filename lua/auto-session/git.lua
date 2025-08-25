@@ -1,6 +1,6 @@
-local AutoSession = require "auto-session"
-local Config = require "auto-session.config"
-local Lib = require "auto-session.lib"
+local AutoSession = require("auto-session")
+local Config = require("auto-session.config")
+local Lib = require("auto-session.lib")
 
 local uv = vim.uv or vim.loop
 
@@ -63,7 +63,7 @@ end
 function M.start_watcher(cwd, towatch)
   if M.uv_git_watcher then
     M.uv_git_watcher:stop()
-    Lib.logger.debug "Git: stopped old watcher so we can start a new one"
+    Lib.logger.debug("Git: stopped old watcher so we can start a new one")
   end
 
   M.uv_git_watcher = assert(uv.new_fs_event())
@@ -78,7 +78,7 @@ function M.start_watcher(cwd, towatch)
     Lib.debounce(function(err)
       if err then
         vim.schedule(function()
-          Lib.logger.err "Error watching for git branch changes"
+          Lib.logger.err("Error watching for git branch changes")
         end)
         return
       end
@@ -101,7 +101,7 @@ function M.stop_watcher()
   end
 
   M.uv_git_watcher:stop()
-  Lib.logger.debug "Git: stopped watcher"
+  Lib.logger.debug("Git: stopped watcher")
   M.uv_git_watcher = nil
 end
 

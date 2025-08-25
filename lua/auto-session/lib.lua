@@ -1,4 +1,4 @@
-local Logger = require "auto-session.logger"
+local Logger = require("auto-session.logger")
 
 local Lib = {
   logger = {},
@@ -7,9 +7,9 @@ local Lib = {
 }
 
 function Lib.setup(log_level)
-  Lib.logger = Logger:new {
+  Lib.logger = Logger:new({
     log_level = log_level,
-  }
+  })
 end
 
 local uv = vim.uv or vim.loop
@@ -59,7 +59,7 @@ function Lib.validate_root_dir(root_dir)
     -- NOTE: I don't think the code below will ever be triggered because the call to mkdir
     -- above will throw an error if it can't make the directory
     if vim.fn.isdirectory(Lib.expand(root_dir)) == Lib._VIM_FALSE then
-      local fallback = vim.fn.stdpath "data" .. "/sessions/"
+      local fallback = vim.fn.stdpath("data") .. "/sessions/"
       vim.cmd(
         "echoerr 'Invalid auto_session_root_dir. "
           .. "Path does not exist or is not a directory. "
@@ -86,7 +86,7 @@ function Lib.ensure_trailing_separator(dir)
   end
 
   -- For windows, have to also check if it ends in a \
-  if vim.fn.has "win32" == 1 then
+  if vim.fn.has("win32") == 1 then
     if vim.endswith(dir, "\\") then
       return dir
     end
@@ -104,7 +104,7 @@ end
 ---@return string Dir guaranteed to not have a trailing separator
 function Lib.remove_trailing_separator(dir)
   -- For windows, have to check for both as either could be used
-  if vim.fn.has "win32" == 1 then
+  if vim.fn.has("win32") == 1 then
     dir = dir:gsub("\\$", "")
   end
 
@@ -142,7 +142,7 @@ local function legacy_win32_escaped_dir(dir)
   return dir
 end
 
-local IS_WIN32 = vim.fn.has "win32" == Lib._VIM_TRUE
+local IS_WIN32 = vim.fn.has("win32") == Lib._VIM_TRUE
 
 -- Modified from: https://gist.github.com/liukun/f9ce7d6d14fa45fe9b924a3eed5c3d99
 ---Converts a character to it's hex representation
@@ -230,11 +230,11 @@ end
 function Lib.is_legacy_file_name(file_name)
   -- print(file_name)
   if IS_WIN32 then
-    return file_name:match "^[%a]++" ~= nil
+    return file_name:match("^[%a]++") ~= nil
   end
 
   -- if it's all alphanumeric, it's not
-  if file_name:match "^[%w]+%.vim$" then
+  if file_name:match("^[%w]+%.vim$") then
     return false
   end
 
@@ -249,9 +249,9 @@ function Lib.is_legacy_file_name(file_name)
 
   -- check each characters after each % to make sure
   -- they're hexadecimal
-  for encoded in file_name:gmatch "%%.." do
+  for encoded in file_name:gmatch("%%..") do
     local hex = encoded:sub(2)
-    if not hex:match "^%x%x$" then
+    if not hex:match("^%x%x$") then
       return true
     end
   end
@@ -291,9 +291,9 @@ function Lib.has_open_buffers()
         if vim.fn.bufwinnr(bufnr) ~= -1 then
           if result then
             result = true
-            Lib.logger.debug "There are buffer(s) present: "
+            Lib.logger.debug("There are buffer(s) present: ")
           end
-          Lib.logger.debug { bufname = bufname }
+          Lib.logger.debug({ bufname = bufname })
         end
       end
     end
@@ -309,7 +309,7 @@ function Lib.close_unsupported_windows()
     local windows = vim.api.nvim_tabpage_list_wins(tabpage)
     for _, window in ipairs(windows) do
       -- Never try to close the last window of the last tab
-      if vim.fn.tabpagenr "$" == 1 and vim.fn.winnr "$" == 1 then
+      if vim.fn.tabpagenr("$") == 1 and vim.fn.winnr("$") == 1 then
         return
       end
       -- Sometimes closing one window can affect another so wrap in pcall
@@ -385,13 +385,13 @@ end
 ---generated from a directory
 function Lib.is_named_session(session_file_name)
   Lib.logger.debug("session_file_name: " .. session_file_name)
-  if vim.fn.has "win32" == 1 then
+  if vim.fn.has("win32") == 1 then
     -- Matches any letter followed by a colon
-    return not session_file_name:find "^%a:"
+    return not session_file_name:find("^%a:")
   end
 
   -- Matches / at the start of the string
-  return not session_file_name:find "^/.*"
+  return not session_file_name:find("^/.*")
 end
 
 ---When saving a session file, we may save an additional <filename>x.vim file
@@ -416,7 +416,7 @@ function Lib.is_session_file(session_path)
     return false
   end
 
-  local first_line = file:read "*line"
+  local first_line = file:read("*line")
   file:close()
 
   return first_line and string.find(first_line, "SessionLoad") ~= nil
@@ -540,7 +540,7 @@ function Lib.find_matching_directory(dirToFind, dirs)
       -- Lib.logger.debug("find_matching_directory simplified: " .. simplified_path)
 
       if dirToFind == path_without_trailing_slashes then
-        Lib.logger.debug "find find_matching_directory found match!"
+        Lib.logger.debug("find find_matching_directory found match!")
         return true
       end
     end
@@ -600,7 +600,7 @@ function Lib.flatten_table_and_split_strings(input)
     if value_type == "number" then
       table.insert(output, value)
     elseif value_type == "string" then
-      for s in value:gmatch "[^\r\n]+" do
+      for s in value:gmatch("[^\r\n]+") do
         table.insert(output, s)
       end
     end
@@ -707,7 +707,7 @@ end
 ---@return string|nil name of the alternate session, suitable for calls to LoadSession
 function Lib.get_alternate_session_name(session_control_conf)
   if not session_control_conf then
-    Lib.logger.error "No session_control in config!"
+    Lib.logger.error("No session_control in config!")
     return nil
   end
 
@@ -727,7 +727,7 @@ function Lib.get_alternate_session_name(session_control_conf)
   Lib.logger.debug("get_alternate_session_name", { sessions = sessions, json = json })
 
   if sessions.current == sessions.alternate then
-    Lib.logger.info "Current session is the same as alternate, returning nil"
+    Lib.logger.info("Current session is the same as alternate, returning nil")
     return nil
   end
   local file_name = vim.fn.fnamemodify(sessions.alternate, ":t")
@@ -895,7 +895,7 @@ end
 ---@param should_preserve_buffer fun(bufnr:number): preserve_buffer:boolean
 function Lib.conditional_buffer_wipeout(should_preserve_buffer)
   if not should_preserve_buffer then
-    vim.cmd "silent %bw!"
+    vim.cmd("silent %bw!")
     return
   end
 

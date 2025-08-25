@@ -1,7 +1,7 @@
-local telescope = require "telescope"
-local Picker = require "auto-session.pickers.telescope"
+local telescope = require("telescope")
+local Picker = require("auto-session.pickers.telescope")
 
-return telescope.register_extension {
+return telescope.register_extension({
   setup = function()
     -- Nothing here for now
   end,
@@ -9,4 +9,4 @@ return telescope.register_extension {
     search_session = Picker.extension_search_session,
     ["session-lens"] = Picker.extension_search_session,
   },
-}
+})

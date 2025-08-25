@@ -1,13 +1,13 @@
-require "plenary"
-local TL = require "tests/test_lib"
+require("plenary")
+local TL = require("tests/test_lib")
 
 describe("extra data", function()
-  local as = require "auto-session"
-  local c = require "auto-session.config"
+  local as = require("auto-session")
+  local c = require("auto-session.config")
 
-  as.setup {
+  as.setup({
     -- log_level = "debug",
-  }
+  })
 
   it("can be saved and restored", function()
     vim.cmd("e " .. TL.test_file)

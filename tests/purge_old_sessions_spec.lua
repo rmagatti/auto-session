@@ -1,22 +1,22 @@
 ---@diagnostic disable: undefined-field
-local TL = require "tests/test_lib"
-local stub = require "luassert.stub"
+local TL = require("tests/test_lib")
+local stub = require("luassert.stub")
 
 describe("Setting purge_after_minutes", function()
-  local as = require "auto-session"
+  local as = require("auto-session")
 
   -- old session 10 days ago
   local old_session = 10
 
-  as.setup {
+  as.setup({
     purge_after_minutes = 60 * 24 * 3,
-  }
+  })
 
   TL.clearSessionFilesAndBuffers()
   vim.cmd("e " .. TL.test_file)
 
   -- requires nvim >= 0.10
-  if vim.fn.has "nvim-0.10" == 1 then
+  if vim.fn.has("nvim-0.10") == 1 then
     it("does purge old sessions while leaving recent ones", function()
       as.SaveSession()
       as.SaveSession(TL.named_session_name)

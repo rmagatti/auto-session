@@ -3,7 +3,7 @@
 local new_set = MiniTest.new_set
 local expect, eq = MiniTest.expect, MiniTest.expect.equality
 
-local TL = require "tests/test_lib"
+local TL = require("tests/test_lib")
 
 -- Factory function to generate tests with different configs
 local function make_tests(picker, autosession_config, other_config)
@@ -12,14 +12,14 @@ local function make_tests(picker, autosession_config, other_config)
 
   other_config = other_config or ""
 
-  local T = new_set {
+  local T = new_set({
     hooks = {
       pre_once = function()
         TL.clearSessionFilesAndBuffers()
       end,
       pre_case = function()
         -- Restart child process with custom 'init.lua' script
-        child.restart { "-u", "scripts/minimal_init_mini.lua", "-V9" }
+        child.restart({ "-u", "scripts/minimal_init_mini.lua", "-V9" })
         -- Load tested plugin with passed config
         child.lua(string.format(
           [[
@@ -32,7 +32,7 @@ local function make_tests(picker, autosession_config, other_config)
       end,
       post_once = child.stop,
     },
-  }
+  })
 
   ---manual timeout function that works with MiniTest
   ---@param timeout integer timeout in ms
@@ -53,12 +53,12 @@ local function make_tests(picker, autosession_config, other_config)
     return fun()
   end
 
-  T["session lens"] = new_set {}
+  T["session lens"] = new_set({})
 
   T["session lens"]["save a default session"] = function()
     child.cmd("e " .. TL.test_file)
     expect.equality(1, child.fn.bufexists(TL.test_file))
-    child.cmd "SessionSave"
+    child.cmd("SessionSave")
 
     expect.equality(1, child.fn.bufexists(TL.test_file))
     expect.equality(1, vim.fn.filereadable(TL.default_session_path))
@@ -70,20 +70,20 @@ local function make_tests(picker, autosession_config, other_config)
     child.cmd("SessionSave " .. TL.named_session_name)
     expect.equality(1, vim.fn.filereadable(TL.named_session_path))
 
-    child.cmd "%bw!"
+    child.cmd("%bw!")
 
     child.cmd("e " .. TL.other_file)
-    child.cmd "SessionSave project_x"
+    child.cmd("SessionSave project_x")
   end
 
   T["session lens"]["can load a session"] = function()
     expect.equality(0, child.fn.bufexists(TL.other_file))
-    child.cmd "SessionSearch"
+    child.cmd("SessionSearch")
     vim.loop.sleep(300)
-    child.type_keys "project_x"
+    child.type_keys("project_x")
     -- print(child.get_screenshot())
     vim.loop.sleep(300)
-    child.type_keys "<cr>"
+    child.type_keys("<cr>")
     sleep_wait(2000, function()
       return child.fn.bufexists(TL.other_file) == 1
     end, 100)
@@ -94,12 +94,12 @@ local function make_tests(picker, autosession_config, other_config)
   if picker == "select" then
     T["session lens"]["can delete a session"] = function()
       expect.equality(1, vim.fn.filereadable(TL.named_session_path))
-      child.cmd "Autosession delete"
+      child.cmd("Autosession delete")
       vim.loop.sleep(300)
-      child.type_keys "mysession"
+      child.type_keys("mysession")
       -- print(child.get_screenshot())
       vim.loop.sleep(300)
-      child.type_keys "<cr>"
+      child.type_keys("<cr>")
       sleep_wait(2000, function()
         return vim.fn.filereadable(TL.named_session_path) == 0
       end, 100)
@@ -108,12 +108,12 @@ local function make_tests(picker, autosession_config, other_config)
   else
     T["session lens"]["can copy a session"] = function()
       expect.equality(0, child.fn.bufexists(TL.test_file))
-      child.cmd "SessionSearch"
+      child.cmd("SessionSearch")
       local session_name = "project_x"
       vim.loop.sleep(300)
       child.type_keys(session_name)
       vim.loop.sleep(100)
-      child.type_keys "<C-Y>"
+      child.type_keys("<C-Y>")
       vim.loop.sleep(100)
       -- print(child.get_screenshot())
       local copy_name = "copy"
@@ -128,12 +128,12 @@ local function make_tests(picker, autosession_config, other_config)
 
     T["session lens"]["can delete a session"] = function()
       expect.equality(1, vim.fn.filereadable(TL.named_session_path))
-      child.cmd "SessionSearch"
+      child.cmd("SessionSearch")
       vim.loop.sleep(300)
-      child.type_keys "mysession"
+      child.type_keys("mysession")
       -- print(child.get_screenshot())
       vim.loop.sleep(300)
-      child.type_keys "<c-d>"
+      child.type_keys("<c-d>")
       sleep_wait(2000, function()
         return vim.fn.filereadable(TL.named_session_path) == 0
       end, 100)
@@ -144,7 +144,7 @@ local function make_tests(picker, autosession_config, other_config)
   return T
 end
 
-local combined = new_set {}
+local combined = new_set({})
 
 local pickers = {
   { "telescope", "require('telescope').setup()" },
@@ -155,7 +155,7 @@ local pickers = {
   { "select", "require('snacks').setup({picker = {enabled = true}})" },
 }
 
-if vim.fn.executable "fzf" == 1 then
+if vim.fn.executable("fzf") == 1 then
   table.insert(pickers, { "fzf", "require('fzf-lua').setup()" })
 end
 

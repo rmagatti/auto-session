@@ -1,10 +1,10 @@
 ---@diagnostic disable: undefined-field
-local TL = require "tests/test_lib"
+local TL = require("tests/test_lib")
 
 describe("The auto_save_enabled=false config", function()
-  require("auto-session").setup {
+  require("auto-session").setup({
     auto_save_enabled = false,
-  }
+  })
 
   TL.clearSessionFilesAndBuffers()
 
@@ -22,7 +22,7 @@ describe("The auto_save_enabled=false config", function()
     vim.cmd("e " .. TL.test_file)
 
     ---@diagnostic disable-next-line: missing-parameter
-    vim.cmd "SessionSave"
+    vim.cmd("SessionSave")
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))

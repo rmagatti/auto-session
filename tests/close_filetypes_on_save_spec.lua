@@ -1,19 +1,19 @@
 ---@diagnostic disable: undefined-field
-local TL = require "tests/test_lib"
+local TL = require("tests/test_lib")
 
 describe("Close filetypes on save", function()
-  local as = require "auto-session"
+  local as = require("auto-session")
 
-  as.setup {
+  as.setup({
     -- use old config name
     ignore_filetypes_on_save = { "text" },
-  }
+  })
 
   TL.clearSessionFilesAndBuffers()
 
   it("closes buffers of matching filetypes before saving", function()
     vim.cmd("e " .. TL.test_file) -- this is a text file
-    vim.cmd "e tests/close_filetypes_on_save_spec.lua"
+    vim.cmd("e tests/close_filetypes_on_save_spec.lua")
 
     -- generate default session
     assert.True(as.AutoSaveSession())
@@ -29,11 +29,11 @@ describe("Close filetypes on save", function()
 
   it("does not close buffers of other filetypes", function()
     vim.cmd("e " .. TL.test_file) -- this is a text file
-    vim.cmd "e tests/close_filetypes_on_save_spec.lua"
+    vim.cmd("e tests/close_filetypes_on_save_spec.lua")
 
-    as.setup {
+    as.setup({
       close_filetypes_on_save = { "lua" },
-    }
+    })
 
     -- generate default session
     assert.True(as.AutoSaveSession())
@@ -49,11 +49,11 @@ describe("Close filetypes on save", function()
 
   it("does not save a checkhealth buffer", function()
     vim.cmd("e " .. TL.test_file) -- this is a text file
-    vim.cmd "checkhealth auto-session"
+    vim.cmd("checkhealth auto-session")
 
-    as.setup {
+    as.setup({
       close_filetypes_on_save = { "checkhealth" }, -- or empty if ignoring checkhealth is the default as suggested above
-    }
+    })
 
     -- generate default session
     assert.True(as.AutoSaveSession())

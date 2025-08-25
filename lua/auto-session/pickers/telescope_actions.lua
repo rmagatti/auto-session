@@ -1,6 +1,6 @@
-local AutoSession = require "auto-session"
-local Config = require "auto-session.config"
-local Lib = require "auto-session.lib"
+local AutoSession = require("auto-session")
+local Config = require("auto-session.config")
+local Lib = require("auto-session.lib")
 local transform_mod = require("telescope.actions.mt").transform_mod
 
 local M = {}
@@ -9,7 +9,7 @@ local M = {}
 
 local function source_session(session_name, prompt_bufnr)
   if prompt_bufnr then
-    local actions = require "telescope.actions"
+    local actions = require("telescope.actions")
     actions.close(prompt_bufnr)
   end
 
@@ -23,7 +23,7 @@ end
 ---Source a selected session after doing proper current session saving and cleanup
 ---@param prompt_bufnr number the telescope prompt bufnr
 M.source_session = function(prompt_bufnr)
-  local action_state = require "telescope.actions.state"
+  local action_state = require("telescope.actions.state")
   local selection = action_state.get_selected_entry()
   if selection then
     source_session(selection.value, prompt_bufnr)
@@ -35,7 +35,7 @@ end
 ---Delete a selected session file
 ---@param prompt_bufnr number the telescope prompt bufnr
 M.delete_session = function(prompt_bufnr)
-  local action_state = require "telescope.actions.state"
+  local action_state = require("telescope.actions.state")
   local current_picker = action_state.get_current_picker(prompt_bufnr)
   current_picker:delete_selection(function(selection)
     if selection then
@@ -48,7 +48,7 @@ end
 M.alternate_session = function(prompt_bufnr)
   local alternate_session_name = Lib.get_alternate_session_name(Config.session_lens.session_control)
   if not alternate_session_name then
-    vim.notify "There is no alternate session"
+    vim.notify("There is no alternate session")
     -- Keep the picker open in case they want to select a session to load
     return
   end
@@ -60,7 +60,7 @@ end
 ---Copy session action
 ---Ask user for the new name and then copy the session to that name
 M.copy_session = function(_)
-  local action_state = require "telescope.actions.state"
+  local action_state = require("telescope.actions.state")
   local selection = action_state.get_selected_entry()
 
   local new_name = vim.fn.input("New session name: ", selection.session_name)

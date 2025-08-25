@@ -1,12 +1,12 @@
-require "plenary"
-local TL = require "tests/test_lib"
+require("plenary")
+local TL = require("tests/test_lib")
 
 describe("auto_delete", function()
-  local as = require "auto-session"
+  local as = require("auto-session")
 
-  as.setup {
+  as.setup({
     -- log_level = "debug",
-  }
+  })
 
   it("doesn't delete a session with buffers", function()
     TL.clearSessionFilesAndBuffers()
@@ -18,7 +18,7 @@ describe("auto_delete", function()
   end)
 
   it("doesn't delete session when we never loaded a session", function()
-    vim.cmd "%bw!"
+    vim.cmd("%bw!")
     vim.v.this_session = ""
 
     assert.False(as.AutoSaveSession())
@@ -30,7 +30,7 @@ describe("auto_delete", function()
     vim.cmd("e " .. TL.test_file)
     assert.True(as.SaveSession())
 
-    vim.cmd "%bw!"
+    vim.cmd("%bw!")
 
     assert.False(as.AutoSaveSession())
 

@@ -1,5 +1,5 @@
-local Config = require "auto-session.config"
-local Lib = require "auto-session.lib"
+local Config = require("auto-session.config")
+local Lib = require("auto-session.lib")
 
 ---@class Picker
 ---@field is_available fun(): boolean
@@ -28,7 +28,7 @@ local function resolve_picker()
   end
 
   Lib.logger.error("Could not find requested picker: " .. Config.session_lens.picker)
-  return require "auto-session.pickers.select", "select"
+  return require("auto-session.pickers.select"), "select"
 end
 
 function M.open_session_picker()

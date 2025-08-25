@@ -1,4 +1,4 @@
-local asLib = require "auto-session.lib"
+local asLib = require("auto-session.lib")
 local M = {}
 
 -- This disables the headless check inside autosession
@@ -11,7 +11,7 @@ function M.escapeSessionName(session_name)
 end
 
 function M.legacyEscapeSessionName(session_name)
-  if vim.fn.has "win32" == 1 then
+  if vim.fn.has("win32") == 1 then
     -- Hardcoded implementation from Lib
     local temp = session_name:gsub(":", "++")
     if not vim.o.shellslash then
@@ -33,9 +33,9 @@ M.test_file = M.tests_base_dir .. "/test_files/test.txt"
 M.other_file = M.tests_base_dir .. "/test_files/other.txt"
 
 -- This is set in minimal.lua to be auto-session/.test/...
-M.session_dir = vim.fn.expand(vim.fn.stdpath "data" .. "/sessions/")
+M.session_dir = vim.fn.expand(vim.fn.stdpath("data") .. "/sessions/")
 
-M.session_control_dir = vim.fn.stdpath "data" .. "/auto_session/"
+M.session_control_dir = vim.fn.stdpath("data") .. "/auto_session/"
 
 -- Construct the session name for the current directory
 M.default_session_name = vim.fn.getcwd()
@@ -50,7 +50,7 @@ M.named_session_name = "mysession"
 M.named_session_path = M.session_dir .. M.named_session_name .. ".vim"
 
 function M.fileHasString(file_path, string)
-  if vim.fn.has "win32" == 1 then
+  if vim.fn.has("win32") == 1 then
     -- Have to make sure it's windows' native find (and not MinGW's find), so we use specify SystemRoot
     -- This is necessary to make it work for the GH action
     return vim.fn
@@ -61,7 +61,7 @@ function M.fileHasString(file_path, string)
 end
 
 function M.sessionHasFile(session_path, file)
-  if vim.fn.has "win32" == 1 then
+  if vim.fn.has("win32") == 1 then
     -- Have to make sure it's windows' native find (and not MinGW's find), so we use specify SystemRoot
     -- This is necessary to make it work for the GH action
     return vim.fn
@@ -92,12 +92,12 @@ end
 function M.clearSessionFilesAndBuffers()
   M.clearSessionFiles(M.session_dir)
   M.clearSessionFiles(M.session_control_dir)
-  vim.cmd "silent %bw"
+  vim.cmd("silent %bw")
 end
 
 ---Cross platform delete all files in directory
 function M.clearSessionFiles(dir)
-  if vim.fn.has "win32" == 1 then
+  if vim.fn.has("win32") == 1 then
     pcall(vim.fn.system, "del /Q " .. (dir .. "*.vim .vim"):gsub("/", "\\"))
   else
     pcall(vim.fn.system, "rm -rf " .. dir .. "*.vim .vim")

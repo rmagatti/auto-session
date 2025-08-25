@@ -1,18 +1,18 @@
 ---@diagnostic disable: undefined-field
-local TL = require "tests/test_lib"
+local TL = require("tests/test_lib")
 
 describe("single_session_mode", function()
-  local as = require "auto-session"
-  local lib = require "auto-session.lib"
+  local as = require("auto-session")
+  local lib = require("auto-session.lib")
 
   TL.clearSessionFilesAndBuffers()
 
   it("uses a single session file when enabled", function()
     local original_cwd = vim.fn.getcwd(-1, -1)
 
-    as.setup {
+    as.setup({
       single_session_mode = true,
-    }
+    })
 
     -- Verify no session exists initially
     assert.equals(0, vim.fn.filereadable(TL.default_session_path))
@@ -26,7 +26,7 @@ describe("single_session_mode", function()
     TL.assertSessionHasFile(TL.default_session_path, "test.txt")
 
     -- Change directory to a subdirectory
-    vim.cmd "cd tests"
+    vim.cmd("cd tests")
     local new_cwd = vim.fn.getcwd(-1, -1)
     assert.True(new_cwd ~= original_cwd)
 
@@ -50,9 +50,9 @@ describe("single_session_mode", function()
   it("uses current cwd when disabled", function()
     local original_cwd = vim.fn.getcwd()
 
-    as.setup {
+    as.setup({
       single_session_mode = false,
-    }
+    })
 
     -- ensure manually_named_session isn't set
     as.manually_named_session = nil
@@ -69,7 +69,7 @@ describe("single_session_mode", function()
     TL.assertSessionHasFile(TL.default_session_path, "test.txt")
 
     -- Change directory to a subdirectory
-    vim.cmd "cd tests"
+    vim.cmd("cd tests")
     local new_cwd = vim.fn.getcwd()
     assert.True(new_cwd ~= original_cwd)
 
@@ -96,9 +96,9 @@ describe("single_session_mode", function()
   it("properly clears manually_named_session when disabled", function()
     local original_cwd = vim.fn.getcwd()
 
-    as.setup {
+    as.setup({
       single_session_mode = false,
-    }
+    })
 
     -- Start with manually_named_session cleared
     as.manually_named_session = nil
@@ -129,19 +129,19 @@ describe("single_session_mode", function()
   end)
 
   it("maintains single session mode functionality when restoring sessions ", function()
-    as.setup {
+    as.setup({
       single_session_mode = false,
-    }
+    })
     as.manually_named_session = nil
 
     local original_cwd = vim.fn.getcwd()
 
     -- Change to tests directory and create a session there
-    vim.cmd "cd tests"
+    vim.cmd("cd tests")
     local tests_cwd = vim.fn.getcwd()
 
     -- Create a test file and save session
-    vim.cmd "e test.txt"
+    vim.cmd("e test.txt")
     as.SaveSession()
 
     -- Verify the session was created
@@ -150,7 +150,7 @@ describe("single_session_mode", function()
 
     -- Go back to original directory and create another session
     vim.cmd("cd " .. original_cwd)
-    vim.cmd "e test.txt"
+    vim.cmd("e test.txt")
     as.SaveSession()
 
     -- Verify the session was created
@@ -158,9 +158,9 @@ describe("single_session_mode", function()
     assert.equals(1, vim.fn.filereadable(original_session_path))
 
     -- Now enable single_session_mode and setup again
-    as.setup {
+    as.setup({
       single_session_mode = true,
-    }
+    })
 
     -- Verify vim.v.this_session is set to original directory session
     local original_session_path = TL.session_dir .. lib.escape_session_name(original_cwd) .. ".vim"
@@ -185,24 +185,24 @@ describe("single_session_mode", function()
 
     local original_cwd = vim.fn.getcwd(-1, -1)
 
-    as.setup {
+    as.setup({
       single_session_mode = true,
-    }
+    })
 
     -- Create a manually named session
     vim.cmd("e " .. TL.test_file)
-    as.SaveSession "my_project"
+    as.SaveSession("my_project")
 
     -- Verify the named session was created
-    local named_session_path = TL.session_dir .. lib.escape_session_name "my_project" .. ".vim"
+    local named_session_path = TL.session_dir .. lib.escape_session_name("my_project") .. ".vim"
     assert.equals(1, vim.fn.filereadable(named_session_path))
 
     -- Verify vim.v.this_session is set to the manually named session
     assert.equals(named_session_path, vim.v.this_session)
 
     -- Change directory and save again - should still save to the named session
-    vim.cmd "cd tests"
-    vim.cmd "e test2.txt"
+    vim.cmd("cd tests")
+    vim.cmd("e test2.txt")
     as.SaveSession()
 
     -- Should still save to the named session
@@ -222,13 +222,13 @@ describe("single_session_mode", function()
   it("gets disabled automatically when cwd_change_handling is also enabled", function()
     TL.clearSessionFilesAndBuffers()
     as.manually_named_session = nil -- Reset manually_named_session
-    as.setup {
+    as.setup({
       single_session_mode = true,
       cwd_change_handling = true, -- Note, this test is last in this file because this config conflict will bleed into other tests
-    }
+    })
 
     -- The config validation should have disabled single_session_mode
-    local config = require "auto-session.config"
+    local config = require("auto-session.config")
     assert.False(config.single_session_mode)
     assert.True(config.cwd_change_handling)
 
@@ -238,4 +238,3 @@ describe("single_session_mode", function()
 
   TL.clearSessionFilesAndBuffers()
 end)
-
