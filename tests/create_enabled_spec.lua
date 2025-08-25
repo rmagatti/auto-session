@@ -22,7 +22,7 @@ describe("The create_enabled=false config", function()
     vim.cmd("e " .. TL.test_file)
 
     ---@diagnostic disable-next-line: missing-parameter
-    vim.cmd("SessionSave")
+    vim.cmd("AutoSession save")
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
@@ -39,7 +39,7 @@ describe("The create_enabled=false config", function()
     -- Make sure the buffer is gone
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 
-    vim.cmd("SessionRestore")
+    vim.cmd("AutoSession restore")
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
   end)
@@ -52,14 +52,14 @@ describe("The create_enabled=false config", function()
     -- Make sure the buffer is gone
     assert.equals(1, vim.fn.bufexists(TL.other_file))
 
-    vim.cmd("SessionSave")
+    vim.cmd("AutoSession save")
 
     vim.cmd("silent %bw")
 
     assert.equals(0, vim.fn.bufexists(TL.test_file))
     assert.equals(0, vim.fn.bufexists(TL.other_file))
 
-    vim.cmd("SessionRestore")
+    vim.cmd("AutoSession restore")
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
     assert.equals(1, vim.fn.bufexists(TL.other_file))

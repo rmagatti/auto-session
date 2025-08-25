@@ -2,33 +2,11 @@ local Lib = require("auto-session.lib")
 local Config = require("auto-session.config")
 local AutoSession = require("auto-session")
 
----@mod auto-session.commands Commands
----@brief [[
----This plugin provides the following commands:
----
----  `:SessionSave` - saves a session based on the `cwd` in `root_dir`
----  `:SessionSave my_session` - saves a session called `my_session` in `root_dir`
----
----  `:SessionRestore` - restores a session based on the `cwd` from `root_dir`
----  `:SessionRestore my_session` - restores `my_session` from `root_dir`
----
----  `:SessionDelete` - deletes a session based on the `cwd` from `root_dir`
----  `:SessionDelete my_session` - deletes `my_session` from `root_dir`
----
----  `:SessionDisableAutoSave` - disables autosave
----  `:SessionDisableAutoSave!` - enables autosave (still does all checks in the config)
----  `:SessionToggleAutoSave` - toggles autosave
----
----  `:SessionPurgeOrphaned` - removes all orphaned sessions with no working directory left.
----
----  `:SessionSearch` - opens a session picker, see Config.session_lens.picker
----@brief ]]
-
 local M = {}
 
 ---Calls lib function for completing session names with session dir
-local function complete_session(ArgLead, CmdLine, CursorPos)
-  return Lib.complete_session_for_dir(AutoSession.get_root_dir(), ArgLead, CmdLine, CursorPos)
+local function complete_session(arg_lead, cmd_line, cursor_pos)
+  return Lib.complete_session_for_dir(AutoSession.get_root_dir(), arg_lead, cmd_line, cursor_pos)
 end
 
 --- Deletes sessions where the original directory no longer exists
@@ -143,6 +121,64 @@ local function setup_dirchanged_autocmds()
   })
 end
 
+local user_commands = {
+  save = AutoSession.SaveSession,
+  restore = AutoSession.RestoreSession,
+  delete = AutoSession.DeleteSession,
+
+  disable = AutoSession.DisableAutoSave,
+  enable = function()
+    AutoSession.DisableAutoSave(true)
+  end,
+  toggle = function()
+    AutoSession.DisableAutoSave(not Config.auto_save)
+  end,
+
+  purgeOrphaned = purge_orphaned_sessions,
+
+  search = function()
+    require("auto-session.pickers").open_session_picker()
+  end,
+  deletePicker = function()
+    require("auto-session.pickers.select").open_delete_picker()
+  end,
+}
+
+local function user_command_completer(arg_lead, cmd_line, cursor_pos)
+  -- Parse the command line to get the action
+  local parts = vim.split(cmd_line, "%s+")
+  local cmd = parts[2] -- First argument after command name
+
+  -- If we're completing the action name itself
+  if not cmd or #parts == 2 then
+    local actions = {}
+    for key, _ in pairs(user_commands) do
+      if key:lower():find("^" .. arg_lead:lower()) then
+        table.insert(actions, key)
+      end
+    end
+    return actions
+  end
+
+  -- If we're completing arguments for specific actions, use old completers
+  if cmd == "save" or cmd == "restore" or cmd == "delete" then
+    return complete_session(arg_lead, cmd_line, cursor_pos)
+  end
+
+  -- No completion for other actions
+  return {}
+end
+
+local function user_command_handler(args)
+  local cmd = user_commands[args.fargs[1]]
+
+  if cmd then
+    cmd(args.fargs[2])
+  else
+    Lib.logger.error("Command not found: " .. args.fargs[1])
+  end
+end
+
 ---@private
 ---Setup autocmds (VimEnter, VimLeavePre, DirChanged*) and user commands
 function M.setup_autocmds()
@@ -152,71 +188,88 @@ function M.setup_autocmds()
   end
   vim.g.in_pager_mode = false
 
-  vim.api.nvim_create_user_command("SessionSave", function(args)
-    AutoSession.SaveSession(args.args)
+  vim.api.nvim_create_user_command("AutoSession", function(args)
+    user_command_handler(args)
   end, {
-    complete = complete_session,
-    bang = true,
-    nargs = "?",
-    desc = "Save session using current working directory as the session name or an optional session name",
+    complete = user_command_completer,
+    nargs = "+",
+    desc = "AutoSession command handler",
   })
 
-  vim.api.nvim_create_user_command("SessionRestore", function(args)
-    AutoSession.RestoreSession(args.args)
-  end, {
-    complete = complete_session,
-    bang = true,
-    nargs = "?",
-    desc = "Restore session using current working directory as the session name or an optional session name",
-  })
+  if Config.legacy_cmds then
+    vim.api.nvim_create_user_command("SessionSave", function(args)
+      vim.notify('"SessionSave" is deprecated.\nUse "AutoSession save" instead')
+      AutoSession.SaveSession(args.args)
+    end, {
+      complete = complete_session,
+      bang = true,
+      nargs = "?",
+      desc = "Save session using current working directory as the session name or an optional session name",
+    })
 
-  vim.api.nvim_create_user_command("SessionDelete", function(args)
-    AutoSession.DeleteSession(args.args)
-  end, {
-    complete = complete_session,
-    bang = true,
-    nargs = "*",
-    desc = "Delete session using the current working directory as the session name or an optional session name",
-  })
+    vim.api.nvim_create_user_command("SessionRestore", function(args)
+      vim.notify('"SessionRestore" is deprecated.\nUse "AutoSession restore" instead')
+      AutoSession.RestoreSession(args.args)
+    end, {
+      complete = complete_session,
+      bang = true,
+      nargs = "?",
+      desc = "Restore session using current working directory as the session name or an optional session name",
+    })
 
-  vim.api.nvim_create_user_command("SessionDisableAutoSave", function(args)
-    AutoSession.DisableAutoSave(args.bang)
-  end, {
-    bang = true,
-    desc = "Disable autosave. Enable with a !",
-  })
+    vim.api.nvim_create_user_command("SessionDelete", function(args)
+      vim.notify('"SessionDelete" is deprecated.\nUse "AutoSession delete" instead')
+      AutoSession.DeleteSession(args.args)
+    end, {
+      complete = complete_session,
+      bang = true,
+      nargs = "*",
+      desc = "Delete session using the current working directory as the session name or an optional session name",
+    })
 
-  vim.api.nvim_create_user_command("SessionToggleAutoSave", function()
-    AutoSession.DisableAutoSave(not Config.auto_save)
-  end, {
-    bang = true,
-    desc = "Toggle autosave",
-  })
+    vim.api.nvim_create_user_command("SessionDisableAutoSave", function(args)
+      vim.notify('"SessionDisableAutoSave" is deprecated.\nUse "AutoSession disable" instead')
+      AutoSession.DisableAutoSave(args.bang)
+    end, {
+      bang = true,
+      desc = "Disable autosave. Enable with a !",
+    })
 
-  vim.api.nvim_create_user_command("SessionSearch", function()
-    return require("auto-session.pickers").open_session_picker()
-  end, {
-    desc = "Open a session picker",
-  })
+    vim.api.nvim_create_user_command("SessionToggleAutoSave", function()
+      vim.notify('"SessionToggleAutoSave" is deprecated.\nUse "AutoSession toggle" instead')
+      AutoSession.DisableAutoSave(not Config.auto_save)
+    end, {
+      bang = true,
+      desc = "Toggle autosave",
+    })
 
-  vim.api.nvim_create_user_command("Autosession", function(args)
-    if args.args:match("search") then
+    vim.api.nvim_create_user_command("SessionPurgeOrphaned", function()
+      vim.notify('"SessionPurgeOrphaned" is deprecated.\nUse "AutoSession purgeOrphaned" instead')
+      purge_orphaned_sessions()
+    end, { desc = "Remove all orphaned sessions with no directory left" })
+
+    vim.api.nvim_create_user_command("SessionSearch", function()
+      vim.notify('"SessionSearch" is deprecated.\nUse "AutoSession search" instead')
       return require("auto-session.pickers").open_session_picker()
-    elseif args.args:match("delete") then
-      return require("auto-session.pickers.select").open_delete_picker()
-    end
-  end, {
-    complete = function(_, _, _)
-      return { "search", "delete" }
-    end,
-    nargs = 1,
-  })
+    end, {
+      desc = "Open a session picker",
+    })
 
-  vim.api.nvim_create_user_command(
-    "SessionPurgeOrphaned",
-    purge_orphaned_sessions,
-    { desc = "Remove all orphaned sessions with no directory left" }
-  )
+    vim.api.nvim_create_user_command("Autosession", function(args)
+      if args.args:match("search") then
+        vim.notify('"Autosession search" (lowercase "s") is deprecated.\nUse "AutoSession search" instead')
+        return require("auto-session.pickers").open_session_picker()
+      elseif args.args:match("delete") then
+        vim.notify('"Autosession delete" (lowercase "s") is deprecated.\nUse "AutoSession search" instead')
+        return require("auto-session.pickers.select").open_delete_picker()
+      end
+    end, {
+      complete = function(_, _, _)
+        return { "search", "delete" }
+      end,
+      nargs = 1,
+    })
+  end
 
   local group = vim.api.nvim_create_augroup("auto_session_group", {})
 

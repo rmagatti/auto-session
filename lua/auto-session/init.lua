@@ -922,9 +922,10 @@ function AutoSession.DeleteSessionFile(session_path, session_name)
   if not result then
     Lib.logger.error("DeleteSessionFile Failed to delete session: " .. session_name)
   else
-    if vim.fn.fnamemodify(vim.v.this_session, ":t") == vim.fn.fnamemodify(session_path, ":t") then
+    if Config.auto_save and vim.fn.fnamemodify(vim.v.this_session, ":t") == vim.fn.fnamemodify(session_path, ":t") then
       -- session_name might be nil (e.g. when using cwd), unescape escaped_session_name instead
-      Lib.logger.info("Auto saving disabled because the current session was deleted: " .. session_name)
+      Lib.logger.debug("DeleteSessionFile Current session deleted, auto save off: " .. session_name)
+      vim.notify("Auto saving disabled because the current session was deleted: " .. session_name)
       vim.v.this_session = ""
       Config.auto_save = false
     else

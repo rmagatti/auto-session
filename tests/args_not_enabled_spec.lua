@@ -21,7 +21,7 @@ describe("The args not enabled config", function()
   it("can save a session", function()
     vim.cmd("e " .. TL.test_file)
 
-    vim.cmd("SessionSave")
+    vim.cmd("AutoSession save")
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))

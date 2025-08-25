@@ -22,7 +22,7 @@ describe("The auto_save_enabled=false config", function()
     vim.cmd("e " .. TL.test_file)
 
     ---@diagnostic disable-next-line: missing-parameter
-    vim.cmd("SessionSave")
+    vim.cmd("AutoSession save")
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))

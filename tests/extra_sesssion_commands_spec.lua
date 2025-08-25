@@ -124,7 +124,7 @@ describe("Config with extra session commands", function()
 
     -- save a session named "x.vim"
     ---@diagnostic disable-next-line: missing-parameter
-    vim.cmd("SessionSave " .. session_name)
+    vim.cmd("AutoSession save " .. session_name)
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(session_path))
@@ -147,7 +147,7 @@ describe("Config with extra session commands", function()
   end)
 
   it("deletes a default session's extra commands when deleting the session", function()
-    vim.cmd("SessionDelete")
+    vim.cmd("AutoSession delete")
 
     -- Make sure the session was deleted
     assert.equals(0, vim.fn.filereadable(TL.default_session_path))
@@ -159,7 +159,7 @@ describe("Config with extra session commands", function()
   end)
 
   it("deletes a named session's extra commands when deleting the session", function()
-    vim.cmd("SessionDelete " .. session_name)
+    vim.cmd("AutoSession delete " .. session_name)
 
     -- Make sure the session was deleted
     assert.equals(0, vim.fn.filereadable(session_path))
@@ -170,15 +170,15 @@ describe("Config with extra session commands", function()
 
   it("doesn't delete a session if it is also called x", function()
     ---@diagnostic disable-next-line: missing-parameter
-    vim.cmd("SessionSave " .. session_name)
-    vim.cmd("SessionSave " .. "xx")
+    vim.cmd("AutoSession save " .. session_name)
+    vim.cmd("AutoSession save " .. "xx")
 
     assert.equals(1, vim.fn.filereadable(session_path))
 
     local double_xx_session_path = session_path:gsub("%.vim", "x.vim")
     assert.equals(1, vim.fn.filereadable(double_xx_session_path))
 
-    vim.cmd("SessionDelete " .. session_name)
+    vim.cmd("AutoSession delete " .. session_name)
 
     -- Make sure the session was deleted
     assert.equals(0, vim.fn.filereadable(session_path))
