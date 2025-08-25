@@ -8,7 +8,7 @@ env:
 jobs:
   docs:
     runs-on: ubuntu-latest
-    name: emmylua to vimdoc
+    name: panvimdoc
     steps:
       - uses: actions/checkout@v4
 
@@ -30,6 +30,20 @@ jobs:
           version: "Neovim"
           demojify: true
           treesitter: true
+          shiftheadinglevelby: -1
+
+      - name: Ignore if only date changed
+        run: |
+          changed_files=$(git diff --name-only doc/*.txt || true)
+          for f in $changed_files; do
+            # Skip if file no longer exists (deleted?)
+            if [ ! -f "$f" ]; then continue; fi
+            # If it's onle the first line that changed (i.e. date), drop the change
+            if diff -q <(tail -n +2 "$f") <(tail -n +2 <(git show HEAD:"$f")) >/dev/null; then
+              echo "Only date line changed in $f, restoring from HEAD."
+              git restore "$f"
+            fi
+          done
 
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v5

@@ -21,7 +21,8 @@ function M.on_git_watch_event(cwd, current_branch)
   -- don't support named sessions + git branch names together anyway
 
   if Config.auto_save then
-    local session_name = Lib.combine_session_name_with_git_branch(cwd, current_branch)
+    local custom_tag = Config.custom_session_tag and Config.custom_session_tag(cwd) or nil
+    local session_name = Lib.combine_session_name_with_git_and_tag(cwd, current_branch, custom_tag, false)
 
     -- Set vim.v.this_session to one named for current_branch (otherwise it would save to new_branch)
     -- And set manually_named_session = true so we use that name

@@ -275,13 +275,10 @@ end
 ---@param file_or_dir string
 ---@return string
 function Lib.expand(file_or_dir)
-  -- Deprecated as 0.9.0, should update to following when we only want to support 0.9.0+
-  -- local saved_wildignore = vim.o.wildignore
-  local saved_wildignore = vim.api.nvim_get_option "wildignore"
-  vim.api.nvim_set_option("wildignore", "")
-  ---@diagnostic disable-next-line: param-type-mismatch
+  local saved_wildignore = vim.api.nvim_get_option_value("wildignore", {})
+  vim.api.nvim_set_option_value("wildignore", "", {})
   local ret = vim.fn.expand(file_or_dir, nil, nil)
-  vim.api.nvim_set_option("wildignore", saved_wildignore)
+  vim.api.nvim_set_option_value("wildignore", saved_wildignore, {})
   return ret
 end
 
@@ -361,8 +358,15 @@ function Lib.get_session_display_name_as_table(escaped_session_name)
     return splits
   end
 
-  splits[2] = "(branch: " .. splits[2] .. ")"
-  return splits
+  local suffix = {}
+  local labels = { "", "branch", "tag" }
+  for i = 2, #splits do
+    if splits[i] and splits[i] ~= "" then
+      table.insert(suffix, labels[i] .. ": " .. splits[i])
+    end
+  end
+
+  return { splits[1], "(" .. table.concat(suffix, ", ") .. ")" }
 end
 
 ---Convert a session file name to a display name The result cannot be used with commands
@@ -735,44 +739,56 @@ end
 
 ---Returns git branch name, if any, for the path (if passed in) or the cwd
 ---@param path string? Optional path to use when checking for git branch
----@return string # Name of git branch or empty string
+---@return string|nil # Name of git branch or empty string
 function Lib.get_git_branch_name(path)
   local git_cmd = string.format("git%s rev-parse --abbrev-ref HEAD", path and (" -C " .. path) or "")
 
   local out = vim.fn.systemlist(git_cmd)
   if vim.v.shell_error ~= 0 then
     Lib.logger.debug(string.format("git failed with: %s", table.concat(out, "\n")))
-    return ""
+    return nil
   end
   return out[1]
 end
 
 ---Adds the git branch name to the passwed in session name
 ---@param session_name string session name to add the git branch to
----@param git_branch_name string? git branch name to use
+---@param git_branch_name string|nil git branch name to use
+---@param custom_tag string|nil custom tag to use, can't be used with legacy names
 ---@param legacy boolean? whether to use current or legacy naming convention
 ---@return string # Session name with the git branch name added on (if there is one)
-function Lib.combine_session_name_with_git_branch(session_name, git_branch_name, legacy)
-  legacy = legacy or false
-
-  if not git_branch_name or git_branch_name == "" then
+function Lib.combine_session_name_with_git_and_tag(session_name, git_branch_name, custom_tag, legacy)
+  -- legacy session names only support git branch names
+  if legacy then
+    if git_branch_name then
+      return session_name .. "_" .. git_branch_name
+    end
     return session_name
   end
 
-  -- NOTE: By including it in the session name, there's the possibility of a collision
+  if not git_branch_name then
+    if not custom_tag then
+      return session_name
+    end
+    -- if we have a custom tag, we still need to include an empty git branch section
+    git_branch_name = ""
+  end
+
+  -- NOTE: By including these in the session name, there's the possibility of a collision
   -- with an actual directory named session_name|branch_name. Meaning, that if someone
   -- created a session in session_name (while branch_name is checked out) and then also
   -- went to edit in a directory literally called session_name|branch_name. the sessions
   -- would collide. Obviously, that's not perfect but I think it's an ok price to pay to
   -- get branch specific sessions and still have a cwd derived text key to identify sessions
   -- that can be used everywhere, including :SessionRestore
-  if legacy then
-    return session_name .. "_" .. git_branch_name
+
+  local combined_session_name = session_name .. "|" .. git_branch_name
+
+  if custom_tag then
+    combined_session_name = combined_session_name .. "|" .. custom_tag
   end
 
-  -- now that we're percent encoding, we can pick a less likely character, even if it doesn't
-  -- avoid the problem entirely
-  return session_name .. "|" .. git_branch_name
+  return combined_session_name
 end
 
 ---Delete sessions that have access times older than purge_days_old old
@@ -818,8 +834,7 @@ function Lib.only_blank_buffers_left()
     if vim.fn.buflisted(bufnr) == 1 then
       local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
       local is_empty = #lines <= 1 and (lines[1] == nil or lines[1] == "")
-      -- Use deprecated version for 0.7 support
-      local is_modified = vim.api.nvim_buf_get_option(bufnr, "modified")
+      local is_modified = vim.api.nvim_get_option_value("modified", { buf = bufnr })
       local has_name = vim.api.nvim_buf_get_name(bufnr) ~= ""
 
       -- If buffer has a name, is modified, or has content, it's meaningful
@@ -835,7 +850,7 @@ end
 ---@return boolean # True if there are any modified buffers
 function Lib.has_modified_buffers()
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-    if vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_get_option(buf, "modified") then
+    if vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_get_option_value("modified", { buf = buf }) then
       return true
     end
   end

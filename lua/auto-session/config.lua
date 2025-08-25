@@ -29,9 +29,10 @@ local M = {}
 ---@field auto_delete_empty_sessions? boolean
 ---@field purge_after_minutes? number
 ---
----Git
+---Git / Session naming
 ---@field git_use_branch_name? boolean
 ---@field git_auto_restore_on_branch_change? boolean
+---@field custom_session_tag? fun(session_name:string): tag:string
 ---
 ---Saving extra data
 ---@field save_extra_data? fun(session_name:string): extra_data:string|nil
@@ -100,9 +101,10 @@ local defaults = {
   close_unsupported_windows = true, -- Close windows that aren't backed by normal file before autosaving a session
   preserve_buffer_on_restore = nil, -- Function that returns true if a buffer should be preserved when restoring a session
 
-  -- Git
+  -- Git / Session naming
   git_use_branch_name = false, -- Include git branch name in session name
   git_auto_restore_on_branch_change = false, -- Should we auto-restore the session when the git branch changes. Requires git_use_branch_name
+  custom_session_tag = nil, -- Function that can return a string to be used as part of the session name
 
   -- Deleting
   auto_delete_empty_sessions = true, -- Enables/disables deleting the session if there are only unnamed/empty buffers when auto-saving
@@ -134,9 +136,9 @@ local defaults = {
     ---@type SessionLensMappings
     mappings = {
       -- Mode can be a string or a table, e.g. {"i", "n"} for both insert and normal mode
-      delete_session = { "i", "<C-D>" }, -- mode and key for deleting a session from the picker
-      alternate_session = { "i", "<C-S>" }, -- mode and key for swapping to alternate session from the picker
-      copy_session = { "i", "<C-Y>" }, -- mode and key for copying a session from the picker
+      delete_session = { "i", "<C-d>" }, -- mode and key for deleting a session from the picker
+      alternate_session = { "i", "<C-s>" }, -- mode and key for swapping to alternate session from the picker
+      copy_session = { "i", "<C-y>" }, -- mode and key for copying a session from the picker
     },
 
     ---@type SessionControl
