@@ -1,29 +1,22 @@
 ---@diagnostic disable: undefined-field
 local TL = require("tests/test_lib")
 
-describe("The default config", function()
+describe("legacy_cmds=true", function()
   local as = require("auto-session")
   local Lib = require("auto-session.lib")
   local c = require("auto-session.config")
   as.setup({
-    legacy_cmds = false,
+    legacy_cmds = true,
     -- log_level = "debug",
   })
 
   TL.clearSessionFilesAndBuffers()
 
-  it("doesn't crash when restoring with no sessions", function()
-    ---@diagnostic disable-next-line: param-type-mismatch
-    vim.cmd("AutoSession restore")
-
-    assert.equals(0, vim.fn.bufexists(TL.test_file))
-  end)
-
   it("can save a session for the cwd", function()
     assert.False(as.session_exists_for_cwd())
     vim.cmd("e " .. TL.test_file)
 
-    vim.cmd("AutoSession save")
+    vim.cmd("SessionSave")
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
@@ -52,7 +45,7 @@ describe("The default config", function()
     -- Make sure the buffer is gone
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 
-    vim.cmd("AutoSession restore")
+    vim.cmd("SessionRestore")
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
   end)
@@ -65,7 +58,7 @@ describe("The default config", function()
     -- Make sure the buffer is gone
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 
-    vim.cmd("AutoSession restore " .. vim.fn.getcwd())
+    vim.cmd("SessionRestore " .. vim.fn.getcwd())
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
   end)
@@ -73,7 +66,7 @@ describe("The default config", function()
   it("can save a named session", function()
     vim.cmd("e " .. TL.test_file)
 
-    vim.cmd("AutoSession save " .. TL.named_session_name)
+    vim.cmd("SessionSave " .. TL.named_session_name)
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.named_session_path))
@@ -90,7 +83,7 @@ describe("The default config", function()
     -- Make sure the buffer is gone
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 
-    vim.cmd("AutoSession restore " .. TL.named_session_name)
+    vim.cmd("SessionRestore " .. TL.named_session_name)
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 
@@ -116,7 +109,7 @@ describe("The default config", function()
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
 
-    vim.cmd("AutoSession delete")
+    vim.cmd("SessionDelete")
 
     assert.equals(0, vim.fn.filereadable(TL.default_session_path))
   end)
@@ -126,7 +119,7 @@ describe("The default config", function()
     assert.equals(1, vim.fn.filereadable(TL.named_session_path))
     assert.True(vim.v.this_session ~= "")
 
-    vim.cmd("AutoSession delete " .. TL.named_session_name)
+    vim.cmd("SessionDelete " .. TL.named_session_name)
 
     -- Auto save should be disabled when deleting the current session
     assert.False(c.auto_save)
@@ -139,55 +132,22 @@ describe("The default config", function()
 
   TL.clearSessionFilesAndBuffers()
 
-  it("can auto save a session for the cwd", function()
-    vim.cmd("e " .. TL.test_file)
-
-    assert.equals(1, vim.fn.bufexists(TL.test_file))
-
-    -- auto_save_enabled will be disabled by delete above
-    assert.False(c.auto_save)
-
-    -- enable it
-    c.auto_save = true
-
-    as.AutoSaveSession()
-
-    -- Make sure the session was created
-    assert.equals(1, vim.fn.filereadable(TL.default_session_path))
-
-    -- Make sure the session has our buffer
-    TL.assertSessionHasFile(TL.default_session_path, TL.test_file)
-  end)
-
-  it("can restore the auto-saved session for the cwd", function()
-    assert.equals(1, vim.fn.bufexists(TL.test_file))
-
-    vim.cmd("silent %bw")
-
-    -- Make sure the buffer is gone
-    assert.equals(0, vim.fn.bufexists(TL.test_file))
-
-    vim.cmd("AutoSession restore")
-
-    assert.equals(1, vim.fn.bufexists(TL.test_file))
-
-    assert.equals(vim.fn.getcwd(), require("auto-session.lib").current_session_name())
-    assert.equals(vim.fn.fnamemodify(vim.fn.getcwd(), ":t"), require("auto-session.lib").current_session_name(true))
-  end)
-
   it("can purge old sessions", function()
+    -- Save default session
+    as.SaveSession()
+
     -- Create a named session to make sure it doesn't get deleted
-    vim.cmd("AutoSession save " .. TL.named_session_name)
+    vim.cmd("SessionSave " .. TL.named_session_name)
     assert.equals(1, vim.fn.filereadable(TL.named_session_path))
 
     local session_name = vim.fn.getcwd():gsub("session$", "session/doesnotexist")
 
-    vim.cmd("AutoSession save " .. session_name)
+    vim.cmd("SessionSave " .. session_name)
     assert.equals(1, vim.fn.filereadable(TL.makeSessionPath(session_name)))
 
     as.DisableAutoSave()
 
-    vim.cmd("AutoSession purgeOrphaned")
+    vim.cmd("SessionPurgeOrphaned")
     -- print(TL.default_session_path)
 
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
@@ -195,25 +155,27 @@ describe("The default config", function()
     assert.equals(0, vim.fn.filereadable(TL.makeSessionPath(session_name)))
   end)
 
-  -- test that closes all buffers, calls autosave, checks to see if file is deleted
-  it("can auto-delete empty session on auto-save", function()
-    -- make sure auto-save is on (previous test disables it)
+  it("can disable autosave", function()
     c.auto_save = true
-    as.manually_named_session = false -- reset manually named session flag from last test
 
-    -- make sure default session exists
-    assert.equals(1, vim.fn.bufexists(TL.test_file))
-    assert.True(as.SaveSession())
+    vim.cmd("SessionDisableAutoSave")
 
-    -- clear buffers so only an empty,unnamed buffer is left
-    vim.cmd("silent %bw")
+    assert.False(c.auto_save)
+  end)
 
-    -- Make sure session exists
-    assert.equals(1, vim.fn.filereadable(TL.default_session_path))
+  it("can enable autosave", function()
+    c.auto_save = false
 
-    assert.False(as.AutoSaveSession())
+    vim.cmd("SessionDisableAutoSave!")
 
-    -- Make sure session is now gone
-    assert.equals(0, vim.fn.filereadable(TL.default_session_path))
+    assert.True(c.auto_save)
+  end)
+
+  it("can toggle autosave", function()
+    assert.True(c.auto_save)
+    vim.cmd("SessionToggleAutoSave")
+    assert.False(c.auto_save)
+    vim.cmd("SessionToggleAutoSave")
+    assert.True(c.auto_save)
   end)
 end)

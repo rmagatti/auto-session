@@ -476,7 +476,7 @@ end
 ---complete_session is used by the vimscript command for session name/path completion.
 ---@param session_dir string The session directory look in
 ---@return table
-function Lib.complete_session_for_dir(session_dir, ArgLead, _, _)
+function Lib.complete_session_for_dir(session_dir, arg_lead, _, _)
   -- Lib.logger.debug("CompleteSessions: ", { ArgLead, CmdLine, CursorPos })
   local session_files = vim.fn.glob(session_dir .. "*", true, true)
   local session_names = {}
@@ -497,7 +497,7 @@ function Lib.complete_session_for_dir(session_dir, ArgLead, _, _)
   end
 
   return vim.tbl_filter(function(item)
-    return item:match("^" .. ArgLead)
+    return item:match("^" .. arg_lead)
   end, session_names)
 end
 

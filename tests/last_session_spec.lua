@@ -10,7 +10,7 @@ describe("The last loaded session config", function()
   TL.clearSessionFilesAndBuffers()
 
   it("doesn't crash when restoring with no sessions", function()
-    vim.cmd("SessionRestore")
+    vim.cmd("AutoSession restore")
 
     assert.equals(0, vim.fn.bufexists(TL.test_file))
   end)
@@ -18,7 +18,7 @@ describe("The last loaded session config", function()
   it("can save a session for the cwd", function()
     vim.cmd("e " .. TL.test_file)
 
-    vim.cmd("SessionSave")
+    vim.cmd("AutoSession save")
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
@@ -36,7 +36,7 @@ describe("The last loaded session config", function()
     -- Sleep for 1.5 seconds since the time comparison is seconds based
     vim.loop.sleep(1500)
 
-    vim.cmd("SessionSave " .. TL.named_session_name)
+    vim.cmd("AutoSession save " .. TL.named_session_name)
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.named_session_path))
@@ -54,7 +54,7 @@ describe("The last loaded session config", function()
     -- WARN: this test below also expects to be run from the tests directory
     vim.cmd("cd tests")
 
-    vim.cmd("SessionRestore")
+    vim.cmd("AutoSession restore")
 
     -- Have file from latest session
     assert.equals(0, vim.fn.bufexists(TL.other_file))

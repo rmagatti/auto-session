@@ -6,7 +6,7 @@ describe("The default config", function()
   it("can disable autosave", function()
     c.auto_save = true
 
-    vim.cmd("SessionDisableAutoSave")
+    vim.cmd("AutoSession disable")
 
     assert.False(c.auto_save)
   end)
@@ -14,16 +14,16 @@ describe("The default config", function()
   it("can enable autosave", function()
     c.auto_save = false
 
-    vim.cmd("SessionDisableAutoSave!")
+    vim.cmd("AutoSession enable")
 
     assert.True(c.auto_save)
   end)
 
   it("can toggle autosave", function()
     assert.True(c.auto_save)
-    vim.cmd("SessionToggleAutoSave")
+    vim.cmd("AutoSession toggle")
     assert.False(c.auto_save)
-    vim.cmd("SessionToggleAutoSave")
+    vim.cmd("AutoSession toggle")
     assert.True(c.auto_save)
   end)
 end)

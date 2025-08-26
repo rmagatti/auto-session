@@ -45,7 +45,7 @@ return {
 Note: For other plugin managers, make sure setup is called somewhere, e.g.:
 
 ```lua
-require("auto-session").setup {}
+require("auto-session").setup({})
 ```
 
 ## ⚙️ Configuration
@@ -98,6 +98,7 @@ local defaults = {
   continue_restore_on_error = true, -- Keep loading the session even if there's an error
   lsp_stop_on_restore = false, -- Should language servers be stopped when restoring a session. Can also be a function that will be called if set. Not called on autorestore from startup
   lazy_support = true, -- Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used
+  legacy_cmds = true, -- Define legacy commands: Session*, Autosession (lowercase s), currently true. Set to false to prevent defining them
 
   ---@type SessionLens
   session_lens = {
@@ -173,6 +174,7 @@ local defaults = {
 ---@field continue_restore_on_error? boolean
 ---@field lsp_stop_on_restore? boolean|fun()
 ---@field lazy_support? boolean
+---@field legacy_cmds? boolean
 ---
 ---@field session_lens? SessionLens
 ---
@@ -229,25 +231,23 @@ set sessionoptions+=winpos,terminal,folds
 ## 📢 Commands
 
 ```viml
-:SessionSave " saves a session based on the `cwd` in `root_dir`
-:SessionSave my_session " saves a session called `my_session` in `root_dir`
+:AutoSession save " saves a session based on the `cwd` in `root_dir`
+:AutoSession save my_session " saves a session called `my_session` in `root_dir`
 
-:SessionRestore " restores a session based on the `cwd` from `root_dir`
-:SessionRestore my_session " restores `my_session` from `root_dir`
+:AutoSession restore " restores a session based on the `cwd` from `root_dir`
+:AutoSession restore my_session " restores `my_session` from `root_dir`
 
-:SessionDelete " deletes a session based on the `cwd` from `root_dir`
-:SessionDelete my_session " deletes `my_session` from `root_dir`
+:AutoSession delete " deletes a session based on the `cwd` from `root_dir`
+:AutoSession delete my_session " deletes `my_session` from `root_dir`
 
-:SessionDisableAutoSave " disables autosave
-:SessionDisableAutoSave! " enables autosave (still does all checks in the config)
-:SessionToggleAutoSave " toggles autosave
+:AutoSession disable " disables autosave
+:AutoSession enable " enables autosave (still does all checks in the config)
+:AutoSession toggle" toggles autosave
 
-:SessionPurgeOrphaned " removes all orphaned sessions with no working directory left.
+:AutoSession purgeOrphaned " removes all orphaned sessions with no working directory left.
 
-:SessionSearch " opens a session picker, see Config.session_lens.picker
-
-:Autosession search " opens a session picker, see Config.session_lens.picker
-:Autosession delete " opens a vim.ui.select picker to choose a session to delete.
+:AutoSession search " opens a session picker, see Config.session_lens.picker
+:AutoSession deletePicker " opens a vim.ui.select picker to choose a session to delete.
 ```
 
 ## 📖 Details
@@ -257,7 +257,7 @@ Starting `nvim`
 - When starting `nvim` with no arguments, AutoSession will try to restore the session for `cwd` if one exists.
 - When starting `nvim .` (or another directory), AutoSession will try to restore the session for that directory. See [argument handling](https://github.com/rmagatti/auto-session/wiki/Argument-Handling) for more details.
 - When starting `nvim some_file.txt` (or multiple files), by default, AutoSession won't do anything. See [argument handling](https://github.com/rmagatti/auto-session/wiki/Argument-Handling) for more details.
-- Even after starting `nvim` with a file argument, a session for `cwd` can still be manually restored by running `:SessionRestore`.
+- Even after starting `nvim` with a file argument, a session for `cwd` can still be manually restored by running `:AutoSession restore`.
 - When piping to `nvim`, e.g: `cat myfile | nvim`, AutoSession disables itself.
 
 :warning: Please note that if there are errors in your config, restoring the session might fail, if that happens, auto session will then disable auto saving for the current session.
@@ -274,7 +274,7 @@ Exiting `nvim`
 Session naming:
 
 - By default, sessions are named for `cwd`
-- You can manually name a session with `:SessionSave my_session`. Manually named sessions can't be auto-restored but once restored they will be used for autosaving.
+- You can manually name a session with `:AutoSession save my_session`. Manually named sessions can't be auto-restored but once restored they will be used for autosaving.
 - The current git branch can optionally be included in the session name.
 - You can also set a custom function that returns a string to include in the session name so you have different sessions for `cwd` per tmux session, window, etc.
 
@@ -288,9 +288,9 @@ return {
   lazy = false,
   keys = {
     -- Will use Telescope if installed or a vim.ui.select picker otherwise
-    { "<leader>wr", "<cmd>SessionSearch<CR>", desc = "Session search" },
-    { "<leader>ws", "<cmd>SessionSave<CR>", desc = "Save session" },
-    { "<leader>wa", "<cmd>SessionToggleAutoSave<CR>", desc = "Toggle autosave" },
+    { "<leader>wr", "<cmd>AutoSession search<CR>", desc = "Session search" },
+    { "<leader>ws", "<cmd>AutoSession save<CR>", desc = "Save session" },
+    { "<leader>wa", "<cmd>AutoSession toggle<CR>", desc = "Toggle autosave" },
   },
 
   ---enables autocomplete for opts
@@ -335,16 +335,16 @@ return {
         --  width = 0.50,
       },
 
-      -- Telescope only: If load_on_setup is false, make sure you use `:SessionSearch` to open the picker as it will initialize everything first
+      -- Telescope only: If load_on_setup is false, make sure you use `:AutoSession search` to open the picker as it will initialize everything first
       load_on_setup = true,
     },
   },
 }
 ```
 
-Use `:SessionSearch` to launch the session picker. It will automatically look for Telescope, Snacks, and Fzf-Lua and use the first one it finds. If you have multiple pickers installed, you can set `session-lens.picker` to manually pick your picker. If no pickers are installed, it'll fall back to `vim.ui.select`
+Use `:AutoSession search` to launch the session picker. It will automatically look for Telescope, Snacks, and Fzf-Lua and use the first one it finds. If you have multiple pickers installed, you can set `session-lens.picker` to manually pick your picker. If no pickers are installed, it'll fall back to `vim.ui.select`
 
-If you're using Telescope and want to launch the picker via `:Telescope session-lens`, set `session-lens.load_on_setup = true` or make sure you've called `:SessionSearch` first.
+If you're using Telescope and want to launch the picker via `:Telescope session-lens`, set `session-lens.load_on_setup = true` or make sure you've called `:AutoSession search` first.
 
 The following default keymaps are available when the session-lens picker is open:
 
@@ -440,7 +440,7 @@ You can show the current session name in the statusline by using the function `c
 Here's an example using [Lualine](https://github.com/nvim-lualine/lualine.nvim):
 
 ```lua
-require("lualine").setup {
+require("lualine").setup({
   options = {
     theme = "tokyonight",
   },
@@ -451,7 +451,7 @@ require("lualine").setup {
       end,
     },
   },
-}
+})
 ```
 
 <img width="800" height="676" alt="Screenshot 2025-08-21 at 12 10 10" src="https://github.com/user-attachments/assets/49b0357e-9002-4d18-8dbb-3eed4422c5f9" />
@@ -487,7 +487,7 @@ opts = {
     "someOtherVimCommand",
     function()
       -- Restore nvim-tree after a session is restored
-      local nvim_tree_api = require "nvim-tree.api"
+      local nvim_tree_api = require("nvim-tree.api")
       nvim_tree_api.tree.open()
       nvim_tree_api.tree.change_root(vim.fn.getcwd())
       nvim_tree_api.tree.reload()
@@ -502,7 +502,7 @@ opts = {
       if #qflist == 0 then
         return nil
       end
-      local qfinfo = vim.fn.getqflist { title = 1 }
+      local qfinfo = vim.fn.getqflist({ title = 1 })
 
       for _, entry in ipairs(qflist) do
         -- use filename instead of bufnr so it can be reloaded
@@ -558,7 +558,7 @@ local opts = {
       if not ok or not breakpoints then
         return
       end
-      vim.notify "restoring breakpoints"
+      vim.notify("restoring breakpoints")
       for buf_name, buf_bps in pairs(json.breakpoints) do
         for _, bp in pairs(buf_bps) do
           local line = bp.line
