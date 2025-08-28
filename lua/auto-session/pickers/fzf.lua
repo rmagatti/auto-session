@@ -37,9 +37,9 @@ local function on_session_selected(selected)
     return
   end
 
-  vim.schedule(function()
+  vim.defer_fn(function()
     AutoSession.autosave_and_restore(session.session_name)
-  end)
+  end, 50)
 end
 
 local function on_session_deleted(selected)
