@@ -149,14 +149,14 @@ local defaults = {
 ---@field close_unsupported_windows? boolean
 ---@field preserve_buffer_on_restore? fun(bufnr:number): preserve_buffer:boolean
 ---
----Deleting
----@field auto_delete_empty_sessions? boolean
----@field purge_after_minutes? number
----
 ---Git / Session naming
 ---@field git_use_branch_name? boolean
 ---@field git_auto_restore_on_branch_change? boolean
 ---@field custom_session_tag? fun(session_name:string): tag:string
+---
+---Deleting
+---@field auto_delete_empty_sessions? boolean
+---@field purge_after_minutes? number
 ---
 ---Saving extra data
 ---@field save_extra_data? fun(session_name:string): extra_data:string|nil
@@ -183,8 +183,8 @@ local defaults = {
 ---@field picker? "telescope"|"snacks"|"fzf"|"select"
 ---@field load_on_setup? boolean
 ---@field picker_opts? table
----@field session_control? SessionControl
 ---@field mappings? SessionLensMappings
+---@field session_control? SessionControl
 ---
 ---@class SessionLensMappings
 ---@field delete_session? table
