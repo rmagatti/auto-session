@@ -23,7 +23,7 @@ $(FILES): $(PLUGINS)
 	$(NVIM) --clean --headless -u scripts/minimal_init.lua +"PlenaryBustedFile $@ {minimal_init = 'scripts/minimal_init.lua'}"
 
 # We use mini.test for some end to end UI testing of session lens
-mini-tests:
+mini-tests: $(PLUGINS)
 	$(NVIM) --headless --noplugin -u scripts/minimal_init_mini.lua -c "lua MiniTest.run()"
 
 # Use lazy.nvim to download the plugins. The actual tests don't use lazy.nvim
