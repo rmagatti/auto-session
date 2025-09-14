@@ -118,18 +118,18 @@ local function open_session_picker()
     actions = {
       ["default"] = on_session_selected,
       [config_to_fzf_key_binding(keymaps.delete_session)] = {
-        on_session_deleted,
-        require("fzf-lua").actions.resume,
+        fn = on_session_deleted,
         header = "delete",
+        reload = true,
       },
       [config_to_fzf_key_binding(keymaps.alternate_session)] = {
-        on_alternate_session,
+        fn = on_alternate_session,
         header = "alternate",
       },
       [config_to_fzf_key_binding(keymaps.copy_session)] = {
-        on_copy_session,
-        require("fzf-lua").actions.resume,
+        fn = on_copy_session,
         header = "copy",
+        exec_silent = true,
       },
     },
     winopts = Config.session_lens.picker_opts,
