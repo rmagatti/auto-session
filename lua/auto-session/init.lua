@@ -958,4 +958,14 @@ function AutoSession.DisableAutoSave(enable)
   return Config.auto_save
 end
 
+---Open a session search picker
+function AutoSession.Search()
+  require("auto-session.pickers").open_session_picker()
+end
+
+---Open a session delete picker
+function AutoSession.DeletePicker()
+  require("auto-session.pickers.select").open_delete_picker()
+end
+
 return AutoSession

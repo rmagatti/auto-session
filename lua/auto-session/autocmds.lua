@@ -136,12 +136,8 @@ local user_commands = {
 
   purgeOrphaned = purge_orphaned_sessions,
 
-  search = function()
-    require("auto-session.pickers").open_session_picker()
-  end,
-  deletePicker = function()
-    require("auto-session.pickers.select").open_delete_picker()
-  end,
+  search = AutoSession.Search,
+  deletePicker = AutoSession.DeletePicker,
 }
 
 local function user_command_completer(arg_lead, cmd_line, cursor_pos)
@@ -250,7 +246,7 @@ function M.setup_autocmds()
 
     vim.api.nvim_create_user_command("SessionSearch", function()
       vim.notify('"SessionSearch" is deprecated.\nUse "AutoSession search" instead')
-      return require("auto-session.pickers").open_session_picker()
+      AutoSession.Search()
     end, {
       desc = "Open a session picker",
     })
@@ -258,10 +254,10 @@ function M.setup_autocmds()
     vim.api.nvim_create_user_command("Autosession", function(args)
       if args.args:match("search") then
         vim.notify('"Autosession search" (lowercase "s") is deprecated.\nUse "AutoSession search" instead')
-        return require("auto-session.pickers").open_session_picker()
+        AutoSession.Search()
       elseif args.args:match("delete") then
         vim.notify('"Autosession delete" (lowercase "s") is deprecated.\nUse "AutoSession search" instead')
-        return require("auto-session.pickers.select").open_delete_picker()
+        AutoSession.DeletePicker()
       end
     end, {
       complete = function(_, _, _)
