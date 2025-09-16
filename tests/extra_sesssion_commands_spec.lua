@@ -28,7 +28,7 @@ describe("Config with extra session commands", function()
     vim.cmd("e " .. TL.test_file)
 
     -- generate default session
-    assert.True(as.AutoSaveSession())
+    assert.True(as.auto_save_session())
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
@@ -47,7 +47,7 @@ describe("Config with extra session commands", function()
     vim.g.extraCmdsTest = 0
     vim.g.extraCmdsTest2 = 0
 
-    assert.True(as.RestoreSession())
+    assert.True(as.restore_session())
 
     assert.True(vim.g.extraCmdsTest == 1)
     assert.True(vim.g.extraCmdsTest2 == 2)
@@ -63,7 +63,7 @@ describe("Config with extra session commands", function()
     })
 
     -- generate default session
-    assert.True(as.AutoSaveSession())
+    assert.True(as.auto_save_session())
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
@@ -89,7 +89,7 @@ describe("Config with extra session commands", function()
     })
 
     -- generate default session
-    assert.True(as.AutoSaveSession())
+    assert.True(as.auto_save_session())
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
@@ -108,7 +108,7 @@ describe("Config with extra session commands", function()
     vim.g.extraCmdsTest = 0
     vim.g.extraCmdsTest2 = 0
 
-    assert.True(as.RestoreSession())
+    assert.True(as.restore_session())
 
     assert.True(vim.g.extraCmdsTest == 1)
     assert.True(vim.g.extraCmdsTest2 == 2)

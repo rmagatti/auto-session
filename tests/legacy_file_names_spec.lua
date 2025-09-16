@@ -24,7 +24,7 @@ describe("Legacy file name support", function()
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 
     -- save a default session in new format
-    as.SaveSession()
+    as.save_session()
 
     assert.True(as.session_exists_for_cwd())
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
@@ -44,7 +44,7 @@ describe("Legacy file name support", function()
 
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 
-    as.RestoreSession()
+    as.restore_session()
 
     -- did we successfully restore the session?
     assert.equals(1, vim.fn.bufexists(TL.test_file))
@@ -69,7 +69,7 @@ describe("Legacy file name support", function()
     assert.equals(1, vim.fn.bufexists(TL.test_file))
 
     -- save a default session in new format
-    as.SaveSession()
+    as.save_session()
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
 
     vim.loop.fs_rename(TL.default_session_path, TL.default_session_path_legacy)
@@ -82,7 +82,7 @@ describe("Legacy file name support", function()
 
     assert.equals(0, vim.fn.bufexists(TL.test_file))
 
-    as.DeleteSession()
+    as.delete_session()
 
     -- file should be gone
     assert.equals(0, vim.fn.filereadable(TL.default_session_path_legacy))

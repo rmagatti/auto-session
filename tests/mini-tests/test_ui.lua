@@ -40,6 +40,7 @@ local function make_tests(picker, autosession_config, other_config)
   ---@param interval? integer sleep time in ms
   ---@return any # return from fun
   local function sleep_wait(timeout, fun, interval)
+    interval = interval or 100
     -- time functions don't seem to tick in MiniTest, manually calculate required iterations
     local iterations = math.ceil(timeout / interval)
 

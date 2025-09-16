@@ -20,11 +20,11 @@ describe("custom session tag", function()
 
     local session_path = TL.makeSessionPath(TL.default_session_name .. "||" .. tag)
 
-    assert.True(as.SaveSession())
+    assert.True(as.save_session())
     assert.equals(1, vim.fn.filereadable(session_path))
 
     vim.cmd("silent %bw")
-    assert.True(as.RestoreSession())
+    assert.True(as.restore_session())
     assert.equals(1, vim.fn.bufexists(TL.test_file))
   end)
 end)

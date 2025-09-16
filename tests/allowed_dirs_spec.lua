@@ -25,7 +25,7 @@ describe("The allowed dirs config", function()
 
   it("doesn't save a session for a non-allowed dir", function()
     vim.cmd("e " .. TL.test_file)
-    as.AutoSaveSession()
+    as.auto_save_session()
 
     -- Make sure the session was not created
     assert.equals(0, vim.fn.filereadable(TL.default_session_path))
@@ -34,7 +34,7 @@ describe("The allowed dirs config", function()
   it("saves a session for an allowed dir", function()
     vim.cmd("e " .. TL.test_file)
     c.allowed_dirs = { vim.fn.getcwd() }
-    as.AutoSaveSession()
+    as.auto_save_session()
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
@@ -53,7 +53,7 @@ describe("The allowed dirs config", function()
     local session_path = TL.makeSessionPath(vim.fn.getcwd())
     assert.equals(0, vim.fn.filereadable(session_path))
 
-    as.AutoSaveSession()
+    as.auto_save_session()
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(session_path))
@@ -72,7 +72,7 @@ describe("The allowed dirs config", function()
       local session_path = TL.makeSessionPath(vim.fn.getcwd())
       assert.equals(0, vim.fn.filereadable(session_path))
 
-      assert.True(as.AutoSaveSession())
+      assert.True(as.auto_save_session())
 
       -- Make sure the session was created
       assert.equals(1, vim.fn.filereadable(session_path))

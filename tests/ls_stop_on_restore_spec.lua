@@ -5,7 +5,7 @@ describe("lsp_stop_on_restore", function()
   as.setup({})
   TL.clearSessionFilesAndBuffers()
   vim.cmd("e " .. TL.test_file)
-  as.SaveSession()
+  as.save_session()
 
   it("calls user function on restore", function()
     local stop_called = false
@@ -15,7 +15,7 @@ describe("lsp_stop_on_restore", function()
       end,
     })
 
-    as.RestoreSession()
+    as.restore_session()
 
     assert.True(stop_called)
   end)

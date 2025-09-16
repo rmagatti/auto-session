@@ -44,7 +44,7 @@ end
 local function open_delete_picker()
   local files = Lib.get_session_list(AutoSession.get_root_dir())
   open_picker(files, "Delete a session:", function(choice)
-    AutoSession.DeleteSessionFile(choice.path, choice.display_name)
+    AutoSession.delete_session_file(choice.path, choice.display_name)
   end)
 end
 

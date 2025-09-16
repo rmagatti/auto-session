@@ -22,7 +22,7 @@ describe("The cwd_change_handling config", function()
 
   it("can save a session for the current directory (to use later)", function()
     ---@diagnostic disable-next-line: missing-parameter
-    require("auto-session").AutoSaveSession()
+    require("auto-session").auto_save_session()
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))

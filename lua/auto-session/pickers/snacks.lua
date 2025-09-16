@@ -50,7 +50,7 @@ local function open_session_picker()
       end,
       session_delete = function(picker, item)
         vim.schedule(function()
-          AutoSession.DeleteSessionFile(item.path, item.display_name)
+          AutoSession.delete_session_file(item.path, item.display_name)
           picker:find() -- refresh picker
         end)
       end,

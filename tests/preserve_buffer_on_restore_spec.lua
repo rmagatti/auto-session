@@ -16,7 +16,7 @@ describe("preserve_buffer_on_restore", function()
     vim.cmd("e " .. TL.test_file)
 
     -- generate default session
-    assert.True(as.AutoSaveSession())
+    assert.True(as.auto_save_session())
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
 
     vim.cmd("silent %bw!")
@@ -24,7 +24,7 @@ describe("preserve_buffer_on_restore", function()
     -- open another buffer to test preserving
     vim.cmd("e " .. TL.other_file)
 
-    assert.True(as.RestoreSession())
+    assert.True(as.restore_session())
 
     -- make sure both buffers are there after restoring
     assert.equals(1, vim.fn.bufexists(TL.test_file))

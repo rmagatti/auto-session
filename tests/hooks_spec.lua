@@ -59,7 +59,7 @@ describe("Hooks", function()
   it("fire when saving", function()
     vim.cmd("e " .. TL.test_file)
 
-    assert.True(as.AutoSaveSession())
+    assert.True(as.auto_save_session())
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
 
     assert.True(pre_save_cmd_called)
@@ -73,7 +73,7 @@ describe("Hooks", function()
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
 
     ---@diagnostic disable-next-line: missing-parameter
-    assert.True(as.RestoreSession())
+    assert.True(as.restore_session())
 
     assert.True(pre_restore_cmd_called)
     assert.True(post_restore_cmd_called)
@@ -82,7 +82,7 @@ describe("Hooks", function()
   it("fire when deleting", function()
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
 
-    assert.True(as.DeleteSession())
+    assert.True(as.delete_session())
     assert.equals(0, vim.fn.filereadable(TL.default_session_path))
 
     assert.True(pre_delete_cmd_called)
