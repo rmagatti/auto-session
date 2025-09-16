@@ -15,7 +15,7 @@ describe("cwd lookup", function()
     vim.cmd("tabnew")
     vim.cmd("tcd tests")
 
-    as.SaveSession()
+    as.save_session()
 
     vim.cmd("tabclose")
 
@@ -29,7 +29,7 @@ describe("cwd lookup", function()
     vim.cmd("tabnew")
     vim.cmd("lcd tests")
 
-    assert.True(as.SaveSession())
+    assert.True(as.save_session())
 
     vim.cmd("tabclose")
 

@@ -24,8 +24,8 @@ describe("extra data", function()
       assert.equals(test_data, extra_data)
     end
 
-    assert.True(as.SaveSession())
-    assert.True(as.RestoreSession())
+    assert.True(as.save_session())
+    assert.True(as.restore_session())
     assert.True(restore_extra_data_called)
   end)
 
@@ -44,8 +44,8 @@ describe("extra data", function()
       assert.equals(test_data, extra_data)
     end
 
-    assert.True(as.SaveSession())
-    as.RestoreSession()
+    assert.True(as.save_session())
+    as.restore_session()
     assert.True(restore_extra_data_called)
   end)
 end)

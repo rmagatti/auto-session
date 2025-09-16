@@ -19,7 +19,7 @@ describe("single_session_mode", function()
 
     -- Create a test file and save session
     vim.cmd("e " .. TL.test_file)
-    as.SaveSession()
+    as.save_session()
 
     -- Verify session was created and contains the file
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
@@ -32,7 +32,7 @@ describe("single_session_mode", function()
 
     -- Create another file and save session again
     vim.cmd("e " .. TL.other_file)
-    as.SaveSession()
+    as.save_session()
 
     -- There should NOT be a session file for the new cwd
     local new_cwd_session_path = TL.session_dir .. lib.escape_session_name(new_cwd) .. ".vim"
@@ -62,7 +62,7 @@ describe("single_session_mode", function()
 
     -- Create a test file and save session
     vim.cmd("e " .. TL.test_file)
-    as.SaveSession()
+    as.save_session()
 
     -- Verify session was created and contains the file
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
@@ -75,7 +75,7 @@ describe("single_session_mode", function()
 
     -- Create another file and save session
     vim.cmd("e " .. TL.other_file)
-    as.SaveSession()
+    as.save_session()
 
     -- This time, there SHOULD be a session file for the new cwd
     local new_cwd_session_path = TL.session_dir .. lib.escape_session_name(new_cwd) .. ".vim"
@@ -105,20 +105,20 @@ describe("single_session_mode", function()
 
     -- Create and save a normal cwd-based session
     vim.cmd("e " .. TL.test_file)
-    as.SaveSession()
+    as.save_session()
 
     -- Verify normal session was created
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
     assert.equals(nil, as.manually_named_session)
 
     -- Now save a manually named session
-    as.SaveSession("manual_session")
+    as.save_session("manual_session")
 
     -- Verify manually_named_session is now true
     assert.True(as.manually_named_session)
 
     -- Restore the normal session (by cwd)
-    assert.True(as.RestoreSession(original_cwd))
+    assert.True(as.restore_session(original_cwd))
 
     -- manually_named_session should now be false since we restored a normal session
     assert.False(as.manually_named_session)
@@ -142,7 +142,7 @@ describe("single_session_mode", function()
 
     -- Create a test file and save session
     vim.cmd("e test.txt")
-    as.SaveSession()
+    as.save_session()
 
     -- Verify the session was created
     local tests_session_path = TL.session_dir .. lib.escape_session_name(tests_cwd) .. ".vim"
@@ -151,7 +151,7 @@ describe("single_session_mode", function()
     -- Go back to original directory and create another session
     vim.cmd("cd " .. original_cwd)
     vim.cmd("e test.txt")
-    as.SaveSession()
+    as.save_session()
 
     -- Verify the session was created
     local original_session_path = TL.session_dir .. lib.escape_session_name(original_cwd) .. ".vim"
@@ -167,7 +167,7 @@ describe("single_session_mode", function()
     assert.equals(original_session_path, vim.v.this_session)
 
     -- Now restore the session from tests directory
-    assert.True(as.RestoreSession(tests_cwd))
+    assert.True(as.restore_session(tests_cwd))
 
     -- After restoring the session, vim.v.this_session should be updated
     -- to match the restored session and manually_named_session should be set
@@ -191,7 +191,7 @@ describe("single_session_mode", function()
 
     -- Create a manually named session
     vim.cmd("e " .. TL.test_file)
-    as.SaveSession("my_project")
+    as.save_session("my_project")
 
     -- Verify the named session was created
     local named_session_path = TL.session_dir .. lib.escape_session_name("my_project") .. ".vim"
@@ -203,7 +203,7 @@ describe("single_session_mode", function()
     -- Change directory and save again - should still save to the named session
     vim.cmd("cd tests")
     vim.cmd("e test2.txt")
-    as.SaveSession()
+    as.save_session()
 
     -- Should still save to the named session
     assert.equals(1, vim.fn.filereadable(named_session_path))

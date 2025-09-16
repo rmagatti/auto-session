@@ -18,8 +18,8 @@ describe("Setting purge_after_minutes", function()
   -- requires nvim >= 0.10
   if vim.fn.has("nvim-0.10") == 1 then
     it("does purge old sessions while leaving recent ones", function()
-      as.SaveSession()
-      as.SaveSession(TL.named_session_name)
+      as.save_session()
+      as.save_session(TL.named_session_name)
 
       assert.equals(1, vim.fn.filereadable(TL.default_session_path))
       assert.equals(1, vim.fn.filereadable(TL.named_session_path))

@@ -8,11 +8,11 @@ describe("Manually named sessions", function()
     TL.clearSessionFilesAndBuffers()
     vim.cmd("e " .. TL.test_file)
 
-    require("auto-session").SaveSession(TL.named_session_name)
+    require("auto-session").save_session(TL.named_session_name)
 
     vim.cmd("e " .. TL.other_file)
 
-    require("auto-session").AutoSaveSession()
+    require("auto-session").auto_save_session()
 
     -- Make sure the session was not created
     assert.equals(0, vim.fn.filereadable(TL.default_session_path))
@@ -29,12 +29,12 @@ describe("Manually named sessions", function()
     -- Passing nothing to the SaveSession function will use the current manually named
     -- session if the flag is set
     require("auto-session").manually_named_session = false
-    require("auto-session").SaveSession()
+    require("auto-session").save_session()
 
     vim.cmd("e " .. TL.other_file)
     assert.equals(1, vim.fn.bufexists(TL.other_file))
 
-    require("auto-session").AutoSaveSession()
+    require("auto-session").auto_save_session()
 
     -- Make sure the session was not created
     assert.equals(0, vim.fn.filereadable(TL.named_session_path))
@@ -55,14 +55,14 @@ describe("Manually named sessions", function()
 
     vim.cmd("e " .. TL.test_file)
 
-    require("auto-session").SaveSession(TL.named_session_name)
+    require("auto-session").save_session(TL.named_session_name)
 
     vim.cmd("cd tests")
     local new_cwd = vim.fn.getcwd()
     assert.True(new_cwd ~= original_cwd)
 
     vim.cmd("e other_file.txt")
-    require("auto-session").AutoSaveSession()
+    require("auto-session").auto_save_session()
 
     -- Should save to the manually named session, not create new session for cwd
     assert.equals(1, vim.fn.filereadable(TL.named_session_path))

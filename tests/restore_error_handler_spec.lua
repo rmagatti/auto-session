@@ -11,7 +11,7 @@ describe("restore_error_handler", function()
   it("works when nil", function()
     TL.clearSessionFilesAndBuffers()
     vim.cmd("e " .. TL.test_file)
-    as.SaveSession()
+    as.save_session()
 
     -- add an error to the session file
     local uv = vim.loop
@@ -19,7 +19,7 @@ describe("restore_error_handler", function()
     uv.fs_write(fd, "error string\n", -1)
     uv.fs_close(fd)
 
-    assert.False(as.RestoreSession())
+    assert.False(as.restore_session())
   end)
 
   as.setup({
@@ -32,7 +32,7 @@ describe("restore_error_handler", function()
   it("can suppress errors", function()
     TL.clearSessionFilesAndBuffers()
     vim.cmd("e " .. TL.test_file)
-    as.SaveSession()
+    as.save_session()
 
     -- add an error to the session file
     local uv = vim.loop
@@ -43,14 +43,14 @@ describe("restore_error_handler", function()
     was_called = false
     should_return = true
 
-    assert.True(as.RestoreSession())
+    assert.True(as.restore_session())
     assert.True(was_called)
   end)
 
   it("can report errors", function()
     TL.clearSessionFilesAndBuffers()
     vim.cmd("e " .. TL.test_file)
-    as.SaveSession()
+    as.save_session()
 
     -- add an error to the session file
     local uv = vim.loop
@@ -61,7 +61,7 @@ describe("restore_error_handler", function()
     was_called = false
     should_return = false
 
-    assert.False(as.RestoreSession())
+    assert.False(as.restore_session())
     assert.True(was_called)
   end)
 
@@ -71,7 +71,7 @@ describe("restore_error_handler", function()
   it("ignores E16 Invalid range fold errors", function()
     TL.clearSessionFilesAndBuffers()
     vim.cmd("e " .. TL.test_file)
-    as.SaveSession()
+    as.save_session()
 
     -- add an E16 fold error to the session file
     local uv = vim.loop
@@ -80,13 +80,13 @@ describe("restore_error_handler", function()
     uv.fs_close(fd)
 
     -- This should succeed (return true) because E16 errors are ignored
-    assert.True(as.RestoreSession())
+    assert.True(as.restore_session())
   end)
 
   it("ignores E490 No fold found errors", function()
     TL.clearSessionFilesAndBuffers()
     vim.cmd("e " .. TL.test_file)
-    as.SaveSession()
+    as.save_session()
 
     -- add an E490 fold error to the session file
     local uv = vim.loop
@@ -95,6 +95,6 @@ describe("restore_error_handler", function()
     uv.fs_close(fd)
 
     -- This should succeed (return true) because E490 errors are ignored
-    assert.True(as.RestoreSession())
+    assert.True(as.restore_session())
   end)
 end)

@@ -72,7 +72,7 @@ local function setup_dirchanged_autocmds()
         return
       end
 
-      AutoSession.AutoSaveSession()
+      AutoSession.auto_save_session()
       AutoSession.run_cmds("pre_cwd_changed")
 
       -- Clear the current session, fixes #399
@@ -113,7 +113,7 @@ local function setup_dirchanged_autocmds()
       -- session directly in this callback. To workaround, we schedule
       -- the restore for the next run of the event loop
       vim.schedule(function()
-        AutoSession.AutoRestoreSession()
+        AutoSession.auto_restore_session()
         AutoSession.run_cmds("post_cwd_changed")
       end)
     end,
@@ -122,22 +122,22 @@ local function setup_dirchanged_autocmds()
 end
 
 local user_commands = {
-  save = AutoSession.SaveSession,
-  restore = AutoSession.RestoreSession,
-  delete = AutoSession.DeleteSession,
+  save = AutoSession.save_session,
+  restore = AutoSession.restore_session,
+  delete = AutoSession.delete_session,
 
-  disable = AutoSession.DisableAutoSave,
+  disable = AutoSession.disable_auto_save,
   enable = function()
-    AutoSession.DisableAutoSave(true)
+    AutoSession.disable_auto_save(true)
   end,
   toggle = function()
-    AutoSession.DisableAutoSave(not Config.auto_save)
+    AutoSession.disable_auto_save(not Config.auto_save)
   end,
 
   purgeOrphaned = purge_orphaned_sessions,
 
-  search = AutoSession.Search,
-  deletePicker = AutoSession.DeletePicker,
+  search = AutoSession.search,
+  deletePicker = AutoSession.delete_picker,
 }
 
 local function user_command_completer(arg_lead, cmd_line, cursor_pos)
@@ -195,7 +195,7 @@ function M.setup_autocmds()
   if Config.legacy_cmds then
     vim.api.nvim_create_user_command("SessionSave", function(args)
       vim.notify('"SessionSave" is deprecated.\nUse "AutoSession save" instead')
-      AutoSession.SaveSession(args.args)
+      AutoSession.save_session(args.args)
     end, {
       complete = complete_session,
       bang = true,
@@ -205,7 +205,7 @@ function M.setup_autocmds()
 
     vim.api.nvim_create_user_command("SessionRestore", function(args)
       vim.notify('"SessionRestore" is deprecated.\nUse "AutoSession restore" instead')
-      AutoSession.RestoreSession(args.args)
+      AutoSession.restore_session(args.args)
     end, {
       complete = complete_session,
       bang = true,
@@ -215,7 +215,7 @@ function M.setup_autocmds()
 
     vim.api.nvim_create_user_command("SessionDelete", function(args)
       vim.notify('"SessionDelete" is deprecated.\nUse "AutoSession delete" instead')
-      AutoSession.DeleteSession(args.args)
+      AutoSession.delete_session(args.args)
     end, {
       complete = complete_session,
       bang = true,
@@ -225,7 +225,7 @@ function M.setup_autocmds()
 
     vim.api.nvim_create_user_command("SessionDisableAutoSave", function(args)
       vim.notify('"SessionDisableAutoSave" is deprecated.\nUse "AutoSession disable" instead')
-      AutoSession.DisableAutoSave(args.bang)
+      AutoSession.disable_auto_save(args.bang)
     end, {
       bang = true,
       desc = "Disable autosave. Enable with a !",
@@ -233,7 +233,7 @@ function M.setup_autocmds()
 
     vim.api.nvim_create_user_command("SessionToggleAutoSave", function()
       vim.notify('"SessionToggleAutoSave" is deprecated.\nUse "AutoSession toggle" instead')
-      AutoSession.DisableAutoSave(not Config.auto_save)
+      AutoSession.disable_auto_save(not Config.auto_save)
     end, {
       bang = true,
       desc = "Toggle autosave",
@@ -324,7 +324,7 @@ function M.setup_autocmds()
     callback = function()
       -- If we're in pager mode or we're in a subprocess, don't save on exit
       if not vim.g.in_pager_mode and not vim.env.NVIM then
-        AutoSession.AutoSaveSession()
+        AutoSession.auto_save_session()
       end
     end,
   })

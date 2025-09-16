@@ -80,7 +80,7 @@ describe("The args files enabled config", function()
 
     c.auto_save = true
 
-    assert.equals(true, as.AutoSaveSession())
+    assert.equals(true, as.auto_save_session())
 
     c.auto_save = false
 
@@ -104,7 +104,7 @@ describe("The args files enabled config", function()
       return false
     end
 
-    assert.equals(false, as.AutoSaveSession())
+    assert.equals(false, as.auto_save_session())
 
     c.auto_save = false
 
@@ -125,7 +125,7 @@ describe("The args files enabled config", function()
       return true
     end
 
-    assert.equals(true, as.AutoSaveSession())
+    assert.equals(true, as.auto_save_session())
 
     c.auto_save = false
 

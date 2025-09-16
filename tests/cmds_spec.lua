@@ -150,7 +150,7 @@ describe("The default config", function()
     -- enable it
     c.auto_save = true
 
-    as.AutoSaveSession()
+    as.auto_save_session()
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
@@ -185,7 +185,7 @@ describe("The default config", function()
     vim.cmd("AutoSession save " .. session_name)
     assert.equals(1, vim.fn.filereadable(TL.makeSessionPath(session_name)))
 
-    as.DisableAutoSave()
+    as.disable_auto_save()
 
     vim.cmd("AutoSession purgeOrphaned")
     -- print(TL.default_session_path)
@@ -203,7 +203,7 @@ describe("The default config", function()
 
     -- make sure default session exists
     assert.equals(1, vim.fn.bufexists(TL.test_file))
-    assert.True(as.SaveSession())
+    assert.True(as.save_session())
 
     -- clear buffers so only an empty,unnamed buffer is left
     vim.cmd("silent %bw")
@@ -211,7 +211,7 @@ describe("The default config", function()
     -- Make sure session exists
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
 
-    assert.False(as.AutoSaveSession())
+    assert.False(as.auto_save_session())
 
     -- Make sure session is now gone
     assert.equals(0, vim.fn.filereadable(TL.default_session_path))

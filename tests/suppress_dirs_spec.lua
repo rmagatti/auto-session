@@ -15,7 +15,7 @@ describe("The suppress dirs config", function()
 
   it("doesn't save a session for a suppressed dir", function()
     ---@diagnostic disable-next-line: missing-parameter
-    as.AutoSaveSession()
+    as.auto_save_session()
 
     -- Make sure the session was not created
     assert.equals(0, vim.fn.filereadable(TL.default_session_path))
@@ -27,7 +27,7 @@ describe("The suppress dirs config", function()
       auto_session_suppress_dirs = { "/dummy" },
     })
     ---@diagnostic disable-next-line: missing-parameter
-    as.AutoSaveSession()
+    as.auto_save_session()
 
     -- Make sure the session was created
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
@@ -47,7 +47,7 @@ describe("The suppress dirs config", function()
     local session_path = TL.makeSessionPath(vim.fn.getcwd())
     assert.equals(0, vim.fn.filereadable(session_path))
 
-    as.AutoSaveSession()
+    as.auto_save_session()
 
     -- Make sure the session was not created
     assert.equals(0, vim.fn.filereadable(session_path))
@@ -63,7 +63,7 @@ describe("The suppress dirs config", function()
       auto_session_allowed_dirs = { vim.fn.getcwd() },
     })
     ---@diagnostic disable-next-line: missing-parameter
-    as.AutoSaveSession()
+    as.auto_save_session()
 
     -- Make sure the session was not created
     assert.equals(0, vim.fn.filereadable(TL.default_session_path))

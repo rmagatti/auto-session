@@ -16,7 +16,7 @@ describe("Close filetypes on save", function()
     vim.cmd("e tests/close_filetypes_on_save_spec.lua")
 
     -- generate default session
-    assert.True(as.AutoSaveSession())
+    assert.True(as.auto_save_session())
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
 
     -- Check that the text file is not in the session
@@ -36,7 +36,7 @@ describe("Close filetypes on save", function()
     })
 
     -- generate default session
-    assert.True(as.AutoSaveSession())
+    assert.True(as.auto_save_session())
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
 
     -- Check that the text file is in the session
@@ -56,10 +56,10 @@ describe("Close filetypes on save", function()
     })
 
     -- generate default session
-    assert.True(as.AutoSaveSession())
+    assert.True(as.auto_save_session())
     assert.equals(1, vim.fn.filereadable(TL.default_session_path))
 
-    as.RestoreSession()
+    as.restore_session()
 
     -- Check that the text file is in the session
     assert.True(TL.sessionHasFile(TL.default_session_path, TL.test_file))

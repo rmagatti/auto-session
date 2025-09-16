@@ -62,7 +62,7 @@ describe("The git config", function()
   it("saves a session with the branch name", function()
     -- vim.cmd ":SessionSave"
 
-    as.AutoSaveSession()
+    as.auto_save_session()
 
     assert.equals(1, vim.fn.bufexists("test.txt"))
 
@@ -83,7 +83,7 @@ describe("The git config", function()
     vim.cmd("silent %bw!")
     assert.equals(0, vim.fn.bufexists("test.txt"))
 
-    as.AutoRestoreSession()
+    as.auto_restore_session()
 
     assert.equals(1, vim.fn.bufexists("test.txt"))
     assert.equals(1, vim.fn.filereadable(branch_session_path))
@@ -98,13 +98,13 @@ describe("The git config", function()
       return "mytag"
     end
 
-    assert.True(as.SaveSession())
+    assert.True(as.save_session())
 
     vim.cmd("silent %bw!")
     assert.equals(0, vim.fn.bufexists("test.txt"))
     local branch_tag_session_path = TL.session_dir .. TL.escapeSessionName(vim.fn.getcwd() .. "|main|" .. tag) .. ".vim"
 
-    assert.True(as.RestoreSession())
+    assert.True(as.restore_session())
 
     -- unset this early so other tests don't also fail if the following checks fail
     c.custom_session_tag = nil
@@ -126,7 +126,7 @@ describe("The git config", function()
     vim.cmd("silent %bw!")
     assert.equals(0, vim.fn.bufexists("test.txt"))
 
-    as.AutoRestoreSession()
+    as.auto_restore_session()
 
     assert.equals(1, vim.fn.bufexists("test.txt"))
 
@@ -139,7 +139,7 @@ describe("The git config", function()
   it("can get the session name of a git branch with a slash", function()
     runCmdAndPrint("git checkout -b slash/branch")
 
-    as.SaveSession()
+    as.save_session()
 
     local session_path = TL.session_dir .. TL.escapeSessionName(vim.fn.getcwd() .. "|slash/branch") .. ".vim"
     assert.equals(1, vim.fn.filereadable(session_path))
@@ -203,12 +203,12 @@ describe("The git config", function()
     vim.cmd("silent %bw")
 
     -- branch change monitoring is only turned on when we've loaded a session
-    as.RestoreSession()
+    as.restore_session()
     assert.equals("test_git (branch: main)", Lib.current_session_name(true))
 
     -- save main branch session
     assert.equals(1, vim.fn.bufexists("test.txt"))
-    as.SaveSession()
+    as.save_session()
 
     -- stub out on_git_watch_event so we know when the watcher is triggered
     -- we can't use post_restore_cmds because there's no session restored

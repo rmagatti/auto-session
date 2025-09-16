@@ -28,7 +28,7 @@ function M.on_git_watch_event(cwd, current_branch)
     -- And set manually_named_session = true so we use that name
     vim.v.this_session = AutoSession.get_root_dir() .. Lib.escape_session_name(session_name) .. ".vim"
     AutoSession.manually_named_session = true
-    AutoSession.AutoSaveSession()
+    AutoSession.auto_save_session()
 
     -- We don't want to keep using this name so clear the flag here
     AutoSession.manually_named_session = false
@@ -42,9 +42,9 @@ function M.on_git_watch_event(cwd, current_branch)
       end,
     }, function(choice)
       if choice == "Yes" then
-        AutoSession.AutoRestoreSession()
+        AutoSession.auto_restore_session()
       else
-        AutoSession.DisableAutoSave()
+        AutoSession.disable_auto_save()
         vim.notify(
           "Session restore cancelled. Auto-save disabled.\nAfter saving your changes, run :SessionRestore\nto load the session for branch: "
             .. new_branch
@@ -53,7 +53,7 @@ function M.on_git_watch_event(cwd, current_branch)
     end)
   else
     -- No modified buffers, proceed with auto-restore
-    AutoSession.AutoRestoreSession()
+    AutoSession.auto_restore_session()
   end
 end
 

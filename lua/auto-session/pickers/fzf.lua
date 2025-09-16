@@ -50,7 +50,7 @@ local function on_session_deleted(selected)
     return
   end
 
-  AutoSession.DeleteSessionFile(session.path, session.display_name)
+  AutoSession.delete_session_file(session.path, session.display_name)
 end
 
 local function on_alternate_session(_)

@@ -39,7 +39,7 @@ M.delete_session = function(prompt_bufnr)
   local current_picker = action_state.get_current_picker(prompt_bufnr)
   current_picker:delete_selection(function(selection)
     if selection then
-      AutoSession.DeleteSessionFile(selection.path, selection.display())
+      AutoSession.delete_session_file(selection.path, selection.display())
     end
   end)
 end

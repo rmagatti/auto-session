@@ -50,7 +50,7 @@ describe("The args single dir enabled config", function()
     assert.equals(true, no_restore_hook_called)
 
     -- we don't want it to save a session since it won't have loaded a session
-    assert.False(as.AutoSaveSession())
+    assert.False(as.auto_save_session())
 
     -- Revert the stub
     vim.fn.argv:revert()
