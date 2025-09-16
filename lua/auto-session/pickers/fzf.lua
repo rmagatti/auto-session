@@ -129,7 +129,7 @@ local function open_session_picker()
       [config_to_fzf_key_binding(keymaps.copy_session)] = {
         fn = on_copy_session,
         header = "copy",
-        exec_silent = true,
+        reload = true,
       },
     },
     winopts = Config.session_lens.picker_opts,
