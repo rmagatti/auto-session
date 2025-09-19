@@ -491,7 +491,7 @@ function AutoSession.auto_restore_session(session_name, is_startup)
     is_startup_autorestore = is_startup,
   }
   local ret = AutoSession.restore_session(session_name, opts)
-  if not ret then
+  if not ret and not is_startup then
     AutoSession.run_cmds("no_restore", false)
   end
   return ret
