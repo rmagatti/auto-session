@@ -44,7 +44,7 @@ describe("The git config", function()
     --   print(line)
     -- end
     --
-    -- print("Exit status:", vim.v.shell_error)
+    -- /otprint("Exit status:", vim.v.shell_error)
   end
 
   -- init repo and make a commit
@@ -196,8 +196,21 @@ describe("The git config", function()
     c.auto_save = true
     c.git_auto_restore_on_branch_change = true
 
+    -- track if no_restore hook was called
+    local no_restore_called = false
+    local no_restore_was_startup = false
+    c.no_restore_cmds = {
+      function(is_startup)
+        no_restore_called = true
+        no_restore_was_startup = is_startup
+      end,
+    }
+
     -- make sure we're on the main branch
     vim.fn.system("git switch -c main")
+
+    -- main should exist and be restored so no_restore shouldn't be triggered here
+    assert.False(no_restore_called)
 
     -- delete all buffers
     vim.cmd("silent %bw")
@@ -225,6 +238,9 @@ describe("The git config", function()
     vim.wait(1000, function()
       return git_watch_triggered
     end)
+
+    assert.True(no_restore_called)
+    assert.False(no_restore_was_startup)
 
     vim.cmd("silent %bw")
     vim.cmd("e other.txt")

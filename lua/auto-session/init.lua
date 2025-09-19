@@ -353,10 +353,11 @@ end
 ---@private
 ---Get the hook commands from the config and run them
 ---@param hook_name string
+---@param arg? any Optional argument for a lua hook function
 ---@return table|nil Results of the commands
-function AutoSession.run_cmds(hook_name)
+function AutoSession.run_cmds(hook_name, arg)
   local cmds = Config[hook_name .. "_cmds"]
-  return Lib.run_hook_cmds(cmds, hook_name)
+  return Lib.run_hook_cmds(cmds, hook_name, arg)
 end
 
 ---Calls a hook to get any user/extra commands and if any, saves them to *x.vim
@@ -470,13 +471,18 @@ local function write_to_session_control_json(session_file_name)
   vim.fn.writefile({ json_to_save }, session_control_file_path)
 end
 
----Function called by AutoSession when automatically restoring a session.
+---Function called by AutoSession when automatically restoring a session. Calls
+---no_restore only if not in startup mode as startup may try to restore
+---several different ways
 ---@param session_name? string An optional session to load
 ---@param is_startup? boolean|nil Is this autorestore happening on startup
 ---@return boolean boolean returns whether restoring the session was successful or not.
 function AutoSession.auto_restore_session(session_name, is_startup)
   -- WARN: should this be checking is_allowed_dir as well?
   if not is_enabled() or not auto_restore() or suppress_session(session_name) then
+    if not is_startup then
+      AutoSession.run_cmds("no_restore", false)
+    end
     return false
   end
 
@@ -484,7 +490,11 @@ function AutoSession.auto_restore_session(session_name, is_startup)
     show_message = Config.show_auto_restore_notif,
     is_startup_autorestore = is_startup,
   }
-  return AutoSession.restore_session(session_name, opts)
+  local ret = AutoSession.restore_session(session_name, opts)
+  if not ret then
+    AutoSession.run_cmds("no_restore", false)
+  end
+  return ret
 end
 
 ---@private
@@ -580,7 +590,7 @@ function AutoSession.auto_restore_session_at_vim_enter()
 
   -- No session was restored, dispatch no-restore hook
   Lib.logger.debug("No session restored, call no_restore hooks")
-  AutoSession.run_cmds("no_restore")
+  AutoSession.run_cmds("no_restore", true)
 
   return false
 end

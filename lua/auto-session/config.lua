@@ -79,7 +79,7 @@ local M = {}
 ---@field post_restore_cmds? table executes after a session is restored
 ---@field pre_delete_cmds? table executes before a session is deleted
 ---@field post_delete_cmds? table executes after a session is deleted
----@field no_restore_cmds? table executes at VimEnter when no session is restored
+---@field no_restore_cmds? table executes when no session is restored when auto-restoring, happens on startup or possibly on cwd/git branch changes
 ---@field pre_cwd_changed_cmds? table executes before cwd is changed if cwd_change_handling is true
 ---@field post_cwd_changed_cmds? table executes after cwd is changed if cwd_change_handling is true
 

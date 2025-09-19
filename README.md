@@ -469,7 +469,7 @@ Command hooks exist in the format: {hook_name}
 - `{post_restore}`: executes _after_ a session is restored
 - `{pre_delete}`: executes _before_ a session is deleted
 - `{post_delete}`: executes _after_ a session is deleted
-- `{no_restore}`: executes _at_ `VimEnter` _when_ no session is restored
+- `{no_restore}`: executes when no session is auto-restored, happens _after_ `VimEnter` (and possibly on cwd/git branch change)
 - `{pre_cwd_changed}`: executes _before_ a directory is changed (if `cwd_change_handling` is enabled)
 - `{post_cwd_changed}`: executes _after_ a directory is changed (if `cwd_change_handling` is enabled)
 
