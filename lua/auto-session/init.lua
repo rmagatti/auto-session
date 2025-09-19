@@ -42,7 +42,7 @@ local function get_session_name(legacy, use_cwd)
   end
 
   local cwd = vim.fn.getcwd(-1, -1)
-  local git_branch_name = Config.git_use_branch_name and Lib.get_git_branch_name() or nil
+  local git_branch_name = Config.git_use_branch_name and Lib.get_git_branch_name(nil, Config.git_use_branch_name) or nil
   local custom_tag = Config.custom_session_tag and Config.custom_session_tag(cwd) or nil
 
   local session_name = Lib.combine_session_name_with_git_and_tag(cwd, git_branch_name, custom_tag, legacy)
@@ -547,7 +547,7 @@ function AutoSession.auto_restore_session_at_vim_enter()
 
     if Config.git_use_branch_name then
       -- Get the git branch for that directory, no legacy git name support
-      local branch_name = Lib.get_git_branch_name(session_name)
+      local branch_name = Lib.get_git_branch_name(session_name, Config.git_use_branch_name)
       local custom_tag = Config.custom_session_tag and Config.custom_session_tag(session_name) or nil
       session_name = Lib.combine_session_name_with_git_and_tag(session_name, branch_name, custom_tag, false)
       Lib.logger.debug("git enabled, launch argument with potential git branch: " .. session_name)

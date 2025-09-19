@@ -10,6 +10,7 @@ describe("The git config", function()
   -- I think messes up the relative module load path. a bit of a hack but oh well
   ---@diagnostic disable-next-line: unused-local
   local g = require("auto-session.git")
+  local custom_git_branch_called = false
 
   as.setup({
     auto_session_use_git_branch = true,
@@ -172,6 +173,11 @@ describe("The git config", function()
   it("load a session named with git branch from directory argument", function()
     c.args_allow_single_directory = true
     c.cwd_change_handling = false
+    custom_git_branch_called = false
+    c.git_use_branch_name = function(path)
+      custom_git_branch_called = true
+      return Lib.get_git_branch_name(path)
+    end
 
     -- delete all buffers
     vim.cmd("silent %bw")
@@ -186,6 +192,7 @@ describe("The git config", function()
     assert.True(as.auto_restore_session_at_vim_enter())
 
     assert.equals(1, vim.fn.bufexists("test.txt"))
+    assert.True(custom_git_branch_called)
 
     -- Revert the stub
     vim.fn.argv:revert()
@@ -205,6 +212,9 @@ describe("The git config", function()
         no_restore_was_startup = is_startup
       end,
     }
+
+    -- track if custom git branch function called
+    custom_git_branch_called = false
 
     -- make sure we're on the main branch
     vim.fn.system("git switch -c main")
@@ -241,6 +251,9 @@ describe("The git config", function()
 
     assert.True(no_restore_called)
     assert.False(no_restore_was_startup)
+
+    -- custom git branch function should've been called
+    assert.True(custom_git_branch_called)
 
     vim.cmd("silent %bw")
     vim.cmd("e other.txt")

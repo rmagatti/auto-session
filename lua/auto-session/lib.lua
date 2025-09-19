@@ -740,8 +740,14 @@ end
 
 ---Returns git branch name, if any, for the path (if passed in) or the cwd
 ---@param path string? Optional path to use when checking for git branch
+---@param custom_fn? boolean|fun(path:string?): branch_name:string|nil Optional custom function to call to get branch name
 ---@return string|nil # Name of git branch or empty string
-function Lib.get_git_branch_name(path)
+function Lib.get_git_branch_name(path, custom_fn)
+  if type(custom_fn) == "function" then
+    Lib.logger.debug("get_git_branch_name: using custom branch naming function")
+    return custom_fn(path)
+  end
+
   local git_cmd = string.format("git%s rev-parse --abbrev-ref HEAD", path and (" -C " .. path) or "")
 
   local out = vim.fn.systemlist(git_cmd)
