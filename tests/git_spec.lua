@@ -149,13 +149,16 @@ describe("The git config", function()
 
   it("load a session named with git branch from . directory", function()
     c.args_allow_single_directory = true
-    c.log_level = "debug"
+    -- c.log_level = "debug"
 
     -- delete all buffers
     vim.cmd("silent %bw")
 
     local s = stub(vim.fn, "argv")
     s.returns({ "." })
+
+    -- have to call setup again for auto-session to recapture argv
+    as.setup(c.options)
 
     -- only exported because we set the unit testing env in TL
     assert.True(as.auto_restore_session_at_vim_enter())
@@ -181,6 +184,9 @@ describe("The git config", function()
 
     local s = stub(vim.fn, "argv")
     s.returns({ git_test_dir })
+
+    -- have to call setup again for auto-session to recapture argv
+    as.setup(c.options)
 
     -- only exported because we set the unit testing env in TL
     assert.True(as.auto_restore_session_at_vim_enter())
