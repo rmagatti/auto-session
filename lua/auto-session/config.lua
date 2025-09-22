@@ -26,7 +26,7 @@ local M = {}
 ---@field preserve_buffer_on_restore? fun(bufnr:number): preserve_buffer:boolean
 ---
 ---Git / Session naming
----@field git_use_branch_name? boolean
+---@field git_use_branch_name? boolean|fun(path:string?): branch_name:string|nil
 ---@field git_auto_restore_on_branch_change? boolean
 ---@field custom_session_tag? fun(session_name:string): tag:string
 ---
@@ -79,7 +79,7 @@ local M = {}
 ---@field post_restore_cmds? table executes after a session is restored
 ---@field pre_delete_cmds? table executes before a session is deleted
 ---@field post_delete_cmds? table executes after a session is deleted
----@field no_restore_cmds? table executes at VimEnter when no session is restored
+---@field no_restore_cmds? table executes when no session is restored when auto-restoring, happens on startup or possibly on cwd/git branch changes
 ---@field pre_cwd_changed_cmds? table executes before cwd is changed if cwd_change_handling is true
 ---@field post_cwd_changed_cmds? table executes after cwd is changed if cwd_change_handling is true
 
@@ -103,7 +103,7 @@ local defaults = {
   preserve_buffer_on_restore = nil, -- Function that returns true if a buffer should be preserved when restoring a session
 
   -- Git / Session naming
-  git_use_branch_name = false, -- Include git branch name in session name
+  git_use_branch_name = false, -- Include git branch name in session name, can also be a function that takes an optional path and returns the name of the branch
   git_auto_restore_on_branch_change = false, -- Should we auto-restore the session when the git branch changes. Requires git_use_branch_name
   custom_session_tag = nil, -- Function that can return a string to be used as part of the session name
 

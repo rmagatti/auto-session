@@ -9,7 +9,7 @@ local M = {}
 M.uv_git_watcher = nil
 
 function M.on_git_watch_event(cwd, current_branch)
-  local new_branch = Lib.get_git_branch_name(cwd)
+  local new_branch = Lib.get_git_branch_name(cwd, Config.git_use_branch_name)
 
   if new_branch == current_branch then
     return
@@ -67,7 +67,7 @@ function M.start_watcher(cwd, towatch)
   end
 
   M.uv_git_watcher = assert(uv.new_fs_event())
-  local current_branch = Lib.get_git_branch_name(cwd)
+  local current_branch = Lib.get_git_branch_name(cwd, Config.git_use_branch_name)
 
   Lib.logger.debug("Git: starting watcher", { cwd, current_branch })
 

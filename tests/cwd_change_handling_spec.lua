@@ -4,6 +4,8 @@ local TL = require("tests/test_lib")
 describe("The cwd_change_handling config", function()
   local pre_cwd_changed_hook_called = false
   local post_cwd_changed_hook_called = false
+  local no_restore_hook_called = false
+  local no_restore_hook_was_startup = false
   require("auto-session").setup({
     -- log_level = "debug",
     cwd_change_handling = {
@@ -13,6 +15,12 @@ describe("The cwd_change_handling config", function()
       end,
       post_cwd_changed_hook = function()
         post_cwd_changed_hook_called = true
+      end,
+    },
+    no_restore_cmds = {
+      function(is_startup)
+        no_restore_hook_called = true
+        no_restore_hook_was_startup = is_startup
       end,
     },
   })
@@ -36,6 +44,8 @@ describe("The cwd_change_handling config", function()
     assert.equals(1, vim.fn.bufexists(TL.test_file))
     assert.equals(false, pre_cwd_changed_hook_called)
     assert.equals(false, post_cwd_changed_hook_called)
+    assert.equals(false, no_restore_hook_called)
+    assert.equals(false, no_restore_hook_was_startup)
 
     assert.True(vim.v.this_session ~= "")
 
@@ -45,6 +55,8 @@ describe("The cwd_change_handling config", function()
     assert.equals(0, vim.fn.bufexists(TL.test_file))
     assert.equals(true, pre_cwd_changed_hook_called)
     assert.equals(true, post_cwd_changed_hook_called)
+    assert.True(no_restore_hook_called)
+    assert.False(no_restore_hook_was_startup)
 
     -- Changing to a directory without a session should clear this_session
     assert.True(vim.v.this_session == "")
@@ -52,10 +64,12 @@ describe("The cwd_change_handling config", function()
 
   it("does load the session for the base dir", function()
     assert.equals(0, vim.fn.bufexists(TL.test_file))
+    no_restore_hook_called = false
 
     vim.cmd("cd ..")
     vim.wait(0)
 
+    assert.False(no_restore_hook_called)
     assert.equals(vim.fn.getcwd(), require("auto-session.lib").current_session_name())
 
     assert.equals(1, vim.fn.bufexists(TL.test_file))
