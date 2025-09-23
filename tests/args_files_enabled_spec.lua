@@ -4,7 +4,10 @@ local stub = require("luassert.stub")
 
 describe("The args files enabled config", function()
   local no_restore_hook_called = false
-  require("auto-session").setup({
+  local as = require("auto-session")
+  local c = require("auto-session.config")
+
+  as.setup({
     args_allow_single_directory = false,
     args_allow_files_auto_save = true,
 
@@ -43,6 +46,9 @@ describe("The args files enabled config", function()
     local s = stub(vim.fn, "argv")
     s.returns({ "." })
 
+    -- have to call setup again for auto-session to recapture argv
+    as.setup(c.options)
+
     -- only exported because we set the unit testing env in TL
     assert.equals(false, require("auto-session").auto_restore_session_at_vim_enter())
 
@@ -60,6 +66,9 @@ describe("The args files enabled config", function()
 
     local s = stub(vim.fn, "argv")
     s.returns({ TL.other_file })
+
+    -- have to call setup again for auto-session to recapture argv
+    as.setup(c.options)
 
     -- only exported because we set the unit testing env in TL
     assert.equals(false, require("auto-session").auto_restore_session_at_vim_enter())

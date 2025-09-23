@@ -8,6 +8,9 @@ local uv = vim.uv or vim.loop
 ---@mod auto-session.api API
 local AutoSession = {}
 
+---Tracks the arguments nvim was launched with. Will be set to nil if a session is restored
+local launch_argv = nil
+
 ---Setup function for AutoSession
 ---@param config AutoSession.Config|nil Config for auto session
 function AutoSession.setup(config)
@@ -26,6 +29,10 @@ function AutoSession.setup(config)
   end
 
   require("auto-session.autocmds").setup_autocmds()
+
+  -- save argv
+  launch_argv = vim.fn.argv()
+  Lib.logger.debug("Saving argv at setup: " .. vim.inspect(launch_argv))
 end
 
 ---Determines the session name based on current state and parameters
@@ -71,9 +78,6 @@ end
 local in_pager_mode = function()
   return vim.g.in_pager_mode == Lib._VIM_TRUE
 end
-
----Tracks the arguments nvim was launched with. Will be set to nil if a session is restored
-local launch_argv = nil
 
 ---Returns whether Auto restoring / saving is enabled for the args nvim was launched with
 ---@param is_save boolean Is this being called during saving or restoring
@@ -529,14 +533,14 @@ end
 ---Also make sure to call no_restore if no session was restored
 ---@return boolean # Was a session restored
 function AutoSession.auto_restore_session_at_vim_enter()
-  -- Save the launch args here as restoring a session will replace vim.fn.argv. We clear
-  -- launch_argv in restore session so it's only used for the session launched from the command
-  -- line
-  launch_argv = vim.fn.argv()
+  -- launch_argv is captured during setup as that happens before `VimEnter` which
+  -- is important because some plugins (.e.g. NvimTree) rewrite the arguments before
+  -- we get to see them
 
   -- Is there exactly one argument and is it a directory?
   if
     Config.args_allow_single_directory
+    and launch_argv
     and #launch_argv == 1
     and vim.fn.isdirectory(launch_argv[1]) == Lib._VIM_TRUE
   then

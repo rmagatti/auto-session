@@ -45,6 +45,9 @@ describe("The args single dir enabled config", function()
     local s = stub(vim.fn, "argv")
     s.returns({ "tests" })
 
+    -- have to call setup again for auto-session to recapture argv
+    as.setup(c.options)
+
     -- only exported because we set the unit testing env in TL
     assert.False(as.auto_restore_session_at_vim_enter())
     assert.equals(true, no_restore_hook_called)
@@ -69,6 +72,9 @@ describe("The args single dir enabled config", function()
     local s = stub(vim.fn, "argv")
     s.returns({ cwd })
 
+    -- have to call setup again for auto-session to recapture argv
+    as.setup(c.options)
+
     -- only exported because we set the unit testing env in TL
     assert.equals(true, as.auto_restore_session_at_vim_enter())
 
@@ -87,6 +93,9 @@ describe("The args single dir enabled config", function()
 
     local s = stub(vim.fn, "argv")
     s.returns({ TL.test_file })
+
+    -- have to call setup again for auto-session to recapture argv
+    as.setup(c.options)
 
     -- only exported because we set the unit testing env in TL
     assert.equals(false, as.auto_restore_session_at_vim_enter())
