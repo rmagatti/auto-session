@@ -1,4 +1,4 @@
-*auto-session.txt*          For Neovim          Last change: 2025 September 19
+*auto-session.txt*           For Neovim           Last change: 2025 October 02
 
 ==============================================================================
 Table of Contents                             *auto-session-table-of-contents*
@@ -46,7 +46,7 @@ where you left off.
 ==============================================================================
 3. Installation                                    *auto-session-installation*
 
-Lazy.nvim <https://github.com/folke/lazy.nvim>
+Lazy.nvim <https://github.com/folke/lazy.nvim>:
 
 >lua
     return {
@@ -63,7 +63,7 @@ Lazy.nvim <https://github.com/folke/lazy.nvim>
     }
 <
 
-Note:For other plugin managers, make sure setup is called somewhere, e.g.:
+Note: For other plugin managers, make sure setup is called somewhere, e.g.:
 
 >lua
     require("auto-session").setup({})
@@ -505,7 +505,7 @@ session was saved. If you only want the last directory in the path, you can
 call `current_session_name(true)`.
 
 Here’s an example using Lualine
-<https://github.com/nvim-lualine/lualine.nvim>
+<https://github.com/nvim-lualine/lualine.nvim>:
 
 >lua
     require("lualine").setup({
@@ -533,16 +533,16 @@ COMMAND HOOKS ARE A LIST OF COMMANDS OR FUNCTIONS THAT GET EXECUTED AT DIFFERENT
 
 Command hooks exist in the format: {hook_name}
 
-- `{pre_save}`executes _before_ a session is saved
-- `{save_extra}`executes _after_ a session is saved, saves returned string or table to `*x.vim`, reference `:help mks`
-- `{post_save}`executes _after_ a session is saved
-- `{pre_restore}`executes _before_ a session is restored
-- `{post_restore}`executes _after_ a session is restored
-- `{pre_delete}`executes _before_ a session is deleted
-- `{post_delete}`executes _after_ a session is deleted
-- `{no_restore}`executes when no session is auto-restored, happens _after_ `VimEnter` (and possibly on cwd/git branch change)
-- `{pre_cwd_changed}`executes _before_ a directory is changed (if `cwd_change_handling` is enabled)
-- `{post_cwd_changed}`executes _after_ a directory is changed (if `cwd_change_handling` is enabled)
+- `{pre_save}`: executes _before_ a session is saved
+- `{save_extra}`: executes _after_ a session is saved, saves returned string or table to `*x.vim`, reference `:help mks`
+- `{post_save}`: executes _after_ a session is saved
+- `{pre_restore}`: executes _before_ a session is restored
+- `{post_restore}`: executes _after_ a session is restored
+- `{pre_delete}`: executes _before_ a session is deleted
+- `{post_delete}`: executes _after_ a session is deleted
+- `{no_restore}`: executes when no session is auto-restored, happens _after_ `VimEnter` (and possibly on cwd/git branch change)
+- `{pre_cwd_changed}`: executes _before_ a directory is changed (if `cwd_change_handling` is enabled)
+- `{post_cwd_changed}`: executes _after_ a directory is changed (if `cwd_change_handling` is enabled)
 
 Each hook is a table of vim commands or lua functions (or a mix of both):
 

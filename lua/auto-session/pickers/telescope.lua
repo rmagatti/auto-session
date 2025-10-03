@@ -49,8 +49,14 @@ local function extension_search_session(custom_opts)
     custom_opts.picker_opts.previewer = false
   end
 
-  -- get the theme defaults, with any overrides in custom_opts.picker_opts
-  local theme_opts = telescope_themes.get_dropdown(custom_opts.picker_opts)
+  local theme_opts
+  if custom_opts.picker_opts.theme and telescope_themes["get_" .. custom_opts.picker_opts.theme] then
+    local theme = "get_" .. custom_opts.picker_opts.theme
+    theme_opts = telescope_themes[theme](custom_opts.picker_opts)
+  else
+    -- get the theme defaults, with any overrides in custom_opts.picker_opts
+    theme_opts = telescope_themes.get_dropdown(custom_opts.picker_opts)
+  end
 
   if theme_opts.path_display then
     -- If there's a path_display setting, we have to force path_display.absolute = true here,
