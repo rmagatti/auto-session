@@ -7,11 +7,15 @@ describe("Hooks", function()
   local pre_save_cmd_called = false
   local pre_save_session_name
   local post_save_cmd_called = false
+  local post_save_session_name
   local pre_restore_cmd_called = false
   local pre_restore_session_name
   local post_restore_cmd_called = false
+  local post_restore_session_name
   local pre_delete_cmd_called = false
+  local pre_delete_session_name
   local post_delete_cmd_called = false
+  local post_delete_session_name
 
   as.setup({
     pre_save_cmds = {
@@ -22,9 +26,10 @@ describe("Hooks", function()
       end,
     },
     post_save_cmds = {
-      function()
+      function(session_name)
         -- print("post_save_cmd")
         post_save_cmd_called = true
+        post_save_session_name = session_name
       end,
     },
     pre_restore_cmds = {
@@ -34,18 +39,21 @@ describe("Hooks", function()
       end,
     },
     post_restore_cmds = {
-      function()
+      function(session_name)
         post_restore_cmd_called = true
+        post_restore_session_name = session_name
       end,
     },
     pre_delete_cmds = {
-      function()
+      function(session_name)
         pre_delete_cmd_called = true
+        pre_delete_session_name = session_name
       end,
     },
     post_delete_cmds = {
-      function()
+      function(session_name)
         post_delete_cmd_called = true
+        post_delete_session_name = session_name
       end,
     },
 
@@ -64,6 +72,7 @@ describe("Hooks", function()
     assert.True(pre_save_cmd_called)
     assert.True(post_save_cmd_called)
     assert.equals(TL.default_session_name, pre_save_session_name)
+    assert.equals(TL.default_session_name, post_save_session_name)
   end)
 
   it("fire when restoring", function()
@@ -78,6 +87,7 @@ describe("Hooks", function()
     assert.True(pre_restore_cmd_called)
     assert.True(post_restore_cmd_called)
     assert.equals(TL.default_session_name, pre_restore_session_name)
+    assert.equals(TL.default_session_name, post_restore_session_name)
   end)
 
   it("fire when deleting", function()
@@ -88,6 +98,8 @@ describe("Hooks", function()
 
     assert.True(pre_delete_cmd_called)
     assert.True(post_delete_cmd_called)
+    assert.equals(TL.default_session_name, pre_delete_session_name)
+    assert.equals(TL.default_session_name, post_delete_session_name)
   end)
 
   it("pre_save returning false stops auto-save but not save", function()

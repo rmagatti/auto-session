@@ -664,7 +664,7 @@ function AutoSession.save_session(session_name, opts)
 
   save_extra_cmds(session_path, session_name)
 
-  AutoSession.run_cmds("post_save")
+  AutoSession.run_cmds("post_save", session_name)
 
   -- session_name might be nil (e.g. when using cwd), unescape escaped_session_name instead
   Lib.logger.debug("Saved session: " .. Lib.unescape_session_name(escaped_session_name))
@@ -878,7 +878,7 @@ function AutoSession.restore_session_file(session_path, opts)
     require("auto-session.git").start_watcher(vim.fn.getcwd(-1, -1), ".git/HEAD")
   end
 
-  AutoSession.run_cmds("post_restore")
+  AutoSession.run_cmds("post_restore", session_name)
 
   write_to_session_control_json(session_path)
   return true
@@ -925,7 +925,7 @@ end
 ---@param session_name string Session name being deleted, just use to display messages
 ---@return boolean # Was the session file deleted
 function AutoSession.delete_session_file(session_path, session_name)
-  AutoSession.run_cmds("pre_delete")
+  AutoSession.run_cmds("pre_delete", session_name)
 
   Lib.logger.debug("delete_session_file deleting: " .. session_path)
 
@@ -953,7 +953,7 @@ function AutoSession.delete_session_file(session_path, session_name)
     Lib.logger.debug("delete_session_file deleting extra user commands: " .. extra_commands_path)
   end
 
-  AutoSession.run_cmds("post_delete")
+  AutoSession.run_cmds("post_delete", session_name)
   return result
 end
 
