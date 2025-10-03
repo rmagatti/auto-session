@@ -72,16 +72,16 @@ local M = {}
 ---@field control_filename? string
 ---
 ---Hooks
----@field pre_save_cmds? table executes before a session is saved
----@field save_extra_cmds? table executes before a session is saved
+---@field pre_save_cmds? (string|fun(session_name:string))[] executes before a session is saved, return false to stop auto-saving
 ---@field post_save_cmds? table executes after a session is saved
----@field pre_restore_cmds? table executes before a session is restored
+---@field pre_restore_cmds? (string|fun(session_name:string))[] executes before a session is restored, return false to stop auto-restoring
 ---@field post_restore_cmds? table executes after a session is restored
 ---@field pre_delete_cmds? table executes before a session is deleted
 ---@field post_delete_cmds? table executes after a session is deleted
 ---@field no_restore_cmds? table executes when no session is restored when auto-restoring, happens on startup or possibly on cwd/git branch changes
 ---@field pre_cwd_changed_cmds? table executes before cwd is changed if cwd_change_handling is true
 ---@field post_cwd_changed_cmds? table executes after cwd is changed if cwd_change_handling is true
+---@field save_extra_cmds? table executes before a session is saved
 
 ---@type AutoSession.Config
 local defaults = {
