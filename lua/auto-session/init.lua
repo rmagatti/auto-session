@@ -15,7 +15,6 @@ local launch_argv = nil
 ---@param config AutoSession.Config|nil Config for auto session
 function AutoSession.setup(config)
   Config.setup(config)
-  Lib.setup(Config.log_level)
   Lib.logger.debug("Config at start of setup", tostring(Config))
   Config.check(Lib.logger)
 
