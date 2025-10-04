@@ -15,7 +15,6 @@ local launch_argv = nil
 ---@param config AutoSession.Config|nil Config for auto session
 function AutoSession.setup(config)
   Config.setup(config)
-  Lib.setup(Config.log_level)
   Lib.logger.debug("Config at start of setup", tostring(Config))
   Config.check(Lib.logger)
 
@@ -328,7 +327,7 @@ function AutoSession.auto_save_session()
   end
 
   -- Don't try to show a message as we're exiting
-  return AutoSession.save_session(current_session, false)
+  return AutoSession.save_session(current_session, { show_message = false, is_autosave = true })
 end
 
 ---@private
@@ -483,22 +482,22 @@ end
 ---@return boolean boolean returns whether restoring the session was successful or not.
 function AutoSession.auto_restore_session(session_name, is_startup)
   -- WARN: should this be checking is_allowed_dir as well?
-  if not is_enabled() or not auto_restore() or suppress_session(session_name) then
-    if not is_startup then
-      AutoSession.run_cmds("no_restore", false)
+  if is_enabled() and auto_restore() and not suppress_session(session_name) then
+    local opts = {
+      show_message = Config.show_auto_restore_notif,
+      is_autorestore = true,
+      is_startup_autorestore = is_startup,
+    }
+    if AutoSession.restore_session(session_name, opts) then
+      return true
     end
-    return false
   end
 
-  local opts = {
-    show_message = Config.show_auto_restore_notif,
-    is_startup_autorestore = is_startup,
-  }
-  local ret = AutoSession.restore_session(session_name, opts)
-  if not ret and not is_startup then
+  -- Because of the last session feature, startup calls no_restore hooks itself
+  if not is_startup then
     AutoSession.run_cmds("no_restore", false)
   end
-  return ret
+  return false
 end
 
 ---@private
@@ -575,16 +574,10 @@ function AutoSession.auto_restore_session_at_vim_enter()
     -- Check to see if the last session feature is on
     if Config.auto_restore_last_session then
       Lib.logger.debug("Last session is enabled, checking for session")
-
       local last_session_name = Lib.get_latest_session(AutoSession.get_root_dir())
       if last_session_name then
         Lib.logger.debug("Found last session: " .. last_session_name)
-        if
-          AutoSession.restore_session(
-            last_session_name,
-            { show_message = Config.show_auto_restore_notif, is_startup_autorestore = true }
-          )
-        then
+        if AutoSession.auto_restore_session(last_session_name, true) then
           return true
         end
       end
@@ -599,14 +592,19 @@ function AutoSession.auto_restore_session_at_vim_enter()
   return false
 end
 
+---@class SaveOpts
+---@field show_message boolean|nil Should messages be shown
+---@field is_autosave boolean|nil True if this is part of an auto-save
+
 ---Saves a session to the dir specified in the config. If no optional
 ---session name is passed in, it uses the cwd as the session name
 ---@param session_name? string|nil Optional session name
----@param show_message? boolean Optional, whether to show a message on save (true by default)
+---@param opts? SaveOpts save options
 ---@return boolean
-function AutoSession.save_session(session_name, show_message)
+function AutoSession.save_session(session_name, opts)
+  opts = opts or {}
   local session_dir = AutoSession.get_root_dir()
-  Lib.logger.debug("save_session start", { session_dir, session_name, show_message })
+  Lib.logger.debug("save_session start", { session_dir, session_name, opts })
 
   -- Canonicalize and create session_dir if needed
   session_dir = Lib.validate_root_dir(session_dir)
@@ -638,7 +636,18 @@ function AutoSession.save_session(session_name, show_message)
 
   Lib.close_ignored_filetypes(Config.close_filetypes_on_save)
 
-  AutoSession.run_cmds("pre_save")
+  local results = AutoSession.run_cmds("pre_save", session_name) or {}
+
+  if opts.is_autosave then
+    Lib.logger.debug("pre_save results:", results)
+    for _, result in ipairs(results) do
+      if result == false then
+        Lib.logger.debug("pre_save hook returned false, will not auto-save", results)
+        vim.notify("Not auto-saving session because a pre_save hook returned false")
+        return false
+      end
+    end
+  end
 
   -- We don't want to save arguments to the session as that can cause issues
   -- with buffers that can't be removed from the session as they keep being
@@ -655,11 +664,11 @@ function AutoSession.save_session(session_name, show_message)
 
   save_extra_cmds(session_path, session_name)
 
-  AutoSession.run_cmds("post_save")
+  AutoSession.run_cmds("post_save", session_name)
 
   -- session_name might be nil (e.g. when using cwd), unescape escaped_session_name instead
   Lib.logger.debug("Saved session: " .. Lib.unescape_session_name(escaped_session_name))
-  if show_message == nil or show_message then
+  if opts.show_message == nil or opts.show_message then
     vim.notify("Saved session: " .. Lib.get_session_display_name(escaped_session_name))
   end
 
@@ -668,7 +677,8 @@ end
 
 ---@class RestoreOpts
 ---@field show_message boolean|nil Should messages be shown
----@field is_startup_autorestore boolean|nil True if this is the the startup autorestore
+---@field is_autorestore boolean|nil True if this is part of an auto-restore (startup, cwd, git)
+---@field is_startup_autorestore boolean|nil True if this is specifically a startup auto-restore
 
 ---Restores a session from the passed in directory. If no optional session name
 ---is passed in, it uses the cwd as the session name
@@ -773,7 +783,21 @@ function AutoSession.restore_session_file(session_path, opts)
   Lib.logger.debug("restore_session_file restoring session from: " .. session_path)
   opts = opts or {}
 
-  AutoSession.run_cmds("pre_restore")
+  local session_name = Lib.get_session_display_name(vim.fn.fnamemodify(session_path, ":t"))
+  local results = AutoSession.run_cmds("pre_restore", session_name) or {}
+
+  -- If this is an auto-restore and a pre_restore hook returned false
+  -- then abort restoring the session
+  if opts.is_autorestore then
+    Lib.logger.debug("pre_restore results:", results)
+    for _, result in ipairs(results) do
+      if result == false then
+        Lib.logger.debug("pre_restore hook returned false, will not auto-restore", results)
+        vim.notify("Not auto-restoring session because a pre_restore hook returned false")
+        return false
+      end
+    end
+  end
 
   -- Stop any language servers if config is set but don't do
   -- this on startup as it causes a perceptible delay (and we
@@ -844,7 +868,6 @@ function AutoSession.restore_session_file(session_path, opts)
     end
   end
 
-  local session_name = Lib.get_session_display_name(vim.fn.fnamemodify(session_path, ":t"))
   Lib.logger.debug("Restored session: " .. session_name)
   if opts.show_message == nil or opts.show_message then
     vim.notify("Restored session: " .. session_name)
@@ -855,7 +878,7 @@ function AutoSession.restore_session_file(session_path, opts)
     require("auto-session.git").start_watcher(vim.fn.getcwd(-1, -1), ".git/HEAD")
   end
 
-  AutoSession.run_cmds("post_restore")
+  AutoSession.run_cmds("post_restore", session_name)
 
   write_to_session_control_json(session_path)
   return true
@@ -902,7 +925,7 @@ end
 ---@param session_name string Session name being deleted, just use to display messages
 ---@return boolean # Was the session file deleted
 function AutoSession.delete_session_file(session_path, session_name)
-  AutoSession.run_cmds("pre_delete")
+  AutoSession.run_cmds("pre_delete", session_name)
 
   Lib.logger.debug("delete_session_file deleting: " .. session_path)
 
@@ -930,7 +953,7 @@ function AutoSession.delete_session_file(session_path, session_name)
     Lib.logger.debug("delete_session_file deleting extra user commands: " .. extra_commands_path)
   end
 
-  AutoSession.run_cmds("post_delete")
+  AutoSession.run_cmds("post_delete", session_name)
   return result
 end
 
@@ -962,7 +985,7 @@ end
 
 function AutoSession.SaveSession(session_name, show_message)
   vim.notify("SaveSession() is deprecated, use save_session()")
-  return AutoSession.save_session(session_name, show_message)
+  return AutoSession.save_session(session_name, { show_message = show_message })
 end
 
 function AutoSession.RestoreSession(session_name, opts)

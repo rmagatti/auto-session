@@ -196,16 +196,16 @@ local defaults = {
 ---@field control_filename? string
 ---
 ---Hooks
----@field pre_save_cmds? table executes before a session is saved
----@field save_extra_cmds? table executes before a session is saved
----@field post_save_cmds? table executes after a session is saved
----@field pre_restore_cmds? table executes before a session is restored
----@field post_restore_cmds? table executes after a session is restored
----@field pre_delete_cmds? table executes before a session is deleted
----@field post_delete_cmds? table executes after a session is deleted
+---@field pre_save_cmds? (string|fun(session_name:string): allow_save:boolean)[] executes before a session is saved, return false to stop auto-saving
+---@field post_save_cmds? (string|fun(session_name:string))[] executes after a session is saved
+---@field pre_restore_cmds? (string|fun(session_name:string): allow_restore:boolean)[] executes before a session is restored, return false to stop auto-restoring
+---@field post_restore_cmds? (string|fun(session_name:string))[] executes after a session is restored
+---@field pre_delete_cmds? (string|fun(session_name:string))[] executes before a session is deleted
+---@field post_delete_cmds? (string|fun(session_name:string))[] executes after a session is deleted
 ---@field no_restore_cmds? table executes when no session is restored when auto-restoring, happens on startup or possibly on cwd/git branch changes
 ---@field pre_cwd_changed_cmds? table executes before cwd is changed if cwd_change_handling is true
 ---@field post_cwd_changed_cmds? table executes after cwd is changed if cwd_change_handling is true
+---@field save_extra_cmds? table executes before a session is saved
 ```
 
 <!-- types:end -->
@@ -462,18 +462,18 @@ require("lualine").setup({
 
 Command hooks exist in the format: {hook_name}
 
-- `{pre_save}`: executes _before_ a session is saved
-- `{save_extra}`: executes _after_ a session is saved, saves returned string or table to `*x.vim`, reference `:help mks`
+- `{pre_save}`: executes _before_ a session is saved, return false to stop auto-save
 - `{post_save}`: executes _after_ a session is saved
-- `{pre_restore}`: executes _before_ a session is restored
+- `{pre_restore}`: executes _before_ a session is restored, return false to stop auto-restore
 - `{post_restore}`: executes _after_ a session is restored
 - `{pre_delete}`: executes _before_ a session is deleted
 - `{post_delete}`: executes _after_ a session is deleted
-- `{no_restore}`: executes when no session is auto-restored, happens _after_ `VimEnter` (and possibly on cwd/git branch change)
+- `{no_restore}`: executes when no session is auto-restored, happens _after_ `VimEnter` (and possibly on cwd/git branch change, if enabled)
 - `{pre_cwd_changed}`: executes _before_ a directory is changed (if `cwd_change_handling` is enabled)
 - `{post_cwd_changed}`: executes _after_ a directory is changed (if `cwd_change_handling` is enabled)
+- `{save_extra}`: executes _after_ a session is saved, saves returned string or table to `*x.vim`, reference `:help mks`
 
-Each hook is a table of vim commands or lua functions (or a mix of both):
+Each hook is a table of vim commands or lua functions (or a mix of both). Here are some examples of what you can do:
 
 ```lua
 opts = {
@@ -481,6 +481,19 @@ opts = {
 
   pre_save_cmds = {
     "tabdo NERDTreeClose", -- Close NERDTree before saving session
+    function(session_name)
+      if some_test() then -- don't auto-save if some_test() is true
+        return false
+      end
+    end,
+  },
+
+  pre_restore_cmds = {
+    function(session_name)
+      if some_test() then -- don't auto-restore if some_test() is true
+        return false
+      end
+    end,
   },
 
   post_restore_cmds = {

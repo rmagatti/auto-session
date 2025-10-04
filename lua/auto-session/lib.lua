@@ -1,16 +1,10 @@
 local Logger = require("auto-session.logger")
 
 local Lib = {
-  logger = {},
+  logger = Logger:new(),
   _VIM_FALSE = 0,
   _VIM_TRUE = 1,
 }
-
-function Lib.setup(log_level)
-  Lib.logger = Logger:new({
-    log_level = log_level,
-  })
-end
 
 local uv = vim.uv or vim.loop
 

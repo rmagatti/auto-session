@@ -1,3 +1,5 @@
+local Config = require("auto-session.config")
+
 local Logger = {}
 
 ---Function that handles vararg printing, so logs are consistent.
@@ -34,7 +36,7 @@ function Logger:new(obj_and_config)
 end
 
 function Logger:debug(...)
-  if self.log_level == "debug" or self.log_level == vim.log.levels.DEBUG then
+  if Config.log_level == "debug" or Config.log_level == vim.log.levels.DEBUG then
     vim.notify("auto-session DEBUG: " .. to_print(...), vim.log.levels.DEBUG)
   end
 end
@@ -42,7 +44,7 @@ end
 function Logger:info(...)
   local valid_values = { "info", "debug", vim.log.levels.DEBUG, vim.log.levels.INFO }
 
-  if vim.tbl_contains(valid_values, self.log_level) then
+  if vim.tbl_contains(valid_values, Config.log_level) then
     vim.notify("auto-session INFO: " .. to_print(...), vim.log.levels.INFO)
   end
 end
@@ -50,7 +52,7 @@ end
 function Logger:warn(...)
   local valid_values = { "info", "debug", "warn", vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN }
 
-  if vim.tbl_contains(valid_values, self.log_level) then
+  if vim.tbl_contains(valid_values, Config.log_level) then
     vim.notify("auto-session WARN: " .. to_print(...), vim.log.levels.WARN)
   end
 end
