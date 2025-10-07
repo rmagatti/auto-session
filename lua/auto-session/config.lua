@@ -78,10 +78,10 @@ local M = {}
 ---@field post_restore_cmds? (string|fun(session_name:string))[] executes after a session is restored
 ---@field pre_delete_cmds? (string|fun(session_name:string))[] executes before a session is deleted
 ---@field post_delete_cmds? (string|fun(session_name:string))[] executes after a session is deleted
----@field no_restore_cmds? table executes when no session is restored when auto-restoring, happens on startup or possibly on cwd/git branch changes
----@field pre_cwd_changed_cmds? table executes before cwd is changed if cwd_change_handling is true
----@field post_cwd_changed_cmds? table executes after cwd is changed if cwd_change_handling is true
----@field save_extra_cmds? table executes before a session is saved
+---@field no_restore_cmds? (string|fun(is_startup:boolean))[] executes when no session is restored when auto-restoring, happens on startup or possibly on cwd/git branch changes
+---@field pre_cwd_changed_cmds? (string|fun())[] executes before cwd is changed if cwd_change_handling is true
+---@field post_cwd_changed_cmds? (string|fun())[] executes after cwd is changed if cwd_change_handling is true
+---@field save_extra_cmds? (string|fun(session_name:string): extra_data:string|table|nil)[] executes to get extra data to save with the session
 
 ---@type AutoSession.Config
 local defaults = {
