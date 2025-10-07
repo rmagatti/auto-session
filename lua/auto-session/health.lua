@@ -75,7 +75,7 @@ end
 
 function M.check()
   start("Setup")
-  if not Config.root_dir or vim.tbl_isempty(Lib.logger) then
+  if not Config.root_dir or not vim.g.loaded_auto_session then
     error(
       "Setup was not called. Auto-session will not work unless you call setup() somewhere, e.g.:\n\n"
         .. "require('auto-session').setup({})"
