@@ -505,6 +505,10 @@ end
 ---Will call auto_restore_session_at_vim_enter and also purge sessions (if enabled)
 ---@return boolean # Was a session restored
 function AutoSession.start()
+  if not Config.enabled then
+    return false
+  end
+
   local did_auto_restore = AutoSession.auto_restore_session_at_vim_enter()
 
   if Config.purge_after_minutes then
