@@ -305,7 +305,7 @@ function M.setup_autocmds()
         return
       end
 
-      if not lazy_view.visible() then
+      if not lazy_view.visible or not lazy_view.visible() or not lazy_view.view then
         -- Lazy isn't visible, load as usual
         Lib.logger.debug("Lazy is loaded, but not visible, will try to restore session")
         AutoSession.start()
