@@ -101,8 +101,24 @@ local function config_to_fzf_key_binding(config_keymap)
 end
 
 local function open_session_picker()
-  local fzf_lua = require("fzf-lua")
   local keymaps = Config.session_lens.mappings or {}
+
+  local fzf_lua = require("fzf-lua")
+  local fzf_path = require("fzf-lua.path")
+
+  -- Subclass default buffer_or_file previewer
+  local SessionPreviewer = require("fzf-lua.previewer.builtin").buffer_or_file:extend()
+
+  -- Translate from session display name to session file name for preview
+  function SessionPreviewer:entry_to_file(entry_str)
+    local session = find_session_by_display_name({ entry_str })
+    if session and session.path and vim.fn.filereadable(session.path) == 1 then
+      entry_str = session.path
+    end
+
+    ---@diagnostic disable-next-line: undefined-field
+    return fzf_path.entry_to_file(entry_str, self.opts)
+  end
 
   fzf_lua.fzf_exec(function(fzf_cb)
     local sessions = Lib.get_session_list(AutoSession.get_root_dir())
@@ -132,7 +148,17 @@ local function open_session_picker()
         reload = true,
       },
     },
-    winopts = Config.session_lens.picker_opts,
+    winopts = vim.tbl_extend("force", {
+      preview = {
+        hidden = true,
+      },
+    }, Config.session_lens.picker_opts or {}),
+
+    previewer = {
+      _ctor = function()
+        return SessionPreviewer:new()
+      end,
+    },
   })
 end
 
