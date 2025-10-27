@@ -166,7 +166,7 @@ end
 ---@param x string The hex representation of a character to convert
 ---@return string The single character
 local hex_to_char = function(x)
-  return string.char(tonumber(x, 16))
+  return string.char(tonumber(x, 16) --[[@as integer]])
 end
 
 ---Returns the percent decoded version of str
@@ -309,6 +309,7 @@ function Lib.close_unsupported_windows()
       -- Sometimes closing one window can affect another so wrap in pcall
       local success, buffer = pcall(vim.api.nvim_win_get_buf, window)
       if success then
+        ---@cast buffer integer
         local file_name = vim.api.nvim_buf_get_name(buffer)
         local buf_type = vim.api.nvim_get_option_value("buftype", { buf = buffer })
         -- Lib.logger.debug("file_name: " .. file_name .. " buf_type: " .. buf_type)
@@ -436,7 +437,7 @@ function Lib.load_session_control_file(session_control_file_path)
     return {}
   end
 
-  return json
+  return json --[[@as table]]
 end
 
 ---Returns the name of the latest session. Uses session name instead of filename
@@ -543,7 +544,7 @@ function Lib.find_matching_directory(dirToFind, dirs)
   return false
 end
 
----@param cmds table Cmds to run
+---@param cmds HookCmd[] List of commands to run
 ---@param hook_name string Name of the hook being run
 ---@param arg? any Optional argument for a lua hook function
 ---@return table|nil Results of the cmds
@@ -560,7 +561,7 @@ function Lib.run_hook_cmds(cmds, hook_name, arg)
     if type(cmd) == "function" then
       success, result = pcall(cmd, arg)
     else
-      ---@diagnostic disable-next-line: param-type-mismatch
+      ---@diagnostic disable-next-line: param-type-not-match
       success, result = pcall(vim.cmd, cmd)
     end
 
@@ -733,6 +734,11 @@ function Lib.get_alternate_session_name(session_control_conf)
     Lib.logger.info("Current session is the same as alternate, returning nil")
     return nil
   end
+
+  if not sessions.alternate then
+    return nil
+  end
+
   local file_name = vim.fn.fnamemodify(sessions.alternate, ":t")
   if Lib.is_legacy_file_name(file_name) then
     return (Lib.legacy_unescape_session_name(file_name):gsub("%.vim$", ""))
@@ -802,7 +808,7 @@ end
 
 ---Delete sessions that have access times older than purge_days_old old
 ---@param session_dir string The session directory to look for sessions in
----@param purge_older_than_minutes number in minutes, e.g. 14400, delete sessions older than 10 days ago
+---@param purge_older_than_minutes string in minutes, e.g. 14400, delete sessions older than 10 days ago
 ---@return string # json encoded string of escaped session filenames removed
 function Lib.purge_old_sessions(session_dir, purge_older_than_minutes)
   local epoch = os.time()
@@ -817,18 +823,22 @@ function Lib.purge_old_sessions(session_dir, purge_older_than_minutes)
   local file = vim.uv.fs_scandir_next(scan_dir)
   while file do
     local abs_path = session_dir .. file
-    local fd = assert(vim.uv.fs_open(abs_path, "r", 0))
-    local stat = assert(vim.uv.fs_fstat(fd))
-    local atime = stat["atime"]["sec"]
-    assert(vim.uv.fs_close(fd))
-    local age = epoch - atime
-    -- print("file: " .. abs_path .. " age: " .. age)
-    if age > garbage_collect_seconds then
-      assert(vim.uv.fs_unlink(abs_path))
-      table.insert(out, file)
-    end
+    ---@diagnostic disable-next-line: missing-parameter, param-type-not-match
+    local fd = vim.uv.fs_open(abs_path, "r", 0) --[[@as integer]]
+    ---@diagnostic disable-next-line: missing-parameter
+    local stat = vim.uv.fs_fstat(fd)
+    if stat and stat["atime"] then
+      local atime = stat["atime"]["sec"]
+      assert(vim.uv.fs_close(fd))
+      local age = epoch - atime
+      -- print("file: " .. abs_path .. " age: " .. age)
+      if age > garbage_collect_seconds then
+        assert(vim.uv.fs_unlink(abs_path))
+        table.insert(out, file)
+      end
 
-    file = vim.uv.fs_scandir_next(scan_dir)
+      file = vim.uv.fs_scandir_next(scan_dir)
+    end
   end
 
   return vim.json.encode(out)
@@ -890,10 +900,10 @@ end
 ---Snacks (https://github.com/folke/snacks.nvim) debounce function
 ---@generic T
 ---@param fn T
----@param opts? {ms?:number}
+---@param opts? {ms?:integer}
 ---@return T
 function Lib.debounce(fn, opts)
-  local timer = assert(uv.new_timer())
+  local timer = uv.new_timer()
   local ms = opts and opts.ms or 20
   return function()
     timer:start(ms, 0, vim.schedule_wrap(fn))

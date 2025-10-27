@@ -5,13 +5,12 @@ local function is_available()
   return true
 end
 
----@private
 ---@class PickerItem
 ---@field session_name string
 ---@field display_name string
 ---@field path string
 
----@param files string[]
+---@param files PickerItem[]
 ---@param prompt string
 ---@param callback fun(choice: PickerItem)
 local function open_picker(files, prompt, callback)
@@ -48,7 +47,7 @@ local function open_delete_picker()
   end)
 end
 
----@type Picker
+---@class SelectPicker: Picker
 local M = {
   is_available = is_available,
   open_session_picker = open_session_picker,

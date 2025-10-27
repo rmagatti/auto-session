@@ -72,16 +72,18 @@ local M = {}
 ---@field control_filename? string
 ---
 ---Hooks
----@field pre_save_cmds? (string|fun(session_name:string): allow_save:boolean)[] executes before a session is saved, return false to stop auto-saving
+---@field pre_save_cmds? (string|fun(session_name:string): boolean)[] executes before a session is saved, return false to stop auto-saving
 ---@field post_save_cmds? (string|fun(session_name:string))[] executes after a session is saved
----@field pre_restore_cmds? (string|fun(session_name:string): allow_restore:boolean)[] executes before a session is restored, return false to stop auto-restoring
+---@field pre_restore_cmds? (string|fun(session_name:string): boolean)[] executes before a session is restored, return false to stop auto-restoring
 ---@field post_restore_cmds? (string|fun(session_name:string))[] executes after a session is restored
 ---@field pre_delete_cmds? (string|fun(session_name:string))[] executes before a session is deleted
 ---@field post_delete_cmds? (string|fun(session_name:string))[] executes after a session is deleted
 ---@field no_restore_cmds? (string|fun(is_startup:boolean))[] executes when no session is restored when auto-restoring, happens on startup or possibly on cwd/git branch changes
 ---@field pre_cwd_changed_cmds? (string|fun())[] executes before cwd is changed if cwd_change_handling is true
 ---@field post_cwd_changed_cmds? (string|fun())[] executes after cwd is changed if cwd_change_handling is true
----@field save_extra_cmds? (string|fun(session_name:string): extra_data:string|table|nil)[] executes to get extra data to save with the session
+---@field save_extra_cmds? (string|fun(session_name:string): string|table|nil)[] executes to get extra data to save with the session
+
+---@alias HookCmd string|fun(...: any)
 
 ---@type AutoSession.Config
 local defaults = {

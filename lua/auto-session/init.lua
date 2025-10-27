@@ -359,7 +359,7 @@ end
 ---@param arg? any Optional argument for a lua hook function
 ---@return table|nil Results of the commands
 function AutoSession.run_cmds(hook_name, arg)
-  local cmds = Config[hook_name .. "_cmds"]
+  local cmds = Config[hook_name .. "_cmds"] --[[@as HookCmd[] ]]
   return Lib.run_hook_cmds(cmds, hook_name, arg)
 end
 
@@ -514,7 +514,7 @@ function AutoSession.start()
   if Config.purge_after_minutes then
     local work = vim.uv.new_work(Lib.purge_old_sessions, function(purged_sessions_json)
       vim.schedule(function()
-        local purged_sessions = vim.json.decode(purged_sessions_json)
+        local purged_sessions = vim.json.decode(purged_sessions_json --[[@as string]])
         if not vim.tbl_isempty(purged_sessions) then
           Lib.logger.info(
             "Deleted old sessions:\n"
@@ -843,7 +843,7 @@ function AutoSession.restore_session_file(session_path, opts)
   Lib.conditional_buffer_wipeout(Config.preserve_buffer_on_restore)
   vim.cmd("silent clearjumps")
 
-  ---@diagnostic disable-next-line: param-type-mismatch
+  ---@diagnostic disable-next-line: param-type-not-match
   local success, result = pcall(vim.cmd, "silent " .. cmd)
 
   -- normal restore failed, source again but with silent! to restore as much as possible
@@ -851,8 +851,7 @@ function AutoSession.restore_session_file(session_path, opts)
     Lib.conditional_buffer_wipeout(Config.preserve_buffer_on_restore)
     vim.cmd("silent clearjumps")
 
-    -- don't capture return values as we'll use success and result from the first call
-    ---@diagnostic disable-next-line: param-type-mismatch
+    ---@diagnostic disable-next-line: param-type-not-match
     pcall(vim.cmd, "silent! " .. cmd)
   end
 
@@ -867,6 +866,7 @@ function AutoSession.restore_session_file(session_path, opts)
   launch_argv = nil
 
   if not success then
+    ---@cast result string
     ---@type fun(error_msg:string): disable_auto_save:boolean
     local error_handler = type(Config.restore_error_handler) == "function" and Config.restore_error_handler
       or AutoSession.default_restore_error_handler
