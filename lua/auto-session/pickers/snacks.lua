@@ -36,10 +36,16 @@ local function open_session_picker()
       end
 
       ctx.preview:reset()
-      local summary = Lib.create_session_summary(ctx.item.path)
-      local formatted = Lib.format_session_summary(summary)
-      local lines = vim.split(formatted, "\n")
-      ctx.preview:set_lines(lines)
+      local previewer = Config.session_lens and Config.session_lens.previewer
+      local lines, filetype = Lib.get_session_preview(ctx.item.path, previewer)
+      if lines and type(lines) == "table" and #lines > 0 then
+        ctx.preview:set_lines(lines)
+        if filetype then
+          vim.bo[ctx.buf].filetype = filetype
+        end
+      else
+        ctx.preview:set_lines({ "No preview available" })
+      end
     end,
     layout = layout,
     win = {

@@ -149,11 +149,16 @@ local function extension_search_session(custom_opts)
         return
       end
 
-      local summary = Lib.create_session_summary(entry.path)
-      local formatted = Lib.format_session_summary(summary)
-      local lines = vim.split(formatted, "\n")
-
-      vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
+      local previewer = Config.session_lens and Config.session_lens.previewer or "summary"
+      local lines, filetype = Lib.get_session_preview(entry.path, previewer)
+      if lines and type(lines) == "table" and #lines > 0 then
+        vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
+        if filetype then
+          vim.bo[self.state.bufnr].filetype = filetype
+        end
+      else
+        vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, {"No preview available"})
+      end
     end,
   })
 

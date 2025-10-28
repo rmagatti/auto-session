@@ -1134,4 +1134,63 @@ function Lib.format_session_summary(summary)
   return table.concat(lines, "\n")
 end
 
+---Resolve a file path relative to a session's cwd, handling absolute paths (/, ~, C:)
+---@param file_path string The file path from the session (may be relative or absolute)
+---@param session_cwd? string The session's working directory
+---@return string The resolved absolute path
+function Lib.resolve_filename_path(file_path, session_cwd)
+  if file_path:match("^[~/]") or file_path:match("^%a:") then
+    return vim.fn.fnamemodify(file_path, ":p")
+  elseif session_cwd then
+    local cwd = vim.fn.fnamemodify(session_cwd, ":p")
+    return vim.fn.fnamemodify(vim.fs.joinpath(cwd, file_path), ":p")
+  else
+    return vim.fn.fnamemodify(file_path, ":p")
+  end
+end
+
+---Generate preview content for a session based on preview mode
+---@param session_path string Path to the session file
+---@param previewer? 'summary'|'active_buffer'|fun(session_name:string, session_filename:string, session_lines:string[]):lines:string[],filetype:string?
+---@return string[]|nil lines Array of lines for preview, or nil if no preview
+---@return string|nil filetype Optional filetype for syntax highlighting
+function Lib.get_session_preview(session_path, previewer)
+  previewer = previewer or "summary"
+
+  if previewer == "summary" then
+    local summary = Lib.create_session_summary(session_path)
+    local formatted = Lib.format_session_summary(summary)
+    return vim.split(formatted, "\n"), nil
+  end
+
+  if previewer == "active_buffer" then
+    local summary = Lib.create_session_summary(session_path)
+    if not summary or not summary.current_buffer then
+      return { "No active buffer in session" }, nil
+    end
+
+    local file_name = Lib.resolve_filename_path(summary.current_buffer, summary.cwd)
+
+    if vim.fn.filereadable(file_name) ~= 1 then
+      return { "Active buffer file not found: " .. summary.current_buffer }, nil
+    end
+
+    local lines = vim.fn.readfile(file_name)
+    local ft = vim.filetype.match({ filename = file_name })
+    local filetype = ft or ""
+
+    return lines, filetype
+  end
+
+  if type(previewer) == "function" then
+    local session_name = Lib.escaped_session_path_to_session_name(session_path)
+    local session_filename = vim.fn.fnamemodify(session_path, ":t")
+    local session_lines = vim.fn.readfile(session_path)
+    local lines, filetype = previewer(session_name, session_filename, session_lines)
+    return lines, filetype
+  end
+
+  return nil, nil
+end
+
 return Lib
