@@ -105,6 +105,7 @@ local defaults = {
     picker = nil, -- "telescope"|"snacks"|"fzf"|"select"|nil Pickers are detected automatically but you can also set one manually. Falls back to vim.ui.select
     load_on_setup = true, -- Only used for telescope, registers the telescope extension at startup so you can use :Telescope session-lens
     picker_opts = nil, -- Table passed to Telescope / Snacks / Fzf-Lua to configure the picker. See below for more information
+    previewer = "summary", -- 'summary'|'active_buffer'|function - How to display session preview. 'summary' shows a summary of the session, 'active_buffer' shows the contents of the active buffer in the session, or a custom function
 
     ---@type SessionLensMappings
     mappings = {
@@ -183,6 +184,7 @@ local defaults = {
 ---@field picker? "telescope"|"snacks"|"fzf"|"select"
 ---@field load_on_setup? boolean
 ---@field picker_opts? table
+---@field previewer? 'summary'|'active_buffer'|fun(session_name:string, session_filename:string, session_lines:string[]):lines:string[],filetype:string?
 ---@field mappings? SessionLensMappings
 ---@field session_control? SessionControl
 ---
