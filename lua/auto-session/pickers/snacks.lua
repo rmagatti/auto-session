@@ -16,7 +16,7 @@ local function open_session_picker()
   -- If layout is nil or empty, default to select preset
   local layout = Config.session_lens.picker_opts or {}
   if vim.tbl_isempty(layout) then
-    layout = { preset = "select" }
+    layout = { preset = "select", preview = false }
   end
 
   Snacks.picker.pick({
@@ -28,6 +28,18 @@ local function open_session_picker()
     transform = function(item)
       item.text = item.display_name
       item.file = item.path
+    end,
+    preview = function(ctx)
+      if not ctx.item or not ctx.item.path then
+        ctx.preview:notify("No session selected", "warn")
+        return
+      end
+
+      ctx.preview:reset()
+      local summary = Lib.create_session_summary(ctx.item.path)
+      local formatted = Lib.format_session_summary(summary)
+      local lines = vim.split(formatted, "\n")
+      ctx.preview:set_lines(lines)
     end,
     layout = layout,
     win = {
