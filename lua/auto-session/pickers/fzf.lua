@@ -101,8 +101,64 @@ local function config_to_fzf_key_binding(config_keymap)
 end
 
 local function open_session_picker()
-  local fzf_lua = require("fzf-lua")
   local keymaps = Config.session_lens.mappings or {}
+
+  local fzf_lua = require("fzf-lua")
+  local fzf_path = require("fzf-lua.path")
+
+  local previewer
+  local preview
+
+  if Config.session_lens.previewer == "active_buffer" then
+    --- NOTE: I don't think fzf lets us set arbitrary file types on the previewer buf
+    --- so we special case active_buffer and subclass the builtin buffer_or_file
+
+    -- Subclass default buffer_or_file previewer
+    local SessionPreviewer = require("fzf-lua.previewer.builtin").buffer_or_file:extend()
+
+    -- Translate from session display name to session file name for preview
+    function SessionPreviewer:entry_to_file(entry_str)
+      local session = find_session_by_display_name({ entry_str })
+
+      if not session or not session.path then
+        return nil
+      end
+
+      local summary = Lib.create_session_summary(session.path)
+      if not summary or not summary.current_buffer then
+        return nil
+      end
+
+      local file_name = Lib.resolve_filename_path(summary.current_buffer, summary.cwd)
+
+      ---@diagnostic disable-next-line: undefined-field
+      return fzf_path.entry_to_file(file_name, self.opts)
+    end
+
+    previewer = {
+      _ctor = function()
+        return SessionPreviewer:new()
+      end,
+    }
+  else
+    preview = function(items)
+      if not items or #items == 0 then
+        return ""
+      end
+
+      local session = find_session_by_display_name({ items[1] })
+      if not session or not session.path then
+        return "No session found"
+      end
+
+      local preview_lines = Lib.get_session_preview(session.path, Config.session_lens.previewer)
+      if not preview_lines then
+        return "No preview available"
+      end
+
+      return table.concat(preview_lines, "\n")
+    end
+  end
 
   fzf_lua.fzf_exec(function(fzf_cb)
     local sessions = Lib.get_session_list(AutoSession.get_root_dir())
@@ -132,7 +188,17 @@ local function open_session_picker()
         reload = true,
       },
     },
-    winopts = Config.session_lens.picker_opts,
+    winopts = vim.tbl_extend("force", {
+      preview = {
+        hidden = true,
+      },
+    }, Config.session_lens.picker_opts or {}),
+
+    -- for previews where we set the lines directly
+    preview = preview,
+
+    -- for previews that use a filename
+    previewer = previewer,
   })
 end
 

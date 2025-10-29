@@ -49,12 +49,19 @@ local function extension_search_session(custom_opts)
     custom_opts.picker_opts.previewer = false
   end
 
-  local theme_opts
-  if custom_opts.picker_opts.theme and telescope_themes["get_" .. custom_opts.picker_opts.theme] then
+  local theme_opts = {}
+  if custom_opts.picker_opts.theme then
+    -- if the user specified a theme
     local theme = "get_" .. custom_opts.picker_opts.theme
-    theme_opts = telescope_themes[theme](custom_opts.picker_opts)
+    if telescope_themes[theme] then
+      -- and it exists, use it
+      theme_opts = telescope_themes[theme](custom_opts.picker_opts)
+    else
+      -- otherwise, just use their options
+      theme_opts = custom_opts.picker_opts
+    end
   else
-    -- get the theme defaults, with any overrides in custom_opts.picker_opts
+    -- use dropdown as the default theme
     theme_opts = telescope_themes.get_dropdown(custom_opts.picker_opts)
   end
 
@@ -134,10 +141,31 @@ local function extension_search_session(custom_opts)
   -- add the theme options
   opts = vim.tbl_deep_extend("force", opts, theme_opts)
 
+  local previewers = require("telescope.previewers")
+  local previewer = previewers.new_buffer_previewer({
+    title = "Session Preview",
+    define_preview = function(self, entry)
+      if not entry or not entry.path then
+        return
+      end
+
+      local previewer = Config.session_lens and Config.session_lens.previewer or "summary"
+      local lines, filetype = Lib.get_session_preview(entry.path, previewer)
+      if lines and type(lines) == "table" and #lines > 0 then
+        vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
+        if filetype then
+          vim.bo[self.state.bufnr].filetype = filetype
+        end
+      else
+        vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, {"No preview available"})
+      end
+    end,
+  })
+
   require("telescope.pickers")
     .new(opts, {
       finder = finder_maker(),
-      previewer = telescope_conf.file_previewer(opts),
+      previewer = previewer,
       sorter = telescope_conf.file_sorter(opts),
     })
     :find()

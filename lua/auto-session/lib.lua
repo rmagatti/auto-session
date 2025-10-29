@@ -643,9 +643,17 @@ function Lib.sorted_readdir(dir)
   return sorted_files
 end
 
+---@class SessionEntry
+---@field session_name string
+---@field display_name_component string
+---@field annotation_component string
+---@field display_name string
+---@field file_name string
+---@field path string
+
 ---Get the list of session files. Will filter out any extra command session files
 ---@param sessions_dir string The directory where the sessions are stored
----@return table the list of session files
+---@return SessionEntry[] the list of session files
 function Lib.get_session_list(sessions_dir)
   if vim.fn.isdirectory(sessions_dir) == Lib._VIM_FALSE then
     return {}
@@ -905,6 +913,284 @@ function Lib.conditional_buffer_wipeout(should_preserve_buffer)
       vim.api.nvim_buf_delete(bufnr, { force = true })
     end
   end
+end
+
+---Parse a session file and generate a summary table, including a
+---list of open buffers
+---@param session_path string Path to the session file
+---@return table|nil Summary containing tabs, windows, buffers, and cwd
+function Lib.create_session_summary(session_path)
+  if vim.fn.filereadable(session_path) ~= 1 then
+    return nil
+  end
+
+  local lines = vim.fn.readfile(session_path)
+  local summary = {
+    buffers = {},
+    current_buffer = nil,
+    alternate_buffer = nil,
+    cwd = nil,
+    tabs = {},
+    current_tab = 1,
+    cursor_line = nil,
+    windows = {},
+    modified_time = vim.fn.getftime(session_path),
+  }
+
+  local current_tab_idx = 1
+
+  for _, line in ipairs(lines) do
+    local line_num, buffer_path = line:match("^badd%s+%+(%d+)%s+(.+)$")
+    if not line_num then
+      buffer_path = line:match("^badd%s+(.+)$")
+    end
+    if buffer_path then
+      table.insert(summary.buffers, {
+        path = buffer_path,
+        line = tonumber(line_num) or 1,
+      })
+    end
+
+    local current_buf = line:match("^edit%s+(.+)$")
+    if current_buf then
+      summary.current_buffer = current_buf
+    end
+
+    local alt_buf = line:match("^balt%s+(.+)$")
+    if alt_buf then
+      summary.alternate_buffer = alt_buf
+    end
+
+    local cd_match = line:match("^cd%s+(.+)$")
+    if cd_match then
+      summary.cwd = cd_match
+    end
+
+    local tab_num = line:match("^tabnext%s+(%d+)$")
+    if tab_num then
+      summary.current_tab = tonumber(tab_num)
+    end
+
+    if line:match("^tabe") or line:match("^tabnew") then
+      current_tab_idx = current_tab_idx + 1
+      summary.tabs[current_tab_idx] = { windows = 0 }
+    end
+
+    if line:match("^split") then
+      table.insert(summary.windows, { type = "horizontal" })
+    elseif line:match("^vsplit") then
+      table.insert(summary.windows, { type = "vertical" })
+    end
+
+    local cursor_line = line:match("^keepjumps%s+(%d+)$")
+    if cursor_line and not line:match("exe") then
+      summary.cursor_line = tonumber(cursor_line)
+    end
+
+    local winheight, winwidth = line:match("^set%s+winheight=(%d+)%s+winwidth=(%d+)$")
+    if winheight then
+      summary.window_size = {
+        height = tonumber(winheight),
+        width = tonumber(winwidth),
+      }
+    end
+  end
+
+  if #summary.tabs == 0 and #summary.buffers > 0 then
+    summary.tabs[1] = { windows = #summary.windows > 0 and #summary.windows or 1 }
+  end
+
+  return summary
+end
+
+---Format a session summary for display
+---@param summary? table Summary from create_session_summary
+---@return string Formatted summary text
+function Lib.format_session_summary(summary)
+  if not summary then
+    return "No session data"
+  end
+
+  local lines = {}
+
+  if summary.cwd then
+    table.insert(lines, "Directory: " .. summary.cwd)
+    table.insert(lines, "")
+  end
+
+  if summary.modified_time then
+    local date_str = vim.fn.strftime("%Y-%m-%d %H:%M:%S", summary.modified_time)
+    local now = os.time()
+    local diff = now - summary.modified_time
+    local relative_time
+
+    if diff < 60 then
+      relative_time = "just now"
+    elseif diff < 3600 then
+      local mins = math.floor(diff / 60)
+      relative_time = mins .. " minute" .. (mins == 1 and "" or "s") .. " ago"
+    elseif diff < 86400 then
+      local hours = math.floor(diff / 3600)
+      relative_time = hours .. " hour" .. (hours == 1 and "" or "s") .. " ago"
+    elseif diff < 604800 then
+      local days = math.floor(diff / 86400)
+      relative_time = days .. " day" .. (days == 1 and "" or "s") .. " ago"
+    elseif diff < 2592000 then
+      local weeks = math.floor(diff / 604800)
+      relative_time = weeks .. " week" .. (weeks == 1 and "" or "s") .. " ago"
+    else
+      local months = math.floor(diff / 2592000)
+      relative_time = months .. " month" .. (months == 1 and "" or "s") .. " ago"
+    end
+
+    table.insert(lines, "Last modified: " .. date_str .. " (" .. relative_time .. ")")
+    table.insert(lines, "")
+  end
+
+  local file_types = {}
+  for _, buffer in ipairs(summary.buffers) do
+    local ext = buffer.path:match("%.([^%.]+)$")
+    if ext then
+      file_types[ext] = (file_types[ext] or 0) + 1
+    else
+      file_types["no ext"] = (file_types["no ext"] or 0) + 1
+    end
+  end
+
+  local type_pairs = {}
+  for ext, count in pairs(file_types) do
+    table.insert(type_pairs, { ext = ext, count = count })
+  end
+  table.sort(type_pairs, function(a, b)
+    return a.count > b.count
+  end)
+
+  local type_parts = {}
+  for _, pair in ipairs(type_pairs) do
+    table.insert(type_parts, pair.count .. " " .. pair.ext)
+  end
+
+  local tab_count = math.max(#summary.tabs, 1)
+  local window_count = math.max(#summary.windows, 1)
+  table.insert(
+    lines,
+    string.format(
+      "Overview: %d tab%s, %d window%s, %d buffer%s",
+      tab_count,
+      tab_count == 1 and "" or "s",
+      window_count,
+      window_count == 1 and "" or "s",
+      #summary.buffers,
+      #summary.buffers == 1 and "" or "s"
+    )
+  )
+
+  if #type_parts > 0 then
+    table.insert(lines, "File types: " .. table.concat(type_parts, ", "))
+  end
+
+  if summary.current_buffer then
+    local cursor_info = summary.cursor_line and (" (line " .. summary.cursor_line .. ")") or ""
+    table.insert(lines, "")
+    table.insert(lines, "Current: " .. summary.current_buffer .. cursor_info)
+  end
+
+  if summary.alternate_buffer then
+    table.insert(lines, "Alternate: " .. summary.alternate_buffer)
+  end
+
+  if #summary.buffers > 0 then
+    table.insert(lines, "")
+    table.insert(lines, "Buffers:")
+    for i, buffer in ipairs(summary.buffers) do
+      local indicator = ""
+      if buffer.path == summary.current_buffer then
+        indicator = " *"
+      elseif buffer.path == summary.alternate_buffer then
+        indicator = " #"
+      end
+
+      local line_info = buffer.line and buffer.line > 1 and (":" .. buffer.line) or ""
+      table.insert(lines, "  " .. buffer.path .. line_info .. indicator)
+    end
+  end
+
+  if #summary.windows > 1 then
+    local hsplits = 0
+    local vsplits = 0
+    for _, win in ipairs(summary.windows) do
+      if win.type == "horizontal" then
+        hsplits = hsplits + 1
+      elseif win.type == "vertical" then
+        vsplits = vsplits + 1
+      end
+    end
+    if hsplits > 0 or vsplits > 0 then
+      table.insert(lines, "")
+      table.insert(lines, string.format("Layout: %d horizontal, %d vertical splits", hsplits, vsplits))
+    end
+  end
+
+  return table.concat(lines, "\n")
+end
+
+---Resolve a file path relative to a session's cwd, handling absolute paths (/, ~, C:)
+---@param file_path string The file path from the session (may be relative or absolute)
+---@param session_cwd? string The session's working directory
+---@return string The resolved absolute path
+function Lib.resolve_filename_path(file_path, session_cwd)
+  if file_path:match("^[~/]") or file_path:match("^%a:") then
+    return vim.fn.fnamemodify(file_path, ":p")
+  elseif session_cwd then
+    local cwd = vim.fn.fnamemodify(session_cwd, ":p")
+    return vim.fn.fnamemodify(vim.fs.joinpath(cwd, file_path), ":p")
+  else
+    return vim.fn.fnamemodify(file_path, ":p")
+  end
+end
+
+---Generate preview content for a session based on preview mode
+---@param session_path string Path to the session file
+---@param previewer? 'summary'|'active_buffer'|fun(session_name:string, session_filename:string, session_lines:string[]):lines:string[],filetype:string?
+---@return string[]|nil lines Array of lines for preview, or nil if no preview
+---@return string|nil filetype Optional filetype for syntax highlighting
+function Lib.get_session_preview(session_path, previewer)
+  previewer = previewer or "summary"
+
+  if previewer == "summary" then
+    local summary = Lib.create_session_summary(session_path)
+    local formatted = Lib.format_session_summary(summary)
+    return vim.split(formatted, "\n"), nil
+  end
+
+  if previewer == "active_buffer" then
+    local summary = Lib.create_session_summary(session_path)
+    if not summary or not summary.current_buffer then
+      return { "No active buffer in session" }, nil
+    end
+
+    local file_name = Lib.resolve_filename_path(summary.current_buffer, summary.cwd)
+
+    if vim.fn.filereadable(file_name) ~= 1 then
+      return { "Active buffer file not found: " .. summary.current_buffer }, nil
+    end
+
+    local lines = vim.fn.readfile(file_name)
+    local ft = vim.filetype.match({ filename = file_name })
+    local filetype = ft or ""
+
+    return lines, filetype
+  end
+
+  if type(previewer) == "function" then
+    local session_name = Lib.escaped_session_path_to_session_name(session_path)
+    local session_filename = vim.fn.fnamemodify(session_path, ":t")
+    local session_lines = vim.fn.readfile(session_path)
+    local lines, filetype = previewer(session_name, session_filename, session_lines)
+    return lines, filetype
+  end
+
+  return nil, nil
 end
 
 return Lib
