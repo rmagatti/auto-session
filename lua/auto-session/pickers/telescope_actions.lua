@@ -5,8 +5,6 @@ local transform_mod = require("telescope.actions.mt").transform_mod
 
 local M = {}
 
----@private
-
 local function source_session(session_name, prompt_bufnr)
   if prompt_bufnr then
     local actions = require("telescope.actions")

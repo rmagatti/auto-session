@@ -6,7 +6,7 @@ local Lib = require("auto-session.lib")
 ---@field open_session_picker fun()
 
 local M = {
-  ---@type Picker
+  ---@type Picker|nil
   picker = nil,
   picker_name = nil,
 }
@@ -14,16 +14,19 @@ local M = {
 ---Find an available picker. If Config.session_lens.picker is set, check that.
 ---Otherwise, check pickers in order to see which is available
 ---Fall back to vim.ui.select
----@return Picker,string # chosen picker and it's string name
+---@return Picker,string # chosen picker and its string name
 local function resolve_picker()
   local pickers = Config.session_lens.picker and { Config.session_lens.picker }
     or { "telescope", "fzf", "snacks", "select" }
 
   for _, name in ipairs(pickers) do
     local ok, picker = pcall(require, "auto-session.pickers." .. name)
-    if ok and picker and picker.is_available() then
-      Lib.logger.debug("Picking picker: " .. name)
-      return picker, name
+    if ok and picker then
+      ---@cast picker Picker
+      if picker.is_available and picker.is_available() then
+        Lib.logger.debug("Picking picker: " .. name)
+        return picker, name
+      end
     end
   end
 
@@ -32,7 +35,9 @@ local function resolve_picker()
 end
 
 function M.open_session_picker()
-  M.picker.open_session_picker()
+  if M.picker then
+    M.picker.open_session_picker()
+  end
 end
 
 return setmetatable(M, {

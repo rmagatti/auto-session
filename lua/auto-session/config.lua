@@ -1,5 +1,4 @@
 ---@diagnostic disable: inject-field
----@type AutoSession.Config
 local M = {}
 
 ---@toc toc
@@ -73,16 +72,18 @@ local M = {}
 ---@field control_filename? string
 ---
 ---Hooks
----@field pre_save_cmds? (string|fun(session_name:string): allow_save:boolean)[] executes before a session is saved, return false to stop auto-saving
+---@field pre_save_cmds? (string|fun(session_name:string): boolean)[] executes before a session is saved, return false to stop auto-saving
 ---@field post_save_cmds? (string|fun(session_name:string))[] executes after a session is saved
----@field pre_restore_cmds? (string|fun(session_name:string): allow_restore:boolean)[] executes before a session is restored, return false to stop auto-restoring
+---@field pre_restore_cmds? (string|fun(session_name:string): boolean)[] executes before a session is restored, return false to stop auto-restoring
 ---@field post_restore_cmds? (string|fun(session_name:string))[] executes after a session is restored
 ---@field pre_delete_cmds? (string|fun(session_name:string))[] executes before a session is deleted
 ---@field post_delete_cmds? (string|fun(session_name:string))[] executes after a session is deleted
 ---@field no_restore_cmds? (string|fun(is_startup:boolean))[] executes when no session is restored when auto-restoring, happens on startup or possibly on cwd/git branch changes
 ---@field pre_cwd_changed_cmds? (string|fun())[] executes before cwd is changed if cwd_change_handling is true
 ---@field post_cwd_changed_cmds? (string|fun())[] executes after cwd is changed if cwd_change_handling is true
----@field save_extra_cmds? (string|fun(session_name:string): extra_data:string|table|nil)[] executes to get extra data to save with the session
+---@field save_extra_cmds? (string|fun(session_name:string): string|table|nil)[] executes to get extra data to save with the session
+
+---@alias HookCmd string|fun(...: any)
 
 ---@type AutoSession.Config
 local defaults = {
@@ -223,6 +224,7 @@ local function check_old_config_names(config)
     if config[old_name] ~= nil then
       M.has_old_config = true
       if config[new_name] == nil then
+        ---@diagnostic disable-next-line: undefined-field
         config[new_name] = config[old_name]
       end
       config[old_name] = nil
@@ -251,10 +253,12 @@ local function check_old_config_names(config)
     ---@diagnostic disable-next-line: undefined-field
     if config.session_lens.theme_conf then
       M.has_old_config = true
+      ---@diagnostic disable-next-line: undefined-field
       config.session_lens.picker_opts = config.session_lens.theme_conf
       config.session_lens.theme_conf = nil
     end
 
+    ---@diagnostic disable-next-line: undefined-field
     if config.session_lens.shorten_path then
       M.has_old_config = true
       if not config.session_lens.picker_opts then
@@ -264,11 +268,13 @@ local function check_old_config_names(config)
       config.session_lens.shorten_path = nil
     end
 
+    ---@diagnostic disable-next-line: undefined-field
     if config.session_lens.path_display then
       M.has_old_config = true
       if not config.session_lens.picker_opts then
         config.session_lens.picker_opts = {}
       end
+      ---@diagnostic disable-next-line: undefined-field
       config.session_lens.picker_opts.path_display = config.session_lens.path_display
       config.session_lens.path_display = nil
     end
@@ -280,8 +286,7 @@ function M.setup(config)
   -- Clear the flag in case setup is called again
   M.has_old_config = false
 
-  ---@diagnostic disable-next-line: param-type-mismatch
-  M.options_without_defaults = vim.deepcopy(config) or {}
+  M.options_without_defaults = config and vim.deepcopy(config) or {}
 
   -- capture any old vim global config options
   check_for_vim_globals(M.options_without_defaults)
@@ -341,7 +346,12 @@ function M.check(logger, show_full_message)
     has_issues = true
   end
 
-  if M.session_lens.load_on_setup and M.session_lens.picker and M.session_lens.picker ~= "telescope" then
+  if
+    M.session_lens
+    and M.session_lens.load_on_setup
+    and M.session_lens.picker
+    and M.session_lens.picker ~= "telescope"
+  then
     logger.warn('session_lens.load_on_setup is not used with pickers other than "telescope"')
     M.session_lens.load_on_setup = false
   end
@@ -352,18 +362,18 @@ function M.check(logger, show_full_message)
   return has_issues
 end
 
----@export Config
 return setmetatable(M, {
   __index = function(_, key)
     if M.options == nil then
       M.setup()
+      ---@cast M.options {}
     end
-    ---@diagnostic disable-next-line: need-check-nil
     return M.options[key]
   end,
   __newindex = function(_, key, value)
     if M.options == nil then
       M.setup()
+      ---@cast M.options {}
     end
     M.options[key] = value
   end,

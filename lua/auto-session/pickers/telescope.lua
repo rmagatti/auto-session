@@ -16,6 +16,7 @@ local function is_available()
 
   local result
 
+  ---@diagnostic disable-next-line: param-type-not-match
   ok, result = pcall(telescope.load_extension, "session-lens")
   return ok and result
 end

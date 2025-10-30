@@ -22,6 +22,7 @@ function Logger:new(obj_and_config)
   self.__index = function(_, index)
     if type(self[index]) == "function" then
       return function(...)
+        ---@diagnostic disable-next-line: param-type-not-match
         -- Make it so any call to logger with "." dot access for a function results in the syntactic sugar of ":" colon access
         self[index](self, ...)
       end

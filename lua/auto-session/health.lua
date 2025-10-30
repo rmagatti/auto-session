@@ -34,7 +34,7 @@ local function check_lazy_settings()
     ok("Lazy.nvim support is enabled")
   end
 
-  local plugins = lazy.plugins()
+  local plugins = lazy.plugins and lazy.plugins() or {}
   for _, plugin in ipairs(plugins) do
     if plugin.name == "auto-session" then
       if plugin.lazy then
