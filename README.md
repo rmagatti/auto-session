@@ -363,16 +363,34 @@ When using Telescope, Snacks, or Fzf-Lua, you can customize the picker using `pi
 
 There are two config options, `allowed_dirs` and `suppressed_dirs`, that control which directories AutoSession will auto-save a session for. If `allowed_dirs` is set, sessions will only be auto-saved in matching directories. If `suppressed_dirs` is set, then a session won't be auto-saved for a matching directory. If both are set, a session will only be auto-saved if it matches an allowed dir and does not match a suppressed dir.
 
-Both options are a table of directories, with support for globs:
+Both options are a table of directories, with support for glob patterns:
 
 ```lua
 opts = {
-  allowed_dirs = { "/some/dir/", "/projects/*" },
+  allowed_dirs = { "/some/dir/", "/projects/*", "~/work/**" },
   suppressed_dirs = { "/projects/secret" },
 }
 ```
 
-With those options, sessions would only be auto-saved for `/some/dir` and any direct child of `/projects` (e.g. `/projects/myproject` but not `/projects/myproject/submodule`) except `/projects/secret`
+### Glob Pattern Syntax
+
+- `*` - Matches any characters in a **single directory level** (does not match `/`)
+  - Example: `/projects/*` matches `/projects/foo` but NOT `/projects/foo/bar`
+- `**` - Matches any characters **including directory separators** (matches across multiple levels)
+  - Example: `/projects/**` matches `/projects/foo`, `/projects/foo/bar`, `/projects/foo/bar/baz`, etc.
+- `?` - Matches exactly one character (excluding `/`)
+  - Example: `/project?` matches `/project1` or `/projecta` but not `/project12`
+- `~` - Expands to your home directory
+  - Example: `~/.config/*` matches any direct child of your `.config` directory
+
+### Examples
+
+With the options above:
+- ✅ Sessions auto-save in `/some/dir` (exact match)
+- ✅ Sessions auto-save in `/projects/myproject` (matches `/projects/*`)
+- ❌ Sessions do NOT auto-save in `/projects/myproject/submodule` (too deep for `/projects/*`)
+- ✅ Sessions auto-save in `~/work/client/project/src` (matches `~/work/**`)
+- ❌ Sessions do NOT auto-save in `/projects/secret` (suppressed)
 
 If you want even more fine-grained control, you can instead set `auto_create` to a function to [conditionally create a session](https://github.com/rmagatti/auto-session/wiki/Auto%E2%80%90creation-customization).
 

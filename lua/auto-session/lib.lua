@@ -496,51 +496,157 @@ function Lib.complete_session_for_dir(session_dir, arg_lead, _, _)
   end, session_names)
 end
 
+---Converts a glob pattern to a Lua pattern for matching
+---Supports * (match any chars except /), ? (match single char except /), and ** (match any chars including /)
+---@param glob_pattern string The glob pattern to convert
+---@return string lua_pattern The Lua pattern
+function Lib.glob_to_pattern(glob_pattern)
+  local pattern = glob_pattern
+  
+  -- Expand ~ to home directory if it's at the start
+  if string.sub(pattern, 1, 2) == "~/" then
+    pattern = vim.fn.expand("~") .. string.sub(pattern, 2)
+  elseif pattern == "~" then
+    pattern = vim.fn.expand("~")
+  end
+  
+  -- Expand environment variables (but not globs)
+  -- We need to be careful not to expand * and ? here
+  -- Save glob characters
+  pattern = string.gsub(pattern, "%*%*", "\001")
+  pattern = string.gsub(pattern, "%*", "\002")
+  pattern = string.gsub(pattern, "%?", "\003")
+  
+  -- Now we can safely expand env vars without expanding globs
+  pattern = vim.fn.expand(pattern)
+  
+  -- Restore glob characters
+  pattern = string.gsub(pattern, "\001", "**")
+  pattern = string.gsub(pattern, "\002", "*")
+  pattern = string.gsub(pattern, "\003", "?")
+  
+  -- Simplify the path (remove .., ., etc.)
+  pattern = vim.fn.simplify(pattern)
+  
+  -- Remove trailing slashes for consistency
+  pattern = string.gsub(pattern, "/+$", "")
+  
+  -- Convert globs to placeholders before escaping
+  pattern = string.gsub(pattern, "%*%*", "\001")
+  pattern = string.gsub(pattern, "%*", "\002")
+  pattern = string.gsub(pattern, "%?", "\003")
+  
+  -- Now escape Lua pattern special characters
+  -- Characters that need escaping in Lua patterns: ( ) . % + - * ? [ ] ^ $
+  pattern = string.gsub(pattern, "([%(%)%.%%+%-%*%?%[%]%^%$])", "%%%1")
+  
+  -- Now convert placeholders to actual patterns
+  -- Convert ** (placeholder \001) to match anything including /
+  pattern = string.gsub(pattern, "\001", ".*")
+  
+  -- Convert * (placeholder \002) to match any characters except /
+  pattern = string.gsub(pattern, "\002", "[^/]*")
+  
+  -- Convert ? (placeholder \003) to match single character except /
+  pattern = string.gsub(pattern, "\003", "[^/]")
+  
+  -- Anchor the pattern to match the full path
+  return "^" .. pattern .. "$"
+end
+
+---Checks if a path matches a glob pattern
+---@param path string The path to check
+---@param glob_pattern string The glob pattern to match against
+---@return boolean matches True if the path matches the pattern
+function Lib.path_matches_glob(path, glob_pattern)
+  -- Normalize the path to check
+  local normalized_path = vim.fn.simplify(path)
+  normalized_path = string.gsub(normalized_path, "/+$", "")
+  
+  -- Convert glob to Lua pattern and test
+  local lua_pattern = Lib.glob_to_pattern(glob_pattern)
+  
+  Lib.logger.debug("path_matches_glob", {
+    path = path,
+    normalized_path = normalized_path,
+    glob_pattern = glob_pattern,
+    lua_pattern = lua_pattern,
+    matches = string.match(normalized_path, lua_pattern) ~= nil,
+  })
+  
+  return string.match(normalized_path, lua_pattern) ~= nil
+end
+
 ---Iterates over dirs, looking to see if any of them match dirToFind
 ---dirs may contain globs as they will be expanded and checked
 ---@param dirs table
 ---@param dirToFind string
 function Lib.find_matching_directory(dirToFind, dirs)
-  local dirsToCheck = {}
+  -- Normalize the directory to find (remove trailing slashes, resolve symlinks)
+  local normalized_dirToFind = vim.fn.simplify(dirToFind)
+  normalized_dirToFind = string.gsub(normalized_dirToFind, "/+$", "")
+  
+  Lib.logger.debug("find_matching_directory start", { dirToFind = dirToFind, normalized = normalized_dirToFind })
 
-  -- resolve any symlinks and also check those
   for _, dir in pairs(dirs) do
-    -- first expand it
+    local original_dir = dir
+    
+    -- First, expand the pattern (handles ~, $VAR, and glob expansion if paths exist)
     local expanded_dir = Lib.expand(dir)
+    
+    Lib.logger.debug("find_matching_directory checking", {
+      original = original_dir,
+      expanded = expanded_dir,
+      has_newlines = string.find(expanded_dir, "\n") ~= nil,
+      has_glob_chars = string.find(original_dir, "[*?]") ~= nil,
+    })
 
-    -- resolve symlinks
-    local resolved_dir = vim.fn.resolve(expanded_dir)
+    -- Case 1: Glob expanded to multiple paths (contains newlines)
+    -- This means vim.fn.expand() found actual matching paths on disk
+    if string.find(expanded_dir, "\n") then
+      Lib.logger.debug("find_matching_directory: Case 1 - Multiple expanded paths")
+      for path in string.gmatch(expanded_dir, "[^\r\n]+") do
+        local simplified_path = vim.fn.simplify(path)
+        local path_without_trailing_slashes = string.gsub(simplified_path, "/+$", "")
+        
+        -- Also check resolved symlink
+        local resolved_path = vim.fn.resolve(simplified_path)
+        resolved_path = string.gsub(resolved_path, "/+$", "")
 
-    -- Lib.logger.debug("dir: " .. dir .. " expanded_dir: " .. expanded_dir .. " resolved_dir: " .. resolved_dir)
+        if normalized_dirToFind == path_without_trailing_slashes or normalized_dirToFind == resolved_path then
+          Lib.logger.debug("find_matching_directory: Found exact match in expanded paths!")
+          return true
+        end
+      end
+    
+    -- Case 2: Pattern contains glob characters but didn't expand to multiple paths
+    -- This means either no paths matched, or it's a single path
+    -- Use pattern matching as fallback
+    elseif string.find(original_dir, "[*?]") then
+      Lib.logger.debug("find_matching_directory: Case 2 - Glob pattern, checking with pattern matching")
+      if Lib.path_matches_glob(normalized_dirToFind, original_dir) then
+        Lib.logger.debug("find_matching_directory: Found match via pattern matching!")
+        return true
+      end
+    
+    -- Case 3: Exact path (no glob characters)
+    else
+      Lib.logger.debug("find_matching_directory: Case 3 - Exact path")
+      local simplified_path = vim.fn.simplify(expanded_dir)
+      local path_without_trailing_slashes = string.gsub(simplified_path, "/+$", "")
+      
+      -- Also check resolved symlink
+      local resolved_path = vim.fn.resolve(simplified_path)
+      resolved_path = string.gsub(resolved_path, "/+$", "")
 
-    -- add the base expanded dir first. in theory, we should only need
-    -- the resolved directory but other systems might behave differently so
-    -- safer to check both
-    table.insert(dirsToCheck, expanded_dir)
-
-    -- add the resolved dir if it's different (e.g. a symlink)
-    if resolved_dir ~= expanded_dir then
-      table.insert(dirsToCheck, resolved_dir)
-    end
-  end
-
-  Lib.logger.debug("find_matching_directory", { dirToFind = dirToFind, dirsToCheck = dirsToCheck })
-
-  for _, dir in pairs(dirsToCheck) do
-    ---@diagnostic disable-next-line: param-type-mismatch
-    for path in string.gmatch(dir, "[^\r\n]+") do
-      local simplified_path = vim.fn.simplify(path)
-      local path_without_trailing_slashes = string.gsub(simplified_path, "([/~].*)/+$", "%1")
-
-      -- Lib.logger.debug("find_matching_directory simplified: " .. simplified_path)
-
-      if dirToFind == path_without_trailing_slashes then
-        Lib.logger.debug("find find_matching_directory found match!")
+      if normalized_dirToFind == path_without_trailing_slashes or normalized_dirToFind == resolved_path then
+        Lib.logger.debug("find_matching_directory: Found exact path match!")
         return true
       end
     end
   end
 
+  Lib.logger.debug("find_matching_directory: No match found")
   return false
 end
 
