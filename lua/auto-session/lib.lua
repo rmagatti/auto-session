@@ -503,13 +503,15 @@ end
 function Lib.glob_to_pattern(glob_pattern)
   local pattern = glob_pattern
   
-  -- Save glob characters before normalization (vim.fs.normalize expands env vars but not globs)
+  -- Save glob characters before normalization
   pattern = string.gsub(pattern, "%*%*", "\001")
   pattern = string.gsub(pattern, "%*", "\002")
   pattern = string.gsub(pattern, "%?", "\003")
   
-  -- Use vim.fs.normalize to handle ~, env vars, .., ., and Windows backslashes
-  -- This automatically converts backslashes to forward slashes on Windows
+  -- First expand ~ and environment variables with vim.fn.expand()
+  pattern = vim.fn.expand(pattern)
+  
+  -- Then normalize the path (handles .., ., and converts Windows backslashes to forward slashes)
   pattern = vim.fs.normalize(pattern)
   
   -- Restore glob characters
@@ -549,8 +551,11 @@ end
 ---@param glob_pattern string The glob pattern to match against
 ---@return boolean matches True if the path matches the pattern
 function Lib.path_matches_glob(path, glob_pattern)
-  -- Normalize the path (handles ~, env vars, .., ., and converts backslashes on Windows)
-  local normalized_path = vim.fs.normalize(path)
+  -- First expand ~ and environment variables
+  local normalized_path = vim.fn.expand(path)
+  
+  -- Then normalize the path (handles .., ., and converts Windows backslashes to forward slashes)
+  normalized_path = vim.fs.normalize(normalized_path)
   
   -- Remove trailing slashes
   normalized_path = string.gsub(normalized_path, "/+$", "")
