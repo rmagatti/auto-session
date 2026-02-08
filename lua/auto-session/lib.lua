@@ -497,14 +497,19 @@ function Lib.complete_session_for_dir(session_dir, arg_lead, _, _)
 end
 
 ---Converts a glob pattern to a Lua pattern for matching
----Supports * (match any chars except /), ? (match single char except /), and ** (match any chars including /)
+---Supports * (match any chars except path sep), ? (match single char except path sep), and ** (match any chars including path sep)
 ---@param glob_pattern string The glob pattern to convert
 ---@return string lua_pattern The Lua pattern
 function Lib.glob_to_pattern(glob_pattern)
   local pattern = glob_pattern
   
+  -- Determine path separator for this platform
+  local is_windows = vim.fn.has("win32") == 1
+  local sep = is_windows and "\\" or "/"
+  local sep_pattern = is_windows and "\\\\" or "/"  -- Escaped for Lua patterns
+  
   -- Expand ~ to home directory if it's at the start
-  if string.sub(pattern, 1, 2) == "~/" then
+  if string.sub(pattern, 1, 2) == "~/" or string.sub(pattern, 1, 2) == "~\\" then
     pattern = vim.fn.expand("~") .. string.sub(pattern, 2)
   elseif pattern == "~" then
     pattern = vim.fn.expand("~")
@@ -528,6 +533,11 @@ function Lib.glob_to_pattern(glob_pattern)
   -- Simplify the path (remove .., ., etc.)
   pattern = vim.fn.simplify(pattern)
   
+  -- Normalize path separators (convert all to forward slashes for consistency on Windows)
+  if is_windows then
+    pattern = string.gsub(pattern, "\\", "/")
+  end
+  
   -- Remove trailing slashes for consistency
   pattern = string.gsub(pattern, "/+$", "")
   
@@ -541,13 +551,14 @@ function Lib.glob_to_pattern(glob_pattern)
   pattern = string.gsub(pattern, "([%(%)%.%%+%-%*%?%[%]%^%$])", "%%%1")
   
   -- Now convert placeholders to actual patterns
-  -- Convert ** (placeholder \001) to match anything including /
+  -- Convert ** (placeholder \001) to match anything including path separator
   pattern = string.gsub(pattern, "\001", ".*")
   
-  -- Convert * (placeholder \002) to match any characters except /
+  -- Convert * (placeholder \002) to match any characters except path separator
+  -- Always use forward slash in pattern since we normalized paths above
   pattern = string.gsub(pattern, "\002", "[^/]*")
   
-  -- Convert ? (placeholder \003) to match single character except /
+  -- Convert ? (placeholder \003) to match single character except path separator
   pattern = string.gsub(pattern, "\003", "[^/]")
   
   -- Anchor the pattern to match the full path
@@ -561,6 +572,13 @@ end
 function Lib.path_matches_glob(path, glob_pattern)
   -- Normalize the path to check
   local normalized_path = vim.fn.simplify(path)
+  
+  -- Normalize path separators to forward slashes on Windows for consistent matching
+  if vim.fn.has("win32") == 1 then
+    normalized_path = string.gsub(normalized_path, "\\", "/")
+  end
+  
+  -- Remove trailing slashes
   normalized_path = string.gsub(normalized_path, "/+$", "")
   
   -- Convert glob to Lua pattern and test
