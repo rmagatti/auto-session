@@ -582,7 +582,13 @@ local opts = {
             log_message = bp.logMessage,
             hit_condition = bp.hitCondition,
           }
-          breakpoints.set(opts, vim.fn.bufnr(buf_name), line)
+
+          local bufnr = vim.fn.bufnr(buf_name, true)
+          if vim.fn.bufloaded(bufnr) == 0 then
+            vim.api.nvim_buf_call(bufnr, vim.cmd.edit)
+          end
+
+          breakpoints.set(opts, bufnr, line)
         end
       end
     end
