@@ -87,8 +87,8 @@ local defaults = {
   restore_extra_data = nil, -- Function called when there's extra data saved for a session
 
   -- Argument handling
-  args_allow_single_directory = true, -- Follow normal session save/load logic if launched with a single directory as the only argument
-  args_allow_files_auto_save = false, -- Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. Can be true or a function that returns true when saving is allowed. See documentation for more detail
+  args_allow_single_directory = true, -- Follow normal session restore/save logic if launched with a single directory as the only argument. Set to false to skip auto-restore when any argument is passed to Neovim
+  args_allow_files_auto_save = false, -- Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not re-enable auto-restore and can be true or a function that returns true when saving is allowed. See documentation for more detail
 
   -- Misc
   log_level = "error", -- Sets the log level of the plugin (debug, info, warn, error).
@@ -259,6 +259,7 @@ Starting `nvim`
 - When starting `nvim` with no arguments, AutoSession will try to restore the session for `cwd` if one exists.
 - When starting `nvim .` (or another directory), AutoSession will try to restore the session for that directory. See [argument handling](https://github.com/rmagatti/auto-session/wiki/Argument-Handling) for more details.
 - When starting `nvim some_file.txt` (or multiple files), by default, AutoSession won't do anything. See [argument handling](https://github.com/rmagatti/auto-session/wiki/Argument-Handling) for more details.
+- Set `args_allow_single_directory = false` if you want startup restore to be skipped whenever any command-line argument is passed. `args_allow_files_auto_save` still only controls whether autosave is allowed for file or mixed arguments.
 - Even after starting `nvim` with a file argument, a session for `cwd` can still be manually restored by running `:AutoSession restore`.
 - When piping to `nvim`, e.g: `cat myfile | nvim`, AutoSession disables itself.
 

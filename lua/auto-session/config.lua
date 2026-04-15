@@ -118,8 +118,8 @@ local defaults = {
   restore_extra_data = nil, -- Function called when there's extra data saved for a session
 
   -- Argument handling
-  args_allow_single_directory = true, -- Follow normal session save/load logic if launched with a single directory as the only argument
-  args_allow_files_auto_save = false, -- Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not load any existing session first. Can be true or a function that returns true when saving is allowed. See documentation for more detail
+  args_allow_single_directory = true, -- Follow normal session restore/save logic if launched with a single directory as the only argument. Set to false to skip auto-restore when any argument is passed to Neovim
+  args_allow_files_auto_save = false, -- Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not re-enable auto-restore and can be true or a function that returns true when saving is allowed. See documentation for more detail
 
   -- Misc
   log_level = "error", -- Sets the log level of the plugin (debug, info, warn, error).
