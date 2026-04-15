@@ -1,4 +1,5 @@
-*auto-session.txt*           For Neovim          Last change: 2026 February 08
+*auto-session.txt*
+                                      For Neovim    Last change: 2026 April 15
 
 ==============================================================================
 Table of Contents                             *auto-session-table-of-contents*
@@ -166,10 +167,6 @@ Types ~
     ---@field allowed_dirs? table
     ---@field bypass_save_filetypes? table
     ---@field close_filetypes_on_save? table
-    ---@class AutoSession.CloseUnsupportedWindowsOpts
-    ---@field preserve_filetypes? string[]
-    ---@field preserve_buftypes? string[]
-
     ---@field close_unsupported_windows? boolean|AutoSession.CloseUnsupportedWindowsOpts
     ---@field preserve_buffer_on_restore? fun(bufnr:number): preserve_buffer:boolean
     ---
@@ -683,12 +680,12 @@ As an example, here’s how you could save DAP breakpoints with your session:
                 log_message = bp.logMessage,
                 hit_condition = bp.hitCondition,
               }
-
+    
               local bufnr = vim.fn.bufnr(buf_name, true)
               if vim.fn.bufloaded(bufnr) == 0 then
                 vim.api.nvim_buf_call(bufnr, vim.cmd.edit)
               end
-
+    
               breakpoints.set(opts, bufnr, line)
             end
           end
