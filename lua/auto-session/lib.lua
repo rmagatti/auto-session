@@ -997,6 +997,26 @@ end
 
 ---Close any buffers that have a ft that is in ignored_filetypes
 ---@param ignored_filetypes table list of filetypes to close
+local function close_buffer(buf)
+  if vim.bo[buf].buftype == "terminal" and vim.bo[buf].filetype == "snacks_terminal" then
+    local job_id = vim.b[buf].terminal_job_id
+
+    if job_id and job_id > 0 then
+      pcall(vim.api.nvim_chan_send, job_id, "exit\n")
+      vim.fn.jobwait({ job_id }, 1000)
+      vim.wait(1000, function()
+        return not vim.api.nvim_buf_is_valid(buf)
+      end, 10)
+
+      if not vim.api.nvim_buf_is_valid(buf) then
+        return
+      end
+    end
+  end
+
+  vim.api.nvim_buf_delete(buf, { force = true })
+end
+
 function Lib.close_ignored_filetypes(ignored_filetypes)
   local filetypes_to_ignore = ignored_filetypes or {}
   if vim.tbl_isempty(filetypes_to_ignore) then
@@ -1009,7 +1029,7 @@ function Lib.close_ignored_filetypes(ignored_filetypes)
     if vim.api.nvim_buf_is_loaded(buf) then
       local buf_ft = vim.bo[buf].filetype
       if buf_ft and vim.tbl_contains(filetypes_to_ignore, buf_ft) then
-        vim.api.nvim_buf_delete(buf, { force = true })
+        close_buffer(buf)
         break
       end
     end
