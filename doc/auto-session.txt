@@ -1,4 +1,5 @@
-*auto-session.txt*           For Neovim          Last change: 2026 February 08
+*auto-session.txt*
+                                      For Neovim    Last change: 2026 April 15
 
 ==============================================================================
 Table of Contents                             *auto-session-table-of-contents*
@@ -676,12 +677,12 @@ As an example, here’s how you could save DAP breakpoints with your session:
                 log_message = bp.logMessage,
                 hit_condition = bp.hitCondition,
               }
-
+    
               local bufnr = vim.fn.bufnr(buf_name, true)
               if vim.fn.bufloaded(bufnr) == 0 then
                 vim.api.nvim_buf_call(bufnr, vim.cmd.edit)
               end
-
+    
               breakpoints.set(opts, bufnr, line)
             end
           end

@@ -8,6 +8,22 @@ local M = {}
 
 M.uv_git_watcher = nil
 
+---@param cwd string current working directory
+---@param towatch string file to watch, should be something like .git/HEAD
+---@return string
+local function resolve_watch_path(cwd, towatch)
+  local git_path = towatch:gsub("^%.git[/\\]", "")
+  local git_cmd =
+    string.format("git -C %s rev-parse --path-format=absolute --git-path %s", vim.fn.shellescape(cwd), git_path)
+  local out = vim.fn.systemlist(git_cmd)
+
+  if vim.v.shell_error ~= 0 or not out[1] or out[1] == "" then
+    return vim.fs.normalize(vim.fs.joinpath(cwd, towatch))
+  end
+
+  return vim.fs.normalize(out[1])
+end
+
 function M.on_git_watch_event(cwd, current_branch)
   local new_branch = Lib.get_git_branch_name(cwd, Config.git_use_branch_name)
 
@@ -68,12 +84,13 @@ function M.start_watcher(cwd, towatch)
 
   M.uv_git_watcher = assert(uv.new_fs_event())
   local current_branch = Lib.get_git_branch_name(cwd, Config.git_use_branch_name)
+  local watch_path = resolve_watch_path(cwd, towatch)
 
-  Lib.logger.debug("Git: starting watcher", { cwd, current_branch })
+  Lib.logger.debug("Git: starting watcher", { cwd, current_branch, watch_path })
 
   -- Watch .git/HEAD to detect branch changes
   M.uv_git_watcher:start(
-    towatch,
+    watch_path,
     {},
     Lib.debounce(function(err)
       if err then
