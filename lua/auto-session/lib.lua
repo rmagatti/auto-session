@@ -1010,7 +1010,6 @@ function Lib.close_ignored_filetypes(ignored_filetypes)
       local buf_ft = vim.bo[buf].filetype
       if buf_ft and vim.tbl_contains(filetypes_to_ignore, buf_ft) then
         vim.api.nvim_buf_delete(buf, { force = true })
-        break
       end
     end
   end
