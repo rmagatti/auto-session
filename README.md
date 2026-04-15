@@ -70,7 +70,7 @@ local defaults = {
   allowed_dirs = nil, -- Allow session restore/create in certain directories
   bypass_save_filetypes = nil, -- List of filetypes to bypass auto save when the only buffer open is one of the file types listed, useful to ignore dashboards
   close_filetypes_on_save = { "checkhealth" }, -- Buffers with matching filetypes will be closed before saving
-  close_unsupported_windows = true, -- Close windows that aren't backed by normal file before autosaving a session
+  close_unsupported_windows = true, -- Close windows that aren't backed by normal file before autosaving a session. Set preserve_filetypes/preserve_buftypes to keep selected unsupported windows open.
   preserve_buffer_on_restore = nil, -- Function that returns true if a buffer should be preserved when restoring a session
 
   -- Git / Session naming
@@ -147,7 +147,11 @@ local defaults = {
 ---@field allowed_dirs? table
 ---@field bypass_save_filetypes? table
 ---@field close_filetypes_on_save? table
----@field close_unsupported_windows? boolean
+---@class AutoSession.CloseUnsupportedWindowsOpts
+---@field preserve_filetypes? string[]
+---@field preserve_buftypes? string[]
+
+---@field close_unsupported_windows? boolean|AutoSession.CloseUnsupportedWindowsOpts
 ---@field preserve_buffer_on_restore? fun(bufnr:number): preserve_buffer:boolean
 ---
 ---Git / Session naming
@@ -528,6 +532,9 @@ opts = {
   },
 
   -- Save quickfix list and open it when restoring the session
+  close_unsupported_windows = {
+    preserve_buftypes = { "quickfix" },
+  },
   save_extra_cmds = {
     function()
       local qflist = vim.fn.getqflist()
