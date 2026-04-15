@@ -320,7 +320,7 @@ function AutoSession.auto_save_session()
 
   if Config.close_unsupported_windows then
     -- Wrap in pcall in case there's an error while trying to close windows
-    local success, result = pcall(Lib.close_unsupported_windows)
+    local success, result = pcall(Lib.close_unsupported_windows, Config.close_unsupported_windows)
     if not success then
       Lib.logger.debug("Error closing unsupported windows: " .. result)
     end

@@ -1,4 +1,5 @@
-*auto-session.txt*           For Neovim          Last change: 2026 February 08
+*auto-session.txt*
+                                      For Neovim    Last change: 2026 April 15
 
 ==============================================================================
 Table of Contents                             *auto-session-table-of-contents*
@@ -93,7 +94,7 @@ Default settings (you don’t have to copy these into your config):
       allowed_dirs = nil, -- Allow session restore/create in certain directories
       bypass_save_filetypes = nil, -- List of filetypes to bypass auto save when the only buffer open is one of the file types listed, useful to ignore dashboards
       close_filetypes_on_save = { "checkhealth" }, -- Buffers with matching filetypes will be closed before saving
-      close_unsupported_windows = true, -- Close windows that aren't backed by normal file before autosaving a session
+      close_unsupported_windows = true, -- Close windows that aren't backed by normal file before autosaving a session. Set preserve_filetypes/preserve_buftypes to keep selected unsupported windows open.
       preserve_buffer_on_restore = nil, -- Function that returns true if a buffer should be preserved when restoring a session
     
       -- Git / Session naming
@@ -166,7 +167,7 @@ Types ~
     ---@field allowed_dirs? table
     ---@field bypass_save_filetypes? table
     ---@field close_filetypes_on_save? table
-    ---@field close_unsupported_windows? boolean
+    ---@field close_unsupported_windows? boolean|AutoSession.CloseUnsupportedWindowsOpts
     ---@field preserve_buffer_on_restore? fun(bufnr:number): preserve_buffer:boolean
     ---
     ---Git / Session naming
@@ -601,6 +602,9 @@ are some examples of what you can do:
       },
     
       -- Save quickfix list and open it when restoring the session
+      close_unsupported_windows = {
+        preserve_buftypes = { "quickfix" },
+      },
       save_extra_cmds = {
         function()
           local qflist = vim.fn.getqflist()
@@ -676,12 +680,12 @@ As an example, here’s how you could save DAP breakpoints with your session:
                 log_message = bp.logMessage,
                 hit_condition = bp.hitCondition,
               }
-
+    
               local bufnr = vim.fn.bufnr(buf_name, true)
               if vim.fn.bufloaded(bufnr) == 0 then
                 vim.api.nvim_buf_call(bufnr, vim.cmd.edit)
               end
-
+    
               breakpoints.set(opts, bufnr, line)
             end
           end
