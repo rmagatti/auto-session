@@ -205,6 +205,41 @@ describe("The git config", function()
     c.auto_save = false
   end)
 
+  it("watches git HEAD from the repo root when started in a subdirectory", function()
+    local repo_root = vim.fn.getcwd()
+    local nested_dir = repo_root .. "/nested"
+    vim.fn.mkdir(nested_dir, "p")
+    local uv = vim.uv or vim.loop
+
+    local watcher
+    watcher = {
+      path = nil,
+      start = function(_, path)
+        watcher.path = path
+      end,
+      stop = function() end,
+    }
+
+    local uv_new_fs_event = uv.new_fs_event
+    uv.new_fs_event = function()
+      return watcher
+    end
+
+    local ok, err = pcall(function()
+      vim.cmd("cd " .. nested_dir)
+      g.start_watcher(vim.fn.getcwd(), ".git/HEAD")
+      assert.equals(repo_root .. "/.git/HEAD", watcher.path)
+    end)
+
+    uv.new_fs_event = uv_new_fs_event
+    g.stop_watcher()
+    vim.cmd("cd " .. repo_root)
+
+    if not ok then
+      error(err)
+    end
+  end)
+
   it("auto-restores after a branch change", function()
     c.auto_save = true
     c.git_auto_restore_on_branch_change = true
