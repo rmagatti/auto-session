@@ -148,6 +148,19 @@ describe("The git config", function()
     assert.equals(git_test_dir .. " (branch: slash/branch)", Lib.current_session_name(true))
   end)
 
+  it("saves a session with a # in the branch name", function()
+    runCmdAndPrint("git checkout main")
+    runCmdAndPrint("git checkout -b 'issue#516'")
+
+    local session_path = TL.session_dir .. TL.escapeSessionName(vim.fn.getcwd() .. "|issue#516") .. ".vim"
+
+    assert.True(as.save_session())
+    assert.equals(1, vim.fn.filereadable(session_path))
+    assert.equals(vim.fn.getcwd() .. " (branch: issue#516)", Lib.current_session_name())
+
+    runCmdAndPrint("git checkout main")
+  end)
+
   it("load a session named with git branch from . directory", function()
     c.args_allow_single_directory = true
     -- c.log_level = "debug"
