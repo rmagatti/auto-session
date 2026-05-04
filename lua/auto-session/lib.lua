@@ -771,6 +771,17 @@ end
 ---@field file_name string
 ---@field path string
 
+---Replace the home directory in a path with ~
+---@param path string The path to shorten
+---@return string The shortened path
+function Lib.shorten_path(path)
+  local home = vim.fn.expand("~")
+  if home and home ~= "" and path:sub(1, #home) == home then
+    return "~" .. path:sub(#home + 1)
+  end
+  return path
+end
+
 ---Get the list of session files. Will filter out any extra command session files
 ---@param sessions_dir string The directory where the sessions are stored
 ---@return SessionEntry[] the list of session files
@@ -780,6 +791,10 @@ function Lib.get_session_list(sessions_dir)
   end
 
   local files = Lib.sorted_readdir(sessions_dir)
+
+  -- Lazily require Config to avoid circular dependencies
+  local Config = require("auto-session.config")
+  local shorten_paths = Config.session_lens and Config.session_lens.shorten_paths ~= false
 
   local session_entries = vim.tbl_map(function(file_name)
     local session_name
@@ -803,6 +818,10 @@ function Lib.get_session_list(sessions_dir)
         display_name_component = name_components[1]
         annotation = " " .. name_components[2]
       end
+    end
+
+    if shorten_paths then
+      display_name_component = Lib.shorten_path(display_name_component)
     end
 
     local display_name = display_name_component .. annotation

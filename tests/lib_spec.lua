@@ -288,6 +288,60 @@ describe("Lib / Helper functions", function()
     vim.fn.delete(test_sessions_dir, "rf")
   end)
 
+  it("shorten_path replaces home directory with ~", function()
+    local home = vim.fn.expand("~")
+    assert.equals("~/projects/myapp", Lib.shorten_path(home .. "/projects/myapp"))
+    assert.equals("~", Lib.shorten_path(home))
+    assert.equals("~/", Lib.shorten_path(home .. "/"))
+  end)
+
+  it("shorten_path leaves non-home paths unchanged", function()
+    assert.equals("/tmp/some/path", Lib.shorten_path("/tmp/some/path"))
+    assert.equals("mysession", Lib.shorten_path("mysession"))
+  end)
+
+  it("get_session_list shortens home paths in display_name when shorten_paths is true", function()
+    local Config = require("auto-session.config")
+    Config.setup({ session_lens = { shorten_paths = true } })
+
+    local home = vim.fn.expand("~")
+    local test_sessions_dir = TL.session_dir .. "test_shorten_sessions/"
+    vim.fn.mkdir(test_sessions_dir, "p")
+
+    -- Create a session whose name encodes a home-based path
+    local encoded = require("auto-session.lib").escape_session_name(home .. "/myproject")
+    local session_file = test_sessions_dir .. encoded .. ".vim"
+    vim.fn.writefile({ "let SessionLoad = 1" }, session_file)
+
+    local session_list = Lib.get_session_list(test_sessions_dir)
+    assert.equals(1, #session_list)
+    assert.equals("~/myproject", session_list[1].display_name)
+    assert.equals("~/myproject", session_list[1].display_name_component)
+
+    vim.fn.delete(test_sessions_dir, "rf")
+    Config.setup({})
+  end)
+
+  it("get_session_list does not shorten paths when shorten_paths is false", function()
+    local Config = require("auto-session.config")
+    Config.setup({ session_lens = { shorten_paths = false } })
+
+    local home = vim.fn.expand("~")
+    local test_sessions_dir = TL.session_dir .. "test_no_shorten_sessions/"
+    vim.fn.mkdir(test_sessions_dir, "p")
+
+    local encoded = require("auto-session.lib").escape_session_name(home .. "/myproject")
+    local session_file = test_sessions_dir .. encoded .. ".vim"
+    vim.fn.writefile({ "let SessionLoad = 1" }, session_file)
+
+    local session_list = Lib.get_session_list(test_sessions_dir)
+    assert.equals(1, #session_list)
+    assert.equals(home .. "/myproject", session_list[1].display_name)
+
+    vim.fn.delete(test_sessions_dir, "rf")
+    Config.setup({})
+  end)
+
   describe("Glob pattern matching", function()
     it("glob_to_pattern converts * correctly", function()
       local pattern = Lib.glob_to_pattern("/home/user/*")
