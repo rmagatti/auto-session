@@ -820,11 +820,12 @@ function Lib.get_session_list(sessions_dir)
       end
     end
 
+    local display_name_component_for_display = display_name_component
     if shorten_paths then
-      display_name_component = Lib.shorten_path(display_name_component)
+      display_name_component_for_display = Lib.shorten_path(display_name_component_for_display)
     end
 
-    local display_name = display_name_component .. annotation
+    local display_name = display_name_component_for_display .. annotation
 
     return {
       session_name = session_name,
