@@ -59,6 +59,7 @@ local M = {}
 ---@field load_on_setup? boolean
 ---@field picker_opts? table
 ---@field previewer? 'summary'|'active_buffer'|fun(session_name:string, session_filename:string, session_lines:string[]):lines:string[],filetype:string?
+---@field shorten_paths? boolean
 ---@field mappings? SessionLensMappings
 ---@field session_control? SessionControl
 ---
@@ -137,6 +138,7 @@ local defaults = {
     load_on_setup = true, -- Only used for telescope, registers the telescope extension at startup so you can use :Telescope session-lens
     picker_opts = nil, -- Table passed to Telescope / Snacks / Fzf-Lua to configure the picker. See below for more information
     previewer = "summary", -- 'summary'|'active_buffer'|function - How to display session preview. 'summary' shows a summary of the session, 'active_buffer' shows the contents of the active buffer in the session, or a custom function
+    shorten_paths = true, -- Replace the home directory with ~ in the picker display names
 
     ---@type SessionLensMappings
     mappings = {
