@@ -316,7 +316,7 @@ describe("Lib / Helper functions", function()
     local session_list = Lib.get_session_list(test_sessions_dir)
     assert.equals(1, #session_list)
     assert.equals("~/myproject", session_list[1].display_name)
-    assert.equals("~/myproject", session_list[1].display_name_component)
+    assert.equals(home .. "/myproject", session_list[1].display_name_component)
 
     vim.fn.delete(test_sessions_dir, "rf")
     Config.setup({})
