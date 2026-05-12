@@ -2,17 +2,17 @@ defaultConf                                                        *defaultConf*
     table default config for auto session
 
     Fields: ~
-        {log_level?}                         (string|integer)  "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
+        {log_level?}                         (string|integer)        "debug", "info", "warn", "error" or vim.log.levels.DEBUG, vim.log.levels.INFO, vim.log.levels.WARN, vim.log.levels.ERROR
         {auto_session_enable_last_session?}  (boolean)
-        {auto_session_root_dir?}             (string)          root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
-        {auto_session_enabled?}              (boolean)         enable auto session
-        {auto_session_create_enabled}        (boolean|nil)     Enables/disables auto creating new sessions
-        {auto_save_enabled?}                 (boolean)         Enables/disables auto saving session
-        {auto_restore_enabled?}              (boolean)         Enables/disables auto restoring session
-        {auto_restore_lazy_delay_enabled?}   (boolean)         Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used. Can be disabled if a problem is suspected or for debugging
-        {auto_session_suppress_dirs?}        (table)           Suppress auto session for directories
-        {auto_session_allowed_dirs?}         (table)           Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
-        {auto_session_use_git_branch?}       (boolean)         Include git branch name in session name to differentiate between sessions for different git branches
+        {auto_session_root_dir?}             (string)                root directory for session files, by default is `vim.fn.stdpath('data')/sessions/`
+        {auto_session_enabled?}              (boolean)               enable auto session
+        {auto_session_create_enabled}        (boolean|function|nil)  Enables/disables auto creating new sessions. Can take a function that should return true/false if a session should be created or not
+        {auto_save_enabled?}                 (boolean)               Enables/disables auto saving session
+        {auto_restore_enabled?}              (boolean)               Enables/disables auto restoring session
+        {auto_restore_lazy_delay_enabled?}   (boolean)               Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used. Can be disabled if a problem is suspected or for debugging
+        {auto_session_suppress_dirs?}        (table)                 Suppress auto session for directories
+        {auto_session_allowed_dirs?}         (table)                 Allow auto session for directories, if empty then all directories are allowed except for suppressed ones
+        {auto_session_use_git_branch?}       (boolean)               Include git branch name in session name to differentiate between sessions for different git branches
 
 
 luaOnlyConf                                                        *luaOnlyConf*
@@ -113,6 +113,9 @@ AutoSession.get_session_files()                  *AutoSession.get_session_files*
         (PickerItem[])
 
 
+AutoSession.restore_selected_session()    *AutoSession.restore_selected_session*
+
+
                                                        *AutoSession.SaveSession*
 AutoSession.SaveSession({sessions_dir?}, {auto})
 
@@ -196,9 +199,10 @@ session_lens_config                                        *session_lens_config*
     Session Lens Config
 
     Fields: ~
-        {shorten_path}        (boolean)
+        {shorten_path}        (boolean)          Deprecated, pass { 'shorten' } to path_display
+        {path_display}        (table)            An array that specifies how to handle paths. Read :h telescope.defaults.path_display
         {theme_conf}          (table)
-        {buftypes_to_ignore}  (table)
+        {buftypes_to_ignore}  (table)            Deprecated, if you're using this please report your usage on github
         {previewer}           (boolean)
         {session_control}     (session_control)
         {load_on_setup}       (boolean)
