@@ -242,6 +242,24 @@ describe("Lib / Helper functions", function()
     assert.True(vim.tbl_isempty(output))
   end)
 
+  it("only_blank_buffers_left is false when buffer lines can't be read", function()
+    TL.clearSessionFilesAndBuffers()
+    vim.cmd("enew")
+
+    local original_get_lines = vim.api.nvim_buf_get_lines
+    local ok, result = pcall(function()
+      vim.api.nvim_buf_get_lines = function()
+        return nil
+      end
+
+      return Lib.only_blank_buffers_left()
+    end)
+    vim.api.nvim_buf_get_lines = original_get_lines
+
+    assert.True(ok)
+    assert.False(result)
+  end)
+
   it("get_session_list filters out nil entries from extra command files", function()
     local test_sessions_dir = TL.session_dir .. "test_sessions/"
     vim.fn.mkdir(test_sessions_dir, "p")
