@@ -818,7 +818,9 @@ function AutoSession.restore_session_file(session_path, opts)
       else
         local clients = vim.lsp.get_clients()
         if #clients > 0 then
-          vim.lsp.stop_client(clients)
+          for _, client in ipairs(clients) do
+            client:stop()
+          end
         end
       end
     end
