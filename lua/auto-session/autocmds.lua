@@ -246,7 +246,7 @@ function M.setup_autocmds()
 
     vim.api.nvim_create_user_command("SessionSearch", function()
       vim.notify('"SessionSearch" is deprecated.\nUse "AutoSession search" instead')
-      AutoSession.Search()
+      AutoSession.search()
     end, {
       desc = "Open a session picker",
     })
@@ -254,10 +254,10 @@ function M.setup_autocmds()
     vim.api.nvim_create_user_command("Autosession", function(args)
       if args.args:match("search") then
         vim.notify('"Autosession search" (lowercase "s") is deprecated.\nUse "AutoSession search" instead')
-        AutoSession.Search()
+        AutoSession.search()
       elseif args.args:match("delete") then
-        vim.notify('"Autosession delete" (lowercase "s") is deprecated.\nUse "AutoSession search" instead')
-        AutoSession.DeletePicker()
+        vim.notify('"Autosession delete" (lowercase "s") is deprecated.\nUse "AutoSession deletePicker" instead')
+        AutoSession.delete_picker()
       end
     end, {
       complete = function(_, _, _)
