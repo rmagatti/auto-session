@@ -28,6 +28,7 @@ local M = {}
 ---@field git_use_branch_name? boolean|fun(path:string?): branch_name:string|nil
 ---@field git_auto_restore_on_branch_change? boolean
 ---@field custom_session_tag? fun(session_name:string): tag:string
+---@field resolve_symlinks? boolean
 ---
 ---Deleting
 ---@field auto_delete_empty_sessions? boolean
@@ -109,6 +110,7 @@ local defaults = {
   git_use_branch_name = false, -- Include git branch name in session name, can also be a function that takes an optional path and returns the name of the branch
   git_auto_restore_on_branch_change = false, -- Should we auto-restore the session when the git branch changes. Requires git_use_branch_name
   custom_session_tag = nil, -- Function that can return a string to be used as part of the session name
+  resolve_symlinks = false, -- Resolve symlinks in cwd and single-directory launch arguments before saving/restoring sessions
 
   -- Deleting
   auto_delete_empty_sessions = true, -- Enables/disables deleting the session if there are only unnamed/empty buffers when auto-saving
