@@ -34,6 +34,24 @@ function AutoSession.setup(config)
   Lib.logger.debug("Saving argv at setup: " .. vim.inspect(launch_argv))
 end
 
+local function normalize_session_path(path)
+  if Config.resolve_symlinks then
+    path = vim.fn.resolve(path)
+  end
+
+  return Lib.remove_trailing_separator(path)
+end
+
+local function get_current_dir_session_name()
+  local cwd = vim.fn.getcwd(-1, -1)
+
+  if Config.resolve_symlinks then
+    return normalize_session_path(cwd)
+  end
+
+  return cwd
+end
+
 ---Determines the session name based on current state and parameters
 ---@param legacy? boolean Whether to use legacy session name format
 ---@param use_cwd? boolean Whether to force using current working directory (ignoring manually named sessions)
@@ -47,7 +65,7 @@ local function get_session_name(legacy, use_cwd)
     return session_name
   end
 
-  local cwd = vim.fn.getcwd(-1, -1)
+  local cwd = get_current_dir_session_name()
   local git_branch_name = Config.git_use_branch_name and Lib.get_git_branch_name(nil, Config.git_use_branch_name) or nil
   local custom_tag = Config.custom_session_tag and Config.custom_session_tag(cwd) or nil
 
@@ -187,7 +205,7 @@ local function suppress_session(session_dir)
 
   -- If session_dir is set, use that otherwise use cwd
   -- session_dir will be set when loading a session from a directory at launch (i.e. from argv)
-  local cwd = session_dir or vim.fn.getcwd(-1, -1)
+  local cwd = session_dir or get_current_dir_session_name()
 
   if Lib.find_matching_directory(cwd, dirs) then
     Lib.logger.debug("suppress_session found a match, suppressing")
@@ -204,7 +222,7 @@ local function is_allowed_dir()
   end
 
   local dirs = Config.allowed_dirs or {}
-  local cwd = vim.fn.getcwd(-1, -1)
+  local cwd = get_current_dir_session_name()
 
   if Lib.find_matching_directory(cwd, dirs) then
     Lib.logger.debug("is_allowed_dir found a match, allowing")
@@ -549,7 +567,7 @@ function AutoSession.auto_restore_session_at_vim_enter()
   then
     -- Get the full path of the directory and make sure it doesn't have a trailing path_separator
     -- to make sure we find the session
-    local session_name = Lib.remove_trailing_separator(vim.fn.fnamemodify(launch_argv[1], ":p"))
+    local session_name = normalize_session_path(vim.fn.fnamemodify(launch_argv[1], ":p"))
     Lib.logger.debug("Launched with single directory, using as session_dir: " .. session_name)
 
     if Config.git_use_branch_name then
@@ -566,7 +584,7 @@ function AutoSession.auto_restore_session_at_vim_enter()
 
     -- We failed to load a session for the other directory. Unless session name matches cwd, we don't
     -- want to enable autosaving since it might replace the session for the cwd
-    if vim.fn.getcwd(-1, -1) ~= session_name then
+    if get_current_dir_session_name() ~= session_name then
       Lib.logger.debug("Not enabling autosave because launch argument didn't load session and doesn't match cwd")
       Config.auto_save = false
     end
@@ -886,7 +904,7 @@ function AutoSession.restore_session_file(session_path, opts)
 
   if Config.git_use_branch_name and Config.git_auto_restore_on_branch_change then
     -- start watching for branch changes
-    require("auto-session.git").start_watcher(vim.fn.getcwd(-1, -1), ".git/HEAD")
+    require("auto-session.git").start_watcher(get_current_dir_session_name(), ".git/HEAD")
   end
 
   AutoSession.run_cmds("post_restore", session_name)
