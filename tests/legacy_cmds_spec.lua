@@ -1,5 +1,6 @@
 ---@diagnostic disable: undefined-field
 local TL = require("tests/test_lib")
+local stub = require("luassert.stub")
 
 describe("legacy_cmds=true", function()
   local as = require("auto-session")
@@ -33,7 +34,7 @@ describe("legacy_cmds=true", function()
     assert.equal(1, #sessions)
 
     assert.equal(TL.session_dir .. sessions[1].file_name, TL.default_session_path)
-    assert.equal(sessions[1].display_name, Lib.current_session_name())
+    assert.equal(Lib.shorten_path(Lib.current_session_name()), sessions[1].display_name)
     assert.equal(sessions[1].session_name, TL.default_session_name)
   end)
 
@@ -177,5 +178,27 @@ describe("legacy_cmds=true", function()
     assert.False(c.auto_save)
     vim.cmd("SessionToggleAutoSave")
     assert.True(c.auto_save)
+  end)
+
+  it("SessionSearch calls the new search API", function()
+    local search = stub(as, "search")
+
+    vim.cmd("SessionSearch")
+
+    assert.stub(search).was.called(1)
+    search:revert()
+  end)
+
+  it("Autosession calls the new APIs", function()
+    local search = stub(as, "search")
+    local delete_picker = stub(as, "delete_picker")
+
+    vim.cmd("Autosession search")
+    vim.cmd("Autosession delete")
+
+    assert.stub(search).was.called(1)
+    assert.stub(delete_picker).was.called(1)
+    search:revert()
+    delete_picker:revert()
   end)
 end)

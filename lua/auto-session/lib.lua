@@ -771,6 +771,17 @@ end
 ---@field file_name string
 ---@field path string
 
+---Replace the home directory in a path with ~
+---@param path string The path to shorten
+---@return string The shortened path
+function Lib.shorten_path(path)
+  local home = vim.fn.expand("~")
+  if home and home ~= "" and path:sub(1, #home) == home then
+    return "~" .. path:sub(#home + 1)
+  end
+  return path
+end
+
 ---Get the list of session files. Will filter out any extra command session files
 ---@param sessions_dir string The directory where the sessions are stored
 ---@return SessionEntry[] the list of session files
@@ -780,6 +791,10 @@ function Lib.get_session_list(sessions_dir)
   end
 
   local files = Lib.sorted_readdir(sessions_dir)
+
+  -- Lazily require Config to avoid circular dependencies
+  local Config = require("auto-session.config")
+  local shorten_paths = Config.session_lens and Config.session_lens.shorten_paths ~= false
 
   local session_entries = vim.tbl_map(function(file_name)
     local session_name
@@ -805,7 +820,12 @@ function Lib.get_session_list(sessions_dir)
       end
     end
 
-    local display_name = display_name_component .. annotation
+    local display_name_component_for_display = display_name_component
+    if shorten_paths then
+      display_name_component_for_display = Lib.shorten_path(display_name_component_for_display)
+    end
+
+    local display_name = display_name_component_for_display .. annotation
 
     return {
       session_name = session_name,
@@ -970,13 +990,29 @@ function Lib.only_blank_buffers_left()
   for _, bufnr in ipairs(bufs) do
     -- Only consider listed buffers
     if vim.fn.buflisted(bufnr) == 1 then
-      local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-      local is_empty = #lines <= 1 and (lines[1] == nil or lines[1] == "")
-      local is_modified = vim.api.nvim_get_option_value("modified", { buf = bufnr })
-      local has_name = vim.api.nvim_buf_get_name(bufnr) ~= ""
+      local ok_name, buf_name = pcall(vim.api.nvim_buf_get_name, bufnr)
+      local ok_modified, is_modified = pcall(vim.api.nvim_get_option_value, "modified", { buf = bufnr })
 
-      -- If buffer has a name, is modified, or has content, it's meaningful
-      if has_name or is_modified or not is_empty then
+      if not ok_name or not ok_modified then
+        return false
+      end
+
+      local has_name = buf_name ~= ""
+
+      if has_name or is_modified then
+        return false
+      end
+
+      local ok_lines, lines = pcall(vim.api.nvim_buf_get_lines, bufnr, 0, -1, false)
+
+      if not ok_lines or lines == nil then
+        return false
+      end
+
+      local is_empty = #lines <= 1 and (lines[1] == nil or lines[1] == "")
+
+      -- If buffer has content, it's meaningful
+      if not is_empty then
         return false
       end
     end

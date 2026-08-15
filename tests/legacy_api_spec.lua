@@ -33,7 +33,7 @@ describe("legacy api functions", function()
     assert.equal(1, #sessions)
 
     assert.equal(TL.session_dir .. sessions[1].file_name, TL.default_session_path)
-    assert.equal(sessions[1].display_name, Lib.current_session_name())
+    assert.equal(Lib.shorten_path(Lib.current_session_name()), sessions[1].display_name)
     assert.equal(sessions[1].session_name, TL.default_session_name)
   end)
 

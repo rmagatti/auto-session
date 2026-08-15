@@ -76,7 +76,7 @@ describe("The git config", function()
     assert.equal(1, #sessions)
 
     assert.equal(TL.session_dir .. sessions[1].file_name, branch_session_path)
-    assert.equal(sessions[1].display_name, Lib.current_session_name())
+    assert.equal(Lib.shorten_path(vim.fn.getcwd()) .. " (branch: main)", sessions[1].display_name)
     assert.equal(sessions[1].session_name, vim.fn.getcwd() .. "|main")
   end)
 
