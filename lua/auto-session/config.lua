@@ -1,6 +1,10 @@
 ---@diagnostic disable: inject-field
 local M = {}
 
+---@class AutoSession.CloseUnsupportedWindowsOpts
+---@field preserve_filetypes? string[]
+---@field preserve_buftypes? string[]
+
 ---@toc toc
 
 ---@mod auto-session.config Config
@@ -21,13 +25,14 @@ local M = {}
 ---@field allowed_dirs? table
 ---@field bypass_save_filetypes? table
 ---@field close_filetypes_on_save? table
----@field close_unsupported_windows? boolean
+---@field close_unsupported_windows? boolean|AutoSession.CloseUnsupportedWindowsOpts
 ---@field preserve_buffer_on_restore? fun(bufnr:number): preserve_buffer:boolean
 ---
 ---Git / Session naming
 ---@field git_use_branch_name? boolean|fun(path:string?): branch_name:string|nil
 ---@field git_auto_restore_on_branch_change? boolean
 ---@field custom_session_tag? fun(session_name:string): tag:string
+---@field resolve_symlinks? boolean
 ---
 ---Deleting
 ---@field auto_delete_empty_sessions? boolean
@@ -59,6 +64,7 @@ local M = {}
 ---@field load_on_setup? boolean
 ---@field picker_opts? table
 ---@field previewer? 'summary'|'active_buffer'|fun(session_name:string, session_filename:string, session_lines:string[]):lines:string[],filetype:string?
+---@field shorten_paths? boolean
 ---@field mappings? SessionLensMappings
 ---@field session_control? SessionControl
 ---
@@ -101,13 +107,14 @@ local defaults = {
   allowed_dirs = nil, -- Allow session restore/create in certain directories
   bypass_save_filetypes = nil, -- List of filetypes to bypass auto save when the only buffer open is one of the file types listed, useful to ignore dashboards
   close_filetypes_on_save = { "checkhealth" }, -- Buffers with matching filetypes will be closed before saving
-  close_unsupported_windows = true, -- Close windows that aren't backed by normal file before autosaving a session
+  close_unsupported_windows = true, -- Close windows that aren't backed by normal file before autosaving a session. Set preserve_filetypes/preserve_buftypes to keep selected unsupported windows open.
   preserve_buffer_on_restore = nil, -- Function that returns true if a buffer should be preserved when restoring a session
 
   -- Git / Session naming
   git_use_branch_name = false, -- Include git branch name in session name, can also be a function that takes an optional path and returns the name of the branch
   git_auto_restore_on_branch_change = false, -- Should we auto-restore the session when the git branch changes. Requires git_use_branch_name
   custom_session_tag = nil, -- Function that can return a string to be used as part of the session name
+  resolve_symlinks = false, -- Resolve symlinks in cwd and single-directory launch arguments before saving/restoring sessions
 
   -- Deleting
   auto_delete_empty_sessions = true, -- Enables/disables deleting the session if there are only unnamed/empty buffers when auto-saving
@@ -137,6 +144,7 @@ local defaults = {
     load_on_setup = true, -- Only used for telescope, registers the telescope extension at startup so you can use :Telescope session-lens
     picker_opts = nil, -- Table passed to Telescope / Snacks / Fzf-Lua to configure the picker. See below for more information
     previewer = "summary", -- 'summary'|'active_buffer'|function - How to display session preview. 'summary' shows a summary of the session, 'active_buffer' shows the contents of the active buffer in the session, or a custom function
+    shorten_paths = true, -- Replace the home directory with ~ in the picker display names
 
     ---@type SessionLensMappings
     mappings = {
