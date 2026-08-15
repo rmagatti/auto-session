@@ -253,11 +253,11 @@ function Lib.is_legacy_file_name(file_name)
   return false
 end
 
----Returns a sstring with % characters escaped, suitable for use with vim cmds
+---Returns a string escaped for use in Ex commands with file paths
 ---@param str string The string to vim escape
 ---@return string The string escaped for use with vim.cmd
 function Lib.escape_string_for_vim(str)
-  return (str:gsub("%%", "\\%%"))
+  return vim.fn.fnameescape(str)
 end
 
 -- NOTE: expand has the side effect of canonicalizing the path

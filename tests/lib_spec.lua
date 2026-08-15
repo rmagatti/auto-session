@@ -134,7 +134,7 @@ describe("Lib / Helper functions", function()
   end)
 
   it("escape_string_for_vim() works", function()
-    assert.equals("\\%some\\%dir\\%", Lib.escape_string_for_vim("%some%dir%"))
+    assert.equals("\\%some\\#dir\\%", Lib.escape_string_for_vim("%some#dir%"))
   end)
 
   it("can identify new and old sessions", function()
