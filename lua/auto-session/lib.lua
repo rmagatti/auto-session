@@ -297,7 +297,16 @@ end
 
 ---Iterate over the tabpages and then the windows and close any window that has a buffer that isn't backed by
 ---a real file
-function Lib.close_unsupported_windows()
+---@param opts? boolean|AutoSession.CloseUnsupportedWindowsOpts
+function Lib.close_unsupported_windows(opts)
+  local preserve_filetypes = {}
+  local preserve_buftypes = {}
+
+  if type(opts) == "table" then
+    preserve_filetypes = opts.preserve_filetypes or {}
+    preserve_buftypes = opts.preserve_buftypes or {}
+  end
+
   local tabpages = vim.api.nvim_list_tabpages()
   for _, tabpage in ipairs(tabpages) do
     local windows = vim.api.nvim_tabpage_list_wins(tabpage)
@@ -312,8 +321,12 @@ function Lib.close_unsupported_windows()
         ---@cast buffer integer
         local file_name = vim.api.nvim_buf_get_name(buffer)
         local buf_type = vim.api.nvim_get_option_value("buftype", { buf = buffer })
+        local file_type = vim.api.nvim_get_option_value("filetype", { buf = buffer })
         -- Lib.logger.debug("file_name: " .. file_name .. " buf_type: " .. buf_type)
-        if vim.fn.filereadable(file_name) == 0 and buf_type ~= "terminal" then
+        local preserve_window = vim.tbl_contains(preserve_buftypes, buf_type)
+          or vim.tbl_contains(preserve_filetypes, file_type)
+
+        if vim.fn.filereadable(file_name) == 0 and buf_type ~= "terminal" and not preserve_window then
           Lib.logger.debug("closing window: " .. window .. " file_name: " .. file_name .. " buf_type: " .. buf_type)
 
           vim.api.nvim_win_close(window, true)
