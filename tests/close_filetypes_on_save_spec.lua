@@ -88,49 +88,53 @@ describe("Close filetypes on save", function()
 
   TL.clearSessionFilesAndBuffers()
 
-  it("gracefully closes snacks_terminal buffers before saving", function()
-    local notifications = {}
-    local original_notify = vim.notify
+  -- The test terminal needs a POSIX shell that can read lines from stdin so it
+  -- can't run with the default Windows shell
+  if vim.fn.has("win32") == 0 then
+    it("gracefully closes snacks_terminal buffers before saving", function()
+      local notifications = {}
+      local original_notify = vim.notify
 
-    vim.notify = function(msg, level, opts)
-      table.insert(notifications, { msg = msg, level = level, opts = opts })
-    end
+      vim.notify = function(msg, level, opts)
+        table.insert(notifications, { msg = msg, level = level, opts = opts })
+      end
 
-    vim.cmd("enew")
-    local terminal_buf = vim.api.nvim_get_current_buf()
+      vim.cmd("enew")
+      local terminal_buf = vim.api.nvim_get_current_buf()
 
-    local terminal_closed = false
-    vim.api.nvim_create_autocmd("TermClose", {
-      buffer = terminal_buf,
-      callback = function()
-        if type(vim.v.event) == "table" and vim.v.event.status ~= 0 then
-          vim.notify("Terminal exited with code " .. vim.v.event.status .. ".\nCheck for any errors.")
-          return
-        end
-        terminal_closed = true
-      end,
-    })
+      local terminal_closed = false
+      vim.api.nvim_create_autocmd("TermClose", {
+        buffer = terminal_buf,
+        callback = function()
+          if type(vim.v.event) == "table" and vim.v.event.status ~= 0 then
+            vim.notify("Terminal exited with code " .. vim.v.event.status .. ".\nCheck for any errors.")
+            return
+          end
+          terminal_closed = true
+        end,
+      })
 
-    vim.fn.termopen({ vim.o.shell, "-c", "while IFS= read -r line; do [ \"$line\" = exit ] && exit 0; done" })
-    vim.bo[terminal_buf].filetype = "snacks_terminal"
+      vim.fn.termopen({ vim.o.shell, "-c", 'while IFS= read -r line; do [ "$line" = exit ] && exit 0; done' })
+      vim.bo[terminal_buf].filetype = "snacks_terminal"
 
-    as.setup({
-      close_filetypes_on_save = { "snacks_terminal" },
-    })
+      as.setup({
+        close_filetypes_on_save = { "snacks_terminal" },
+      })
 
-    local ok = pcall(as.auto_save_session)
+      local ok = pcall(as.auto_save_session)
 
-    vim.notify = original_notify
+      vim.notify = original_notify
 
-    assert.True(ok)
-    vim.wait(1000, function()
-      return terminal_closed
-    end, 10)
-    assert.True(terminal_closed)
-    assert.False(vim.api.nvim_buf_is_valid(terminal_buf))
+      assert.True(ok)
+      vim.wait(1000, function()
+        return terminal_closed
+      end, 10)
+      assert.True(terminal_closed)
+      assert.False(vim.api.nvim_buf_is_valid(terminal_buf))
 
-    for _, notification in ipairs(notifications) do
-      assert.is_nil(notification.msg:match("Terminal exited with code %-1"))
-    end
-  end)
+      for _, notification in ipairs(notifications) do
+        assert.is_nil(notification.msg:match("Terminal exited with code %-1"))
+      end
+    end)
+  end
 end)
