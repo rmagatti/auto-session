@@ -77,4 +77,26 @@ describe("The args not enabled config", function()
 
     assert.equals(0, vim.fn.bufexists(TL.test_file))
   end)
+
+  it("doesn't restore the last session when run with a file", function()
+    no_restore_hook_called = false
+    c.auto_restore_last_session = true
+
+    local s = stub(vim.fn, "argv")
+    s.returns({ TL.other_file })
+
+    -- have to call setup again for auto-session to recapture argv
+    as.setup(c.options)
+
+    -- only exported because we set the unit testing env in TL
+    assert.equals(false, require("auto-session").auto_restore_session_at_vim_enter())
+
+    -- Revert the stub
+    vim.fn.argv:revert()
+    c.auto_restore_last_session = false
+
+    assert.equals(true, no_restore_hook_called)
+
+    assert.equals(0, vim.fn.bufexists(TL.test_file))
+  end)
 end)
