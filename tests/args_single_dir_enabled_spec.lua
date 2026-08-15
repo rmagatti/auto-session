@@ -1,6 +1,24 @@
 ---@diagnostic disable: undefined-field
 local TL = require("tests/test_lib")
 local stub = require("luassert.stub")
+local Lib = require("auto-session.lib")
+
+local uv = vim.uv or vim.loop
+
+local function make_symlink_dirs()
+  local base = vim.fn.tempname()
+  local real_dir = base .. "/real"
+  local link_dir = base .. "/link"
+
+  assert.equals(1, vim.fn.mkdir(real_dir, "p"))
+  assert.True(uv.fs_symlink(real_dir, link_dir))
+
+  return {
+    base = base,
+    real = Lib.remove_trailing_separator(vim.fn.resolve(vim.fn.fnamemodify(real_dir, ":p"))),
+    link = Lib.remove_trailing_separator(vim.fn.fnamemodify(link_dir, ":p")),
+  }
+end
 
 describe("The args single dir enabled config", function()
   local no_restore_hook_called = false
@@ -106,5 +124,101 @@ describe("The args single dir enabled config", function()
     assert.equals(true, no_restore_hook_called)
 
     assert.equals(0, vim.fn.bufexists(TL.test_file))
+  end)
+
+  it("does not resolve symlink directory arguments by default", function()
+    if vim.fn.has("win32") == 1 then
+      return
+    end
+
+    no_restore_hook_called = false
+    local cwd = vim.fn.getcwd(-1, -1)
+    local dirs = make_symlink_dirs()
+    c.auto_save = true
+    c.resolve_symlinks = false
+
+    vim.cmd("cd " .. vim.fn.fnameescape(dirs.link))
+
+    local s = stub(vim.fn, "argv")
+    s.returns({ dirs.link })
+
+    as.setup(c.options)
+
+    assert.False(as.auto_restore_session_at_vim_enter())
+    assert.equals(true, no_restore_hook_called)
+
+    -- The symlink argv path and resolved cwd do not match, so autosave stays disabled.
+    assert.False(as.auto_save_session())
+
+    vim.fn.argv:revert()
+    vim.cmd("cd " .. vim.fn.fnameescape(cwd))
+    vim.fn.delete(dirs.base, "rf")
+    c.auto_save = false
+  end)
+
+  it("keeps autosave enabled for symlink directory arguments when resolving symlinks", function()
+    if vim.fn.has("win32") == 1 then
+      return
+    end
+
+    no_restore_hook_called = false
+    local cwd = vim.fn.getcwd(-1, -1)
+    local dirs = make_symlink_dirs()
+    local test_file = dirs.real .. "/test.txt"
+    c.auto_save = true
+    c.resolve_symlinks = true
+
+    vim.fn.writefile({ "test" }, test_file)
+    vim.cmd("cd " .. vim.fn.fnameescape(dirs.link))
+    vim.cmd("e " .. vim.fn.fnameescape(test_file))
+
+    local s = stub(vim.fn, "argv")
+    s.returns({ dirs.link })
+
+    as.setup(c.options)
+
+    assert.False(as.auto_restore_session_at_vim_enter())
+    assert.equals(true, no_restore_hook_called)
+    assert.True(as.auto_save_session())
+    assert.equals(1, vim.fn.filereadable(TL.makeSessionPath(dirs.real)))
+
+    vim.fn.argv:revert()
+    vim.cmd("cd " .. vim.fn.fnameescape(cwd))
+    vim.fn.delete(dirs.base, "rf")
+    c.auto_save = false
+    c.resolve_symlinks = false
+  end)
+
+  it("restores real path sessions with symlink directory arguments when resolving symlinks", function()
+    if vim.fn.has("win32") == 1 then
+      return
+    end
+
+    no_restore_hook_called = false
+    local cwd = vim.fn.getcwd(-1, -1)
+    local dirs = make_symlink_dirs()
+    local test_file = dirs.real .. "/test.txt"
+    c.resolve_symlinks = true
+
+    vim.fn.writefile({ "test" }, test_file)
+    vim.cmd("cd " .. vim.fn.fnameescape(dirs.real))
+    vim.cmd("e " .. vim.fn.fnameescape(test_file))
+    assert.True(as.save_session(nil, { show_message = false }))
+    vim.cmd("%bw!")
+    vim.cmd("cd " .. vim.fn.fnameescape(cwd))
+
+    local s = stub(vim.fn, "argv")
+    s.returns({ dirs.link })
+
+    as.setup(c.options)
+
+    assert.True(as.auto_restore_session_at_vim_enter())
+    assert.equals(false, no_restore_hook_called)
+    assert.equals(1, vim.fn.bufexists(test_file))
+
+    vim.fn.argv:revert()
+    vim.cmd("cd " .. vim.fn.fnameescape(cwd))
+    vim.fn.delete(dirs.base, "rf")
+    c.resolve_symlinks = false
   end)
 end)

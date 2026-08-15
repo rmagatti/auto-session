@@ -76,7 +76,7 @@ describe("The git config", function()
     assert.equal(1, #sessions)
 
     assert.equal(TL.session_dir .. sessions[1].file_name, branch_session_path)
-    assert.equal(sessions[1].display_name, Lib.current_session_name())
+    assert.equal(Lib.shorten_path(vim.fn.getcwd()) .. " (branch: main)", sessions[1].display_name)
     assert.equal(sessions[1].session_name, vim.fn.getcwd() .. "|main")
   end)
 
@@ -148,6 +148,20 @@ describe("The git config", function()
     assert.equals(git_test_dir .. " (branch: slash/branch)", Lib.current_session_name(true))
   end)
 
+  it("saves a session with a # in the branch name", function()
+    runCmdAndPrint("git checkout main")
+    -- Use the list form of system so no shell sees (and possibly mangles) the #
+    runCmdAndPrint({ "git", "checkout", "-b", "issue#516" })
+
+    local session_path = TL.session_dir .. TL.escapeSessionName(vim.fn.getcwd() .. "|issue#516") .. ".vim"
+
+    assert.True(as.save_session())
+    assert.equals(1, vim.fn.filereadable(session_path))
+    assert.equals(vim.fn.getcwd() .. " (branch: issue#516)", Lib.current_session_name())
+
+    runCmdAndPrint("git checkout main")
+  end)
+
   it("load a session named with git branch from . directory", function()
     c.args_allow_single_directory = true
     -- c.log_level = "debug"
@@ -203,6 +217,41 @@ describe("The git config", function()
     -- Revert the stub
     vim.fn.argv:revert()
     c.auto_save = false
+  end)
+
+  it("watches git HEAD from the repo root when started in a subdirectory", function()
+    local repo_root = vim.fn.getcwd()
+    local nested_dir = repo_root .. "/nested"
+    vim.fn.mkdir(nested_dir, "p")
+    local uv = vim.uv or vim.loop
+
+    local watcher
+    watcher = {
+      path = nil,
+      start = function(_, path)
+        watcher.path = path
+      end,
+      stop = function() end,
+    }
+
+    local uv_new_fs_event = uv.new_fs_event
+    uv.new_fs_event = function()
+      return watcher
+    end
+
+    local ok, err = pcall(function()
+      vim.cmd("cd " .. nested_dir)
+      g.start_watcher(vim.fn.getcwd(), ".git/HEAD")
+      assert.equals(vim.fs.normalize(repo_root .. "/.git/HEAD"), watcher.path)
+    end)
+
+    uv.new_fs_event = uv_new_fs_event
+    g.stop_watcher()
+    vim.cmd("cd " .. repo_root)
+
+    if not ok then
+      error(err)
+    end
   end)
 
   it("auto-restores after a branch change", function()
