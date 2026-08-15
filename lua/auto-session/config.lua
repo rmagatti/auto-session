@@ -32,6 +32,7 @@ local M = {}
 ---@field git_use_branch_name? boolean|fun(path:string?): branch_name:string|nil
 ---@field git_auto_restore_on_branch_change? boolean
 ---@field custom_session_tag? fun(session_name:string): tag:string
+---@field resolve_symlinks? boolean
 ---
 ---Deleting
 ---@field auto_delete_empty_sessions? boolean
@@ -63,6 +64,7 @@ local M = {}
 ---@field load_on_setup? boolean
 ---@field picker_opts? table
 ---@field previewer? 'summary'|'active_buffer'|fun(session_name:string, session_filename:string, session_lines:string[]):lines:string[],filetype:string?
+---@field shorten_paths? boolean
 ---@field mappings? SessionLensMappings
 ---@field session_control? SessionControl
 ---
@@ -112,6 +114,7 @@ local defaults = {
   git_use_branch_name = false, -- Include git branch name in session name, can also be a function that takes an optional path and returns the name of the branch
   git_auto_restore_on_branch_change = false, -- Should we auto-restore the session when the git branch changes. Requires git_use_branch_name
   custom_session_tag = nil, -- Function that can return a string to be used as part of the session name
+  resolve_symlinks = false, -- Resolve symlinks in cwd and single-directory launch arguments before saving/restoring sessions
 
   -- Deleting
   auto_delete_empty_sessions = true, -- Enables/disables deleting the session if there are only unnamed/empty buffers when auto-saving
@@ -141,6 +144,7 @@ local defaults = {
     load_on_setup = true, -- Only used for telescope, registers the telescope extension at startup so you can use :Telescope session-lens
     picker_opts = nil, -- Table passed to Telescope / Snacks / Fzf-Lua to configure the picker. See below for more information
     previewer = "summary", -- 'summary'|'active_buffer'|function - How to display session preview. 'summary' shows a summary of the session, 'active_buffer' shows the contents of the active buffer in the session, or a custom function
+    shorten_paths = true, -- Replace the home directory with ~ in the picker display names
 
     ---@type SessionLensMappings
     mappings = {
