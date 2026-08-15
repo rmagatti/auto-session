@@ -150,7 +150,8 @@ describe("The git config", function()
 
   it("saves a session with a # in the branch name", function()
     runCmdAndPrint("git checkout main")
-    runCmdAndPrint("git checkout -b 'issue#516'")
+    -- Use the list form of system so no shell sees (and possibly mangles) the #
+    runCmdAndPrint({ "git", "checkout", "-b", "issue#516" })
 
     local session_path = TL.session_dir .. TL.escapeSessionName(vim.fn.getcwd() .. "|issue#516") .. ".vim"
 
