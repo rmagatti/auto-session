@@ -47,6 +47,25 @@ describe("Close filetypes on save", function()
 
   TL.clearSessionFilesAndBuffers()
 
+  it("closes all buffers of matching filetypes before saving", function()
+    vim.cmd("e " .. TL.test_file) -- this is a text file
+    vim.cmd("e " .. TL.other_file) -- this is also a text file
+    vim.cmd("e tests/close_filetypes_on_save_spec.lua")
+
+    as.setup({
+      close_filetypes_on_save = { "text" },
+    })
+
+    assert.True(as.auto_save_session())
+    assert.equals(1, vim.fn.filereadable(TL.default_session_path))
+
+    assert.False(TL.sessionHasFile(TL.default_session_path, TL.test_file))
+    assert.False(TL.sessionHasFile(TL.default_session_path, TL.other_file))
+    assert.True(TL.sessionHasFile(TL.default_session_path, "tests/close_filetypes_on_save_spec.lua"))
+  end)
+
+  TL.clearSessionFilesAndBuffers()
+
   it("does not save a checkhealth buffer", function()
     vim.cmd("e " .. TL.test_file) -- this is a text file
     vim.cmd("checkhealth auto-session")
