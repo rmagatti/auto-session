@@ -1,6 +1,13 @@
 ---@diagnostic disable: undefined-field
 local TL = require("tests/test_lib")
 
+-- Cross platform delete of leftover shada files from the shada describe blocks
+local function clear_shada_files()
+  for _, file in ipairs(vim.fn.glob(TL.session_dir .. "*.shada", false, true)) do
+    vim.fn.delete(file)
+  end
+end
+
 -- wshada/rshada with an explicit file silently no-op when shadafile is NONE on
 -- nvim < 0.11 (fixed in https://github.com/neovim/neovim/pull/32538), so the
 -- feature is only enabled on nvim >= 0.11
@@ -53,8 +60,7 @@ describe("The default config", function()
   require("auto-session").setup({})
 
   TL.clearSessionFilesAndBuffers()
-  -- Clear leftover shada files from the first describe
-  vim.fn.system("rm -rf " .. TL.session_dir .. "*.shada")
+  clear_shada_files()
 
   it("does not save a .shada file for the session when disabled", function()
     vim.cmd("e " .. TL.test_file)
