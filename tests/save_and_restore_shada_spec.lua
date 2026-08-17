@@ -26,20 +26,17 @@ describe("The save_and_restore_shada config", function()
     assert.equals("hello", vim.fn.getreg("a"))
   end)
 
-  it("does not load the global shada when a session has no shada file", function()
-    ---@diagnostic disable-next-line: missing-parameter
-    require("auto-session").save_session("noshada")
-
-    -- Remove the shada file so the session has none
-    vim.fn.delete(TL.makeSessionPath("noshada") .. ".shada")
-
-    ---@diagnostic disable-next-line: missing-parameter
-    require("auto-session").restore_session("noshada")
-
+  it("sets shadafile to NONE so the global shada isn't loaded", function()
     assert.equals("NONE", vim.o.shadafile)
   end)
 
   it("deletes the .shada file when deleting a session", function()
+    vim.cmd("e " .. TL.test_file)
+    ---@diagnostic disable-next-line: missing-parameter
+    require("auto-session").save_session("noshada")
+
+    assert.equals(1, vim.fn.filereadable(TL.makeSessionPath("noshada") .. ".shada"))
+
     ---@diagnostic disable-next-line: missing-parameter
     require("auto-session").delete_session("noshada")
 
@@ -62,5 +59,13 @@ describe("The default config", function()
 
     local shada_path = TL.default_session_path .. ".shada"
     assert.equals(0, vim.fn.filereadable(shada_path))
+  end)
+
+  it("does not change shadafile when disabled", function()
+    vim.o.shadafile = "main.shada"
+    require("auto-session").setup({
+      save_and_restore_shada = false,
+    })
+    assert.equals("main.shada", vim.o.shadafile)
   end)
 end)

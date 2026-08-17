@@ -21,6 +21,11 @@ function AutoSession.setup(config)
   -- Validate the root dir here so it's always set up correctly
   AutoSession.get_root_dir()
 
+  -- Don't load the global shada if we're managing shada per-session
+  if Config.save_and_restore_shada then
+    vim.o.shadafile = "NONE"
+  end
+
   -- Set up single session mode if enabled
   if Config.single_session_mode then
     AutoSession.manually_named_session = true
@@ -877,9 +882,6 @@ function AutoSession.restore_session_file(session_path, opts)
     if vim.fn.filereadable(shada_file) == 1 then
       Lib.logger.debug("reading shada")
       vim.cmd("rshada! " .. vim_session_path .. ".shada")
-    else
-      -- Don't load the global shada if this session has no shada of its own
-      vim.o.shadafile = "NONE"
     end
   end
 
