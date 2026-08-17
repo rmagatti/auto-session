@@ -53,7 +53,7 @@ local M = {}
 ---@field restore_error_handler? fun(error_msg:string): disable_auto_save:boolean
 ---@field continue_restore_on_error? boolean
 ---@field lsp_stop_on_restore? boolean|fun()
----@field save_and_restore_shada? boolean Should ShaDa (command line/search history, registers, marks, global variables, etc) be saved and restored
+---@field save_and_restore_shada? boolean Should ShaDa (command line/search history, registers, marks, global variables, etc) be saved and restored. Requires nvim >= 0.11
 ---@field lazy_support? boolean
 ---@field legacy_cmds? boolean
 ---
@@ -136,7 +136,7 @@ local defaults = {
   restore_error_handler = nil, -- Function called when there's an error restoring. By default, it ignores fold and help errors otherwise it displays the error and returns false to disable auto_save. Default handler is accessible as require('auto-session').default_restore_error_handler
   continue_restore_on_error = true, -- Keep loading the session even if there's an error
   lsp_stop_on_restore = false, -- Should language servers be stopped when restoring a session. Can also be a function that will be called if set. Not called on autorestore from startup
-  save_and_restore_shada = false, -- boolean Should ShaDa (command line/search history, registers, marks, global variables, etc) be saved and restored
+  save_and_restore_shada = false, -- boolean Should ShaDa (command line/search history, registers, marks, global variables, etc) be saved and restored. Requires nvim >= 0.11
   lazy_support = true, -- Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used
   legacy_cmds = true, -- Define legacy commands: Session*, Autosession (lowercase s), currently true. Set to false to prevent defining them
 
@@ -342,6 +342,14 @@ function M.check(logger, show_full_message)
 
   if M.purge_after_minutes and vim.fn.has("nvim-0.10") ~= 1 then
     logger.warn("the purge_after_minutes options requires nvim >= 0.10")
+    has_issues = true
+  end
+
+  -- wshada/rshada with an explicit file silently no-op when shadafile is NONE on
+  -- nvim < 0.11 (fixed in https://github.com/neovim/neovim/pull/32538)
+  if M.save_and_restore_shada and vim.fn.has("nvim-0.11") ~= 1 then
+    logger.warn("the save_and_restore_shada option requires nvim >= 0.11")
+    M.save_and_restore_shada = false
     has_issues = true
   end
 

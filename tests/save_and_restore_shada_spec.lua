@@ -1,48 +1,53 @@
 ---@diagnostic disable: undefined-field
 local TL = require("tests/test_lib")
 
-describe("The save_and_restore_shada config", function()
-  require("auto-session").setup({
-    save_and_restore_shada = true,
-  })
+-- wshada/rshada with an explicit file silently no-op when shadafile is NONE on
+-- nvim < 0.11 (fixed in https://github.com/neovim/neovim/pull/32538), so the
+-- feature is only enabled on nvim >= 0.11
+if vim.fn.has("nvim-0.11") == 1 then
+  describe("The save_and_restore_shada config", function()
+    require("auto-session").setup({
+      save_and_restore_shada = true,
+    })
 
-  TL.clearSessionFilesAndBuffers()
+    TL.clearSessionFilesAndBuffers()
 
-  it("saves a .shada file for the session when enabled", function()
-    vim.cmd("e " .. TL.test_file)
-    vim.fn.setreg("a", "hello")
+    it("saves a .shada file for the session when enabled", function()
+      vim.cmd("e " .. TL.test_file)
+      vim.fn.setreg("a", "hello")
 
-    ---@diagnostic disable-next-line: missing-parameter
-    require("auto-session").save_session()
+      ---@diagnostic disable-next-line: missing-parameter
+      require("auto-session").save_session()
 
-    local shada_path = TL.default_session_path .. ".shada"
-    assert.equals(1, vim.fn.filereadable(shada_path))
+      local shada_path = TL.default_session_path .. ".shada"
+      assert.equals(1, vim.fn.filereadable(shada_path))
+    end)
+
+    it("restores the register from the session .shada file", function()
+      ---@diagnostic disable-next-line: missing-parameter
+      require("auto-session").restore_session()
+
+      assert.equals("hello", vim.fn.getreg("a"))
+    end)
+
+    it("sets shadafile to NONE so the global shada isn't loaded", function()
+      assert.equals("NONE", vim.o.shadafile)
+    end)
+
+    it("deletes the .shada file when deleting a session", function()
+      vim.cmd("e " .. TL.test_file)
+      ---@diagnostic disable-next-line: missing-parameter
+      require("auto-session").save_session("noshada")
+
+      assert.equals(1, vim.fn.filereadable(TL.makeSessionPath("noshada") .. ".shada"))
+
+      ---@diagnostic disable-next-line: missing-parameter
+      require("auto-session").delete_session("noshada")
+
+      assert.equals(0, vim.fn.filereadable(TL.makeSessionPath("noshada") .. ".shada"))
+    end)
   end)
-
-  it("restores the register from the session .shada file", function()
-    ---@diagnostic disable-next-line: missing-parameter
-    require("auto-session").restore_session()
-
-    assert.equals("hello", vim.fn.getreg("a"))
-  end)
-
-  it("sets shadafile to NONE so the global shada isn't loaded", function()
-    assert.equals("NONE", vim.o.shadafile)
-  end)
-
-  it("deletes the .shada file when deleting a session", function()
-    vim.cmd("e " .. TL.test_file)
-    ---@diagnostic disable-next-line: missing-parameter
-    require("auto-session").save_session("noshada")
-
-    assert.equals(1, vim.fn.filereadable(TL.makeSessionPath("noshada") .. ".shada"))
-
-    ---@diagnostic disable-next-line: missing-parameter
-    require("auto-session").delete_session("noshada")
-
-    assert.equals(0, vim.fn.filereadable(TL.makeSessionPath("noshada") .. ".shada"))
-  end)
-end)
+end
 
 describe("The default config", function()
   require("auto-session").setup({})
@@ -67,5 +72,9 @@ describe("The default config", function()
       save_and_restore_shada = false,
     })
     assert.equals("main.shada", vim.o.shadafile)
+
+    -- Avoid nvim writing a shada to the repo root on exit
+    vim.o.shadafile = "NONE"
+    vim.fn.delete("main.shada")
   end)
 end)
