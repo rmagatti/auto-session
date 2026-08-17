@@ -306,6 +306,39 @@ describe("Lib / Helper functions", function()
     vim.fn.delete(test_sessions_dir, "rf")
   end)
 
+  it("is_session_file returns false for shada files", function()
+    local test_sessions_dir = TL.session_dir .. "test_shada_sessions/"
+    vim.fn.mkdir(test_sessions_dir, "p")
+
+    local session_file = test_sessions_dir .. "session1.vim"
+    local shada_file = test_sessions_dir .. "session1.vim.shada"
+
+    vim.fn.writefile({ "let SessionLoad = 1", '" Test session' }, session_file)
+    vim.fn.writefile({ "" }, shada_file)
+
+    assert.True(Lib.is_session_file(session_file))
+    assert.False(Lib.is_session_file(shada_file))
+
+    vim.fn.delete(test_sessions_dir, "rf")
+  end)
+
+  it("get_session_list filters out shada files", function()
+    local test_sessions_dir = TL.session_dir .. "test_shada_list/"
+    vim.fn.mkdir(test_sessions_dir, "p")
+
+    local session_file = test_sessions_dir .. "session1.vim"
+    local shada_file = test_sessions_dir .. "session1.vim.shada"
+
+    vim.fn.writefile({ "let SessionLoad = 1", '" Test session' }, session_file)
+    vim.fn.writefile({ "" }, shada_file)
+
+    local session_list = Lib.get_session_list(test_sessions_dir)
+    assert.equals(1, #session_list)
+    assert.equals("session1", session_list[1].session_name)
+
+    vim.fn.delete(test_sessions_dir, "rf")
+  end)
+
   it("shorten_path replaces home directory with ~", function()
     local home = vim.fn.expand("~")
     assert.equals("~/projects/myapp", Lib.shorten_path(home .. "/projects/myapp"))
