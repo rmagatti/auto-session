@@ -1,5 +1,5 @@
 *auto-session.txt*
-                                     For Neovim    Last change: 2026 August 17
+                                     For Neovim    Last change: 2026 August 22
 
 ==============================================================================
 Table of Contents                             *auto-session-table-of-contents*
