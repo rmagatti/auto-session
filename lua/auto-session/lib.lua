@@ -412,8 +412,13 @@ function Lib.is_session_file(session_path)
     return false
   end
 
+  -- if it's a shada file, don't include it
+  if string.find(session_path, "%.vim%.shada$") then
+    return false
+  end
+
   -- if it's a file that doesn't end in x.vim, include
-  if not string.find(session_path, "x.vim$") then
+  if not string.find(session_path, "x%.vim$") then
     return true
   end
 

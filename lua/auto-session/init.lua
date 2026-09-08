@@ -21,6 +21,11 @@ function AutoSession.setup(config)
   -- Validate the root dir here so it's always set up correctly
   AutoSession.get_root_dir()
 
+  -- Don't load the global shada if we're managing shada per-session
+  if Config.save_and_restore_shada then
+    vim.o.shadafile = "NONE"
+  end
+
   -- Set up single session mode if enabled
   if Config.single_session_mode then
     AutoSession.manually_named_session = true
@@ -686,6 +691,12 @@ function AutoSession.save_session(session_name, opts)
   local vim_session_path = Lib.escape_string_for_vim(session_path)
   vim.cmd("mks! " .. vim_session_path)
 
+  -- Write shada file, use ! so we don't read existing file first
+  if Config.save_and_restore_shada then
+    Lib.logger.debug("writing shada")
+    vim.cmd("wshada! " .. vim_session_path .. ".shada")
+  end
+
   save_extra_cmds(session_path, session_name)
 
   AutoSession.run_cmds("post_save", session_name)
@@ -865,6 +876,15 @@ function AutoSession.restore_session_file(session_path, opts)
   Lib.conditional_buffer_wipeout(Config.preserve_buffer_on_restore)
   vim.cmd("silent clearjumps")
 
+  -- Read shada (if enabled)
+  if Config.save_and_restore_shada then
+    local shada_file = session_path .. ".shada"
+    if vim.fn.filereadable(shada_file) == 1 then
+      Lib.logger.debug("reading shada")
+      vim.cmd("rshada! " .. vim_session_path .. ".shada")
+    end
+  end
+
   ---@diagnostic disable-next-line: param-type-not-match
   local success, result = pcall(vim.cmd, "silent " .. cmd)
 
@@ -982,6 +1002,13 @@ function AutoSession.delete_session_file(session_path, session_name)
   if vim.fn.filereadable(extra_commands_path) == 1 and not Lib.is_session_file(extra_commands_path) then
     vim.fn.delete(extra_commands_path)
     Lib.logger.debug("delete_session_file deleting extra user commands: " .. extra_commands_path)
+  end
+
+  -- check for shada
+  local shada_file = session_path .. ".shada"
+  if vim.fn.filereadable(shada_file) == 1 then
+    vim.fn.delete(shada_file)
+    Lib.logger.debug("delete_session_file deleting shada file: " .. shada_file)
   end
 
   AutoSession.run_cmds("post_delete", session_name)
