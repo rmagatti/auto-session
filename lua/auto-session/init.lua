@@ -37,6 +37,7 @@ function AutoSession.setup(config)
   -- save argv
   launch_argv = vim.fn.argv()
   Lib.logger.debug("Saving argv at setup: " .. vim.inspect(launch_argv))
+  require("auto-session.restart").on_setup()
 end
 
 local function normalize_session_path(path)
@@ -380,18 +381,19 @@ end
 ---Get the hook commands from the config and run them
 ---@param hook_name string
 ---@param arg? any Optional argument for a lua hook function
+---@param strict? boolean Propagate hook errors instead of only logging them
 ---@return table|nil Results of the commands
-function AutoSession.run_cmds(hook_name, arg)
+function AutoSession.run_cmds(hook_name, arg, strict)
   local cmds = Config[hook_name .. "_cmds"] --[[@as HookCmd[] ]]
-  return Lib.run_hook_cmds(cmds, hook_name, arg)
+  return Lib.run_hook_cmds(cmds, hook_name, arg, strict)
 end
 
 ---Calls a hook to get any user/extra commands and if any, saves them to *x.vim
 ---@param session_path string The path of the session file to save the extra params for
 ---@param session_name string The name of the session being saved
 ---@return boolean Returns whether extra commands were saved
-local function save_extra_cmds(session_path, session_name)
-  local data = AutoSession.run_cmds("save_extra")
+local function save_extra_cmds(session_path, session_name, strict)
+  local data = AutoSession.run_cmds("save_extra", nil, strict)
   local extra_file = string.gsub(session_path, "%.vim$", "x.vim")
 
   -- data is a table of strings or tables, one for each hook function
@@ -416,11 +418,17 @@ local function save_extra_cmds(session_path, session_name)
 
   if not data_to_write or vim.tbl_isempty(data_to_write) then
     -- Have to delete the file just in case there's an old file from a previous save
-    vim.fn.delete(extra_file)
+    local exists = vim.fn.filereadable(extra_file) == 1
+    if vim.fn.delete(extra_file) ~= 0 and exists and strict then
+      error("Could not remove stale session extra commands: " .. extra_file)
+    end
     return false
   end
 
   if vim.fn.writefile(data_to_write, extra_file) ~= 0 then
+    if strict then
+      error("Could not write session extra commands: " .. extra_file)
+    end
     return false
   end
 
@@ -559,6 +567,10 @@ end
 ---Also make sure to call no_restore if no session was restored
 ---@return boolean # Was a session restored
 function AutoSession.auto_restore_session_at_vim_enter()
+  if require("auto-session.restart").is_restart("start") then
+    return false
+  end
+
   -- launch_argv is captured during setup as that happens before `VimEnter` which
   -- is important because some plugins (.e.g. NvimTree) rewrite the arguments before
   -- we get to see them
@@ -624,6 +636,7 @@ end
 ---@class SaveOpts
 ---@field show_message boolean|nil Should messages be shown
 ---@field is_autosave boolean|nil True if this is part of an auto-save
+---@field stop_on_error boolean|nil Propagate hook and extra-command write errors (used by restart)
 
 ---Saves a session to the dir specified in the config. If no optional
 ---session name is passed in, it uses the cwd as the session name
@@ -665,7 +678,7 @@ function AutoSession.save_session(session_name, opts)
 
   Lib.close_ignored_filetypes(Config.close_filetypes_on_save)
 
-  local results = AutoSession.run_cmds("pre_save", session_name) or {}
+  local results = AutoSession.run_cmds("pre_save", session_name, opts.stop_on_error) or {}
 
   if opts.is_autosave then
     Lib.logger.debug("pre_save results:", results)
@@ -697,9 +710,9 @@ function AutoSession.save_session(session_name, opts)
     vim.cmd("wshada! " .. vim_session_path .. ".shada")
   end
 
-  save_extra_cmds(session_path, session_name)
+  save_extra_cmds(session_path, session_name, opts.stop_on_error)
 
-  AutoSession.run_cmds("post_save", session_name)
+  AutoSession.run_cmds("post_save", session_name, opts.stop_on_error)
 
   -- session_name might be nil (e.g. when using cwd), unescape escaped_session_name instead
   Lib.logger.debug("Saved session: " .. Lib.unescape_session_name(escaped_session_name))

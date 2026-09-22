@@ -69,6 +69,13 @@ describe("Close filetypes on save", function()
   it("does not save a checkhealth buffer", function()
     vim.cmd("e " .. TL.test_file) -- this is a text file
     vim.cmd("checkhealth auto-session")
+    local health_buf = vim.api.nvim_get_current_buf()
+
+    -- Neovim nightly runs health checks asynchronously and sets the filetype
+    -- only after the check completes.
+    assert.True(vim.wait(5000, function()
+      return vim.bo[health_buf].filetype == "checkhealth"
+    end))
 
     as.setup({
       close_filetypes_on_save = { "checkhealth" }, -- or empty if ignoring checkhealth is the default as suggested above

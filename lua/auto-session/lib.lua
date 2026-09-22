@@ -520,12 +520,12 @@ end
 ---@return string lua_pattern The Lua pattern
 function Lib.glob_to_pattern(glob_pattern)
   local pattern = glob_pattern
-  
+
   -- Save glob characters before normalization
   pattern = string.gsub(pattern, "%*%*", "\001")
   pattern = string.gsub(pattern, "%*", "\002")
   pattern = string.gsub(pattern, "%?", "\003")
-  
+
   -- Expand ~ and environment variables
   -- vim.fn.expand() tries to do glob expansion which we don't want, so we need a different approach
   -- First, check if pattern starts with ~
@@ -533,41 +533,41 @@ function Lib.glob_to_pattern(glob_pattern)
     local home = vim.fn.expand("~")
     pattern = home .. string.sub(pattern, 2)
   end
-  
+
   -- Expand environment variables (e.g., $HOME, $USER)
   pattern = vim.fn.expand(pattern)
-  
+
   -- Normalize the path (handles .., ., and converts Windows backslashes to forward slashes)
   pattern = vim.fs.normalize(pattern)
-  
+
   -- Restore glob characters
   pattern = string.gsub(pattern, "\001", "**")
   pattern = string.gsub(pattern, "\002", "*")
   pattern = string.gsub(pattern, "\003", "?")
-  
+
   -- Remove trailing slashes for consistency
   pattern = string.gsub(pattern, "/+$", "")
-  
+
   -- Convert globs to placeholders before escaping
   pattern = string.gsub(pattern, "%*%*", "\001")
   pattern = string.gsub(pattern, "%*", "\002")
   pattern = string.gsub(pattern, "%?", "\003")
-  
+
   -- Now escape Lua pattern special characters
   -- Characters that need escaping in Lua patterns: ( ) . % + - * ? [ ] ^ $
   pattern = string.gsub(pattern, "([%(%)%.%%+%-%*%?%[%]%^%$])", "%%%1")
-  
+
   -- Now convert placeholders to actual patterns
   -- Convert ** (placeholder \001) to match anything including path separator
   pattern = string.gsub(pattern, "\001", ".*")
-  
+
   -- Convert * (placeholder \002) to match any characters except path separator
   -- Always use forward slash since vim.fs.normalize converts backslashes
   pattern = string.gsub(pattern, "\002", "[^/]*")
-  
+
   -- Convert ? (placeholder \003) to match single character except path separator
   pattern = string.gsub(pattern, "\003", "[^/]")
-  
+
   -- Anchor the pattern to match the full path
   return "^" .. pattern .. "$"
 end
@@ -578,25 +578,25 @@ end
 ---@return boolean matches True if the path matches the pattern
 function Lib.path_matches_glob(path, glob_pattern)
   local normalized_path = path
-  
+
   -- Expand ~ if path starts with it
   if vim.startswith(normalized_path, "~") then
     local home = vim.fn.expand("~")
     normalized_path = home .. string.sub(normalized_path, 2)
   end
-  
+
   -- Expand environment variables
   normalized_path = vim.fn.expand(normalized_path)
-  
+
   -- Normalize the path (handles .., ., and converts Windows backslashes to forward slashes)
   normalized_path = vim.fs.normalize(normalized_path)
-  
+
   -- Remove trailing slashes
   normalized_path = string.gsub(normalized_path, "/+$", "")
-  
+
   -- Convert glob to Lua pattern and test
   local lua_pattern = Lib.glob_to_pattern(glob_pattern)
-  
+
   Lib.logger.debug("path_matches_glob", {
     path = path,
     normalized_path = normalized_path,
@@ -604,7 +604,7 @@ function Lib.path_matches_glob(path, glob_pattern)
     lua_pattern = lua_pattern,
     matches = string.match(normalized_path, lua_pattern) ~= nil,
   })
-  
+
   return string.match(normalized_path, lua_pattern) ~= nil
 end
 
@@ -616,15 +616,15 @@ function Lib.find_matching_directory(dirToFind, dirs)
   -- Normalize the directory to find (remove trailing slashes, resolve symlinks)
   local normalized_dirToFind = vim.fn.simplify(dirToFind)
   normalized_dirToFind = string.gsub(normalized_dirToFind, "/+$", "")
-  
+
   Lib.logger.debug("find_matching_directory start", { dirToFind = dirToFind, normalized = normalized_dirToFind })
 
   for _, dir in pairs(dirs) do
     local original_dir = dir
-    
+
     -- First, expand the pattern (handles ~, $VAR, and glob expansion if paths exist)
     local expanded_dir = Lib.expand(dir)
-    
+
     Lib.logger.debug("find_matching_directory checking", {
       original = original_dir,
       expanded = expanded_dir,
@@ -639,7 +639,7 @@ function Lib.find_matching_directory(dirToFind, dirs)
       for path in string.gmatch(expanded_dir, "[^\r\n]+") do
         local simplified_path = vim.fn.simplify(path)
         local path_without_trailing_slashes = string.gsub(simplified_path, "/+$", "")
-        
+
         -- Also check resolved symlink
         local resolved_path = vim.fn.resolve(simplified_path)
         resolved_path = string.gsub(resolved_path, "/+$", "")
@@ -649,7 +649,7 @@ function Lib.find_matching_directory(dirToFind, dirs)
           return true
         end
       end
-    
+
     -- Case 2: Pattern contains glob characters but didn't expand to multiple paths
     -- This means either no paths matched, or it's a single path
     -- Use pattern matching as fallback
@@ -659,13 +659,13 @@ function Lib.find_matching_directory(dirToFind, dirs)
         Lib.logger.debug("find_matching_directory: Found match via pattern matching!")
         return true
       end
-    
+
     -- Case 3: Exact path (no glob characters)
     else
       Lib.logger.debug("find_matching_directory: Case 3 - Exact path")
       local simplified_path = vim.fn.simplify(expanded_dir)
       local path_without_trailing_slashes = string.gsub(simplified_path, "/+$", "")
-      
+
       -- Also check resolved symlink
       local resolved_path = vim.fn.resolve(simplified_path)
       resolved_path = string.gsub(resolved_path, "/+$", "")
@@ -684,8 +684,9 @@ end
 ---@param cmds HookCmd[] List of commands to run
 ---@param hook_name string Name of the hook being run
 ---@param arg? any Optional argument for a lua hook function
+---@param strict? boolean Propagate hook errors instead of only logging them
 ---@return table|nil Results of the cmds
-function Lib.run_hook_cmds(cmds, hook_name, arg)
+function Lib.run_hook_cmds(cmds, hook_name, arg, strict)
   if Lib.is_empty_table(cmds) then
     return nil
   end
@@ -703,6 +704,9 @@ function Lib.run_hook_cmds(cmds, hook_name, arg)
     end
 
     if not success then
+      if strict then
+        error(string.format("Error running %s hook: %s", hook_name, result))
+      end
       Lib.logger.error(string.format("Error running %s. error: %s", cmd, result))
     else
       table.insert(results, result)
