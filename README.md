@@ -245,6 +245,8 @@ set sessionoptions+=winpos,terminal,folds
 :AutoSession restore " restores a session based on the `cwd` from `root_dir`
 :AutoSession restore my_session " restores `my_session` from `root_dir`
 
+:AutoSession restart " saves the current session and restores it after restarting Neovim
+
 :AutoSession delete " deletes a session based on the `cwd` from `root_dir`
 :AutoSession delete my_session " deletes `my_session` from `root_dir`
 
@@ -257,6 +259,20 @@ set sessionoptions+=winpos,terminal,folds
 :AutoSession search " opens a session picker, see Config.session_lens.picker
 :AutoSession deletePicker " opens a vim.ui.select picker to choose a session to delete.
 ```
+
+`AutoSession restart` requires Neovim's native restart protocol (available in 0.12.5
+and newer compatible builds) and an attached UI. It manually saves and restores the current session,
+including its name, git/custom tag, hooks, extra commands/data, and configured
+per-session ShaDa. It works with `auto_save` and `auto_restore` disabled without
+force-enabling either setting. The restarted editor reloads your normal config;
+runtime-only toggles reset. As with other manual commands, returning `false` from
+a pre-save or pre-restore hook does not cancel it.
+
+Save or discard any unsaved buffer changes first; there is no force variant.
+Save errors stop the restart. Native `:restart` and `:restart!` stay under Neovim's
+control: AutoSession skips its automatic exit save and startup restore (including
+`no_restore` hooks) for both commands on builds exposing the native restart reasons.
+Regular quit/start behavior is unchanged.
 
 ## 📖 Details
 

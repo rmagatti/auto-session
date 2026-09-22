@@ -124,6 +124,9 @@ end
 local user_commands = {
   save = AutoSession.save_session,
   restore = AutoSession.restore_session,
+  restart = function()
+    require("auto-session.restart").restart()
+  end,
   delete = AutoSession.delete_session,
 
   disable = AutoSession.disable_auto_save,
@@ -167,6 +170,11 @@ end
 
 local function user_command_handler(args)
   local cmd = user_commands[args.fargs[1]]
+
+  if args.fargs[1] == "restart" and #args.fargs ~= 1 then
+    Lib.logger.error("AutoSession restart does not accept arguments")
+    return
+  end
 
   if cmd then
     cmd(args.fargs[2])
@@ -284,6 +292,10 @@ function M.setup_autocmds()
     pattern = "*",
     nested = true,
     callback = function()
+      if require("auto-session.restart").is_restart("start") then
+        return
+      end
+
       if vim.g.in_pager_mode then
         -- Don't auto restore session in pager mode
         Lib.logger.debug("In pager mode, skipping auto restore")
@@ -323,7 +335,7 @@ function M.setup_autocmds()
     pattern = "*",
     callback = function()
       -- If we're in pager mode or we're in a subprocess, don't save on exit
-      if not vim.g.in_pager_mode and not vim.env.NVIM then
+      if not vim.g.in_pager_mode and not vim.env.NVIM and not require("auto-session.restart").is_restart("exit") then
         AutoSession.auto_save_session()
       end
     end,

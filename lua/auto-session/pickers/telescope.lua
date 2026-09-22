@@ -158,7 +158,7 @@ local function extension_search_session(custom_opts)
           vim.bo[self.state.bufnr].filetype = filetype
         end
       else
-        vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, {"No preview available"})
+        vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, { "No preview available" })
       end
     end,
   })
