@@ -1,5 +1,5 @@
 *auto-session.txt*
-                                     For Neovim    Last change: 2026 August 22
+                                  For Neovim    Last change: 2026 September 22
 
 ==============================================================================
 Table of Contents                             *auto-session-table-of-contents*
@@ -29,10 +29,10 @@ Table of Contents                             *auto-session-table-of-contents*
 1. Features                                            *auto-session-features*
 
 - Automatically save and restore sessions, with customizable filters
-- |auto-session-session-picker|, with support for Telescope, Snacks, Fzf-Lua, and `vim.ui.select`
+- Session picker, with support for Telescope, Snacks, Fzf-Lua, and `vim.ui.select`
 - Track directory changes
 - Separate sessions per git branch
-- Customizable with |auto-session-hooks|
+- Customizable with Hooks
 - Save custom data along with your session
 
 
@@ -55,7 +55,7 @@ Lazy.nvim <https://github.com/folke/lazy.nvim>:
     return {
       "rmagatti/auto-session",
       lazy = false,
-    
+
       ---enables autocomplete for opts
       ---@module "auto-session"
       ---@type AutoSession.Config
@@ -88,7 +88,7 @@ Default settings (you don’t have to copy these into your config):
       auto_restore_last_session = false, -- On startup, loads the last saved session if session for cwd does not exist
       cwd_change_handling = false, -- Automatically save/restore sessions when changing directories
       single_session_mode = false, -- Enable single session mode to keep all work in one session regardless of cwd changes. When enabled, prevents creation of separate sessions for different directories and maintains one unified session. Does not work with cwd_change_handling
-    
+
       -- Filtering
       suppressed_dirs = nil, -- Suppress session restore/create in certain directories
       allowed_dirs = nil, -- Allow session restore/create in certain directories
@@ -96,25 +96,25 @@ Default settings (you don’t have to copy these into your config):
       close_filetypes_on_save = { "checkhealth" }, -- Buffers with matching filetypes will be closed before saving
       close_unsupported_windows = true, -- Close windows that aren't backed by normal file before autosaving a session. Set preserve_filetypes/preserve_buftypes to keep selected unsupported windows open.
       preserve_buffer_on_restore = nil, -- Function that returns true if a buffer should be preserved when restoring a session
-    
+
       -- Git / Session naming
       git_use_branch_name = false, -- Include git branch name in session name, can also be a function that takes an optional path and returns the name of the branch
       git_auto_restore_on_branch_change = false, -- Should we auto-restore the session when the git branch changes. Requires git_use_branch_name
       custom_session_tag = nil, -- Function that can return a string to be used as part of the session name
       resolve_symlinks = false, -- Resolve symlinks in cwd and single-directory launch arguments before saving/restoring sessions
-    
+
       -- Deleting
       auto_delete_empty_sessions = true, -- Enables/disables deleting the session if there are only unnamed/empty buffers when auto-saving
       purge_after_minutes = nil, -- Sessions older than purge_after_minutes will be deleted asynchronously on startup, e.g. set to 14400 to delete sessions that haven't been accessed for more than 10 days, defaults to off (no purging), requires >= nvim 0.10
-    
+
       -- Saving extra data
       save_extra_data = nil, -- Function that returns extra data that should be saved with the session. Will be passed to restore_extra_data on restore
       restore_extra_data = nil, -- Function called when there's extra data saved for a session
-    
+
       -- Argument handling
       args_allow_single_directory = true, -- Follow normal session restore/save logic if launched with a single directory as the only argument. Set to false to skip auto-restore when any argument is passed to Neovim
       args_allow_files_auto_save = false, -- Allow saving a session even when launched with a file argument (or multiple files/dirs). It does not re-enable auto-restore and can be true or a function that returns true when saving is allowed. See documentation for more detail
-    
+
       -- Misc
       log_level = "error", -- Sets the log level of the plugin (debug, info, warn, error).
       root_dir = vim.fn.stdpath("data") .. "/sessions/", -- Root dir where sessions will be stored
@@ -125,7 +125,7 @@ Default settings (you don’t have to copy these into your config):
       save_and_restore_shada = false, -- boolean Should ShaDa (command line/search history, registers, marks, global variables, etc) be saved and restored. Requires nvim >= 0.11
       lazy_support = true, -- Automatically detect if Lazy.nvim is being used and wait until Lazy is done to make sure session is restored correctly. Does nothing if Lazy isn't being used
       legacy_cmds = true, -- Define legacy commands: Session*, Autosession (lowercase s), currently true. Set to false to prevent defining them
-    
+
       ---@type SessionLens
       session_lens = {
         picker = nil, -- "telescope"|"snacks"|"fzf"|"select"|nil Pickers are detected automatically but you can also set one manually. Falls back to vim.ui.select
@@ -133,7 +133,7 @@ Default settings (you don’t have to copy these into your config):
         picker_opts = nil, -- Table passed to Telescope / Snacks / Fzf-Lua to configure the picker. See below for more information
         previewer = "summary", -- 'summary'|'active_buffer'|function - How to display session preview. 'summary' shows a summary of the session, 'active_buffer' shows the contents of the active buffer in the session, or a custom function
         shorten_paths = true, -- Replace the home directory with ~ in the picker display names
-    
+
         ---@type SessionLensMappings
         mappings = {
           -- Mode can be a string or a table, e.g. {"i", "n"} for both insert and normal mode
@@ -141,7 +141,7 @@ Default settings (you don’t have to copy these into your config):
           alternate_session = { "i", "<C-s>" }, -- mode and key for swapping to alternate session from the picker
           copy_session = { "i", "<C-y>" }, -- mode and key for copying a session from the picker
         },
-    
+
         ---@type SessionControl
         session_control = {
           control_dir = vim.fn.stdpath("data") .. "/auto_session/", -- Auto session control dir, for control files, like alternating between two sessions with session-lens
@@ -260,39 +260,40 @@ For the best experience, set `sessionoptions` to:
 >viml
     :AutoSession save " saves a session based on the `cwd` in `root_dir`
     :AutoSession save my_session " saves a session called `my_session` in `root_dir`
-    
+
     :AutoSession restore " restores a session based on the `cwd` from `root_dir`
     :AutoSession restore my_session " restores `my_session` from `root_dir`
-    
+
     :AutoSession restart " saves the current session and restores it after restarting Neovim
 
     :AutoSession delete " deletes a session based on the `cwd` from `root_dir`
     :AutoSession delete my_session " deletes `my_session` from `root_dir`
-    
+
     :AutoSession disable " disables autosave
     :AutoSession enable " enables autosave (still does all checks in the config)
     :AutoSession toggle" toggles autosave
-    
+
     :AutoSession purgeOrphaned " removes all orphaned sessions with no working directory left.
-    
+
     :AutoSession search " opens a session picker, see Config.session_lens.picker
     :AutoSession deletePicker " opens a vim.ui.select picker to choose a session to delete.
 <
 
-
-`AutoSession restart` requires Neovim’s native restart protocol (available in 0.12.5
-and newer compatible builds) and an attached UI. It manually saves and restores the current session,
-including its name, git/custom tag, hooks, extra commands/data, and configured
-per-session ShaDa. It works with `auto_save` and `auto_restore` disabled without
-force-enabling either setting. The restarted editor reloads your normal config;
-runtime-only toggles reset. As with other manual commands, returning `false` from
-a pre-save or pre-restore hook does not cancel it.
+`AutoSession restart` requires Neovim’s native restart protocol (available in
+0.12.5 and newer compatible builds) and an attached UI. It manually saves and
+restores the current session, including its name, git/custom tag, hooks, extra
+commands/data, and configured per-session ShaDa. It works with `auto_save` and
+`auto_restore` disabled without force-enabling either setting. The restarted
+editor reloads your normal config; runtime-only toggles reset. As with other
+manual commands, returning `false` from a pre-save or pre-restore hook does not
+cancel it.
 
 Save or discard any unsaved buffer changes first; there is no force variant.
-Save errors stop the restart. Native `:restart` and `:restart!` stay under Neovim’s
-control: AutoSession skips its automatic exit save and startup restore (including
-`no_restore` hooks) for both commands on builds exposing the native restart reasons.
-Regular quit/start behavior is unchanged.
+Save errors stop the restart. Native `:restart` and `:restart!` stay under
+Neovim’s control: AutoSession skips its automatic exit save and startup
+restore (including `no_restore` hooks) for both commands on builds exposing the
+native restart reasons. Regular quit/start behavior is unchanged.
+
 
 ==============================================================================
 6. Details                                              *auto-session-details*
@@ -345,7 +346,7 @@ The configuration options are in the `session_lens` section:
         { "<leader>ws", "<cmd>AutoSession save<CR>", desc = "Save session" },
         { "<leader>wa", "<cmd>AutoSession toggle<CR>", desc = "Toggle autosave" },
       },
-    
+
       ---enables autocomplete for opts
       ---@module "auto-session"
       ---@type AutoSession.Config
@@ -359,7 +360,7 @@ The configuration options are in the `session_lens` section:
             alternate_session = { "i", "<C-s>" },
             copy_session = { "i", "<C-y>" },
           },
-    
+
           picker_opts = {
             -- For Telescope, you can set theme options here, see:
             -- https://github.com/nvim-telescope/telescope.nvim/blob/master/doc/telescope.txt#L112
@@ -370,7 +371,7 @@ The configuration options are in the `session_lens` section:
             --   width = 0.8, -- Can set width and height as percent of window
             --   height = 0.5,
             -- },
-    
+
             -- For Snacks, you can set layout options here, see:
             -- https://github.com/folke/snacks.nvim/blob/main/docs/picker.md#%EF%B8%8F-layouts
             --
@@ -380,14 +381,14 @@ The configuration options are in the `session_lens` section:
             --   width = 0.4,
             --   height = 0.4,
             -- },
-    
+
             -- For Fzf-Lua, picker_opts just turns into winopts, see:
             -- https://github.com/ibhagwan/fzf-lua#customization
             --
             --  height = 0.8,
             --  width = 0.50,
           },
-    
+
           -- Telescope only: If load_on_setup is false, make sure you use `:AutoSession search` to open the picker as it will initialize everything first
           load_on_setup = true,
         },
@@ -492,11 +493,11 @@ changed. Here’s the config for tracking cwd and a hook example:
 >lua
     opts = {
       cwd_change_handling = true,
-    
+
       pre_cwd_changed_cmds = {
         "tabdo NERDTreeClose", -- Close NERDTree before saving session
       },
-    
+
       post_cwd_changed_cmds = {
         function()
           require("lualine").refresh() -- example refreshing the lualine status line _after_ the cwd changes
@@ -608,7 +609,7 @@ are some examples of what you can do:
 >lua
     opts = {
       -- {hook_name}_cmds = {"{hook_command1}", "{hook_command2}"}
-    
+
       pre_save_cmds = {
         "tabdo NERDTreeClose", -- Close NERDTree before saving session
         function(session_name)
@@ -617,7 +618,7 @@ are some examples of what you can do:
           end
         end,
       },
-    
+
       pre_restore_cmds = {
         function(session_name)
           if some_test() then -- don't auto-restore if some_test() is true
@@ -625,7 +626,7 @@ are some examples of what you can do:
           end
         end,
       },
-    
+
       post_restore_cmds = {
         "someOtherVimCommand",
         function()
@@ -636,7 +637,7 @@ are some examples of what you can do:
           nvim_tree_api.tree.reload()
         end,
       },
-    
+
       -- Save quickfix list and open it when restoring the session
       close_unsupported_windows = {
         preserve_buftypes = { "quickfix" },
@@ -649,7 +650,7 @@ are some examples of what you can do:
             return nil
           end
           local qfinfo = vim.fn.getqflist({ title = 1 })
-    
+
           for _, entry in ipairs(qflist) do
             -- use filename instead of bufnr so it can be reloaded. Entries with no
             -- buffer (e.g. non-error lines from build output) have bufnr 0, which
@@ -663,7 +664,7 @@ are some examples of what you can do:
             end
             entry.bufnr = nil
           end
-    
+
           local setqflist = "call setqflist(" .. vim.fn.string(qflist) .. ")"
           local setqfinfo = 'call setqflist([], "a", ' .. vim.fn.string(qfinfo) .. ")"
           return { setqflist, setqfinfo, "copen" }
@@ -685,13 +686,13 @@ As an example, here’s how you could save DAP breakpoints with your session:
     ---@module "auto-session"
     ---@type AutoSession.Config
     local opts = {
-    
+
       save_extra_data = function(_)
         local ok, breakpoints = pcall(require, "dap.breakpoints")
         if not ok or not breakpoints then
           return
         end
-    
+
         local bps = {}
         local breakpoints_by_buf = breakpoints.get()
         for buf, buf_bps in pairs(breakpoints_by_buf) do
@@ -705,13 +706,13 @@ As an example, here’s how you could save DAP breakpoints with your session:
         }
         return vim.fn.json_encode(extra_data)
       end,
-    
+
       restore_extra_data = function(_, extra_data)
         local json = vim.fn.json_decode(extra_data)
-    
+
         if json.breakpoints then
           local ok, breakpoints = pcall(require, "dap.breakpoints")
-    
+
           if not ok or not breakpoints then
             return
           end
@@ -724,12 +725,12 @@ As an example, here’s how you could save DAP breakpoints with your session:
                 log_message = bp.logMessage,
                 hit_condition = bp.hitCondition,
               }
-    
+
               local bufnr = vim.fn.bufnr(buf_name, true)
               if vim.fn.bufloaded(bufnr) == 0 then
                 vim.api.nvim_buf_call(bufnr, vim.cmd.edit)
               end
-    
+
               breakpoints.set(opts, bufnr, line)
             end
           end
