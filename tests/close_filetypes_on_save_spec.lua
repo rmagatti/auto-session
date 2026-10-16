@@ -70,6 +70,14 @@ describe("Close filetypes on save", function()
     vim.cmd("e " .. TL.test_file) -- this is a text file
     vim.cmd("checkhealth auto-session")
 
+    -- checkhealth runs asynchronously in newer versions of nvim and only sets
+    -- the buffer's filetype once the checks complete, so wait for it to be set
+    -- before saving the session
+    vim.wait(5000, function()
+      local buf = vim.fn.bufnr("health://")
+      return buf ~= -1 and vim.bo[buf].filetype == "checkhealth"
+    end, 10)
+
     as.setup({
       close_filetypes_on_save = { "checkhealth" }, -- or empty if ignoring checkhealth is the default as suggested above
     })

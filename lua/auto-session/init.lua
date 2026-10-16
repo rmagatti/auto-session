@@ -443,8 +443,9 @@ end
 ---Save the current session if the session we're loading isn't also for the cwd (if autosave allows)
 ---and then restore the selected session
 ---@param session_name string The session name to restore
+---@param opts? RestoreOpts|nil Optional restore options
 ---@return boolean Was the session restored successfully
-function AutoSession.autosave_and_restore(session_name)
+function AutoSession.autosave_and_restore(session_name, opts)
   local cwd_session_name = Lib.escaped_session_name_to_session_name(get_session_file_name(nil))
   if cwd_session_name ~= session_name then
     Lib.logger.debug("Autosaving before restoring", { cwd = cwd_session_name, session_name = session_name })
@@ -453,7 +454,7 @@ function AutoSession.autosave_and_restore(session_name)
     Lib.logger.debug("Not autosaving, cwd == session_name for: ", session_name)
   end
 
-  return AutoSession.restore_session(session_name)
+  return AutoSession.restore_session(session_name, opts)
 end
 
 local function write_to_session_control_json(session_file_name)
